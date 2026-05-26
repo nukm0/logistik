@@ -2,12 +2,12 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Clever Logistics — умные грузоперевозки по России</title>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700&display=swap" rel="stylesheet">
-    <!-- Font Awesome 6 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>ООО «Дюна» — Калькулятор грузоперевозок</title>
+    <!-- Font Awesome 6 (для иконок) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -17,482 +17,690 @@
 
         body {
             font-family: 'Inter', sans-serif;
+            background: #f5f7fb;
             color: #1e293b;
-            background-color: #ffffff;
-            line-height: 1.5;
-            scroll-behavior: smooth;
+            padding: 20px;
         }
 
         .container {
-            max-width: 1280px;
+            max-width: 1300px;
             margin: 0 auto;
-            padding: 0 24px;
-        }
-
-        h1, h2, h3 {
-            font-weight: 700;
-            line-height: 1.2;
-            letter-spacing: -0.02em;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.1);
+            overflow: hidden;
+            padding: 2rem 2rem 2.5rem;
         }
 
         h1 {
-            font-size: 3rem;
-            margin-bottom: 1.5rem;
-        }
-
-        h2 {
-            font-size: 2rem;
-            margin-bottom: 1rem;
-            text-align: center;
-        }
-
-        h3 {
-            font-size: 1.5rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .section-subhead {
-            text-align: center;
-            color: #475569;
-            max-width: 700px;
-            margin: 0 auto 3rem auto;
-            font-size: 1.125rem;
-        }
-
-        .btn-primary {
-            display: inline-block;
-            background-color: #f97316;
-            color: white;
-            font-weight: 600;
-            padding: 0.875rem 2rem;
-            border-radius: 40px;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            border: none;
-            cursor: pointer;
-            font-size: 1rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        .btn-primary:hover {
-            background-color: #ea580c;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        }
-
-        .btn-outline {
-            display: inline-block;
-            background-color: transparent;
-            border: 2px solid #f97316;
-            color: #f97316;
-            font-weight: 600;
-            padding: 0.75rem 1.75rem;
-            border-radius: 40px;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-
-        .btn-outline:hover {
-            background-color: #f97316;
-            color: white;
-        }
-
-        /* Header */
-        .header {
-            background-color: #ffffff;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            backdrop-filter: blur(8px);
-            background-color: rgba(255,255,255,0.95);
-        }
-
-        .nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 0;
-            flex-wrap: wrap;
-        }
-
-        .logo {
-            font-size: 1.75rem;
-            font-weight: 800;
-            color: #f97316;
-            text-decoration: none;
-        }
-
-        .logo span {
-            color: #1e293b;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-            list-style: none;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            font-weight: 500;
-            color: #1e293b;
-            transition: color 0.2s;
-        }
-
-        .nav-links a:hover {
-            color: #f97316;
-        }
-
-        .menu-icon {
-            display: none;
             font-size: 1.8rem;
-            cursor: pointer;
-        }
-
-        /* Hero */
-        .hero {
-            padding: 4rem 0 5rem;
-            background: linear-gradient(135deg, #fef9f0 0%, #ffffff 100%);
-        }
-
-        .hero-grid {
+            margin-bottom: 0.25rem;
             display: flex;
             align-items: center;
-            gap: 3rem;
-            flex-wrap: wrap;
+            gap: 12px;
         }
 
-        .hero-content {
-            flex: 1;
-        }
-
-        .hero-image {
-            flex: 1;
-            text-align: center;
-        }
-
-        .hero-image i {
-            font-size: 12rem;
-            color: #f97316;
-            opacity: 0.7;
-        }
-
-        /* Calculator card */
-        .calculator {
-            background-color: white;
-            border-radius: 32px;
-            box-shadow: 0 20px 35px -10px rgba(0,0,0,0.1);
-            padding: 2rem;
-            margin: 2rem 0;
-            border: 1px solid #f1f5f9;
-        }
-
-        .calc-form {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1.5rem;
-            align-items: flex-end;
-        }
-
-        .calc-field {
-            flex: 1;
-            min-width: 150px;
-        }
-
-        .calc-field label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
+        h1 small {
             font-size: 0.9rem;
+            font-weight: normal;
+            color: #f97316;
         }
 
-        .calc-field select, .calc-field input {
+        .sub {
+            color: #475569;
+            border-left: 3px solid #f97316;
+            padding-left: 12px;
+            margin-bottom: 2rem;
+        }
+
+        /* step navigation */
+        .steps {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .step-btn {
+            background: none;
+            border: none;
+            font-weight: 600;
+            font-size: 1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 40px;
+            cursor: pointer;
+            color: #64748b;
+            transition: all 0.2s;
+        }
+
+        .step-btn.active {
+            background: #f97316;
+            color: white;
+        }
+
+        .step-panel {
+            display: none;
+            animation: fade 0.25s ease;
+        }
+
+        .step-panel.active-panel {
+            display: block;
+        }
+
+        @keyframes fade {
+            from { opacity: 0; transform: translateY(6px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        input, select, textarea {
             width: 100%;
-            padding: 0.75rem;
-            border-radius: 16px;
+            padding: 12px 14px;
+            border-radius: 20px;
             border: 1px solid #cbd5e1;
             font-family: inherit;
+            font-size: 0.95rem;
         }
 
-        .price-result {
-            margin-top: 1.5rem;
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: #f97316;
-            text-align: center;
+        .row-2col {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .row-2col > div {
+            flex: 1;
         }
 
-        /* Services grid */
-        .services {
-            padding: 5rem 0;
-            background-color: #f8fafc;
-        }
-
-        .services-grid {
+        .card-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 2rem;
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
         }
 
-        .service-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 28px;
+        .truck-card {
+            background: #f8fafc;
+            border-radius: 24px;
+            padding: 1rem;
             text-align: center;
-            transition: all 0.2s;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.02);
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: 0.2s;
+        }
+        .truck-card.selected {
+            border-color: #f97316;
+            background: #fff7ed;
+            box-shadow: 0 6px 12px -8px rgba(0,0,0,0.1);
+        }
+        .truck-card i {
+            font-size: 2.8rem;
+            color: #f97316;
+        }
+        .truck-name {
+            font-weight: 700;
+            margin: 8px 0 4px;
+        }
+        .truck-desc {
+            font-size: 0.8rem;
+            color: #334155;
+        }
+
+        .option-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+        }
+        .opt-btn {
+            background: #f1f5f9;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .opt-btn.active-opt {
+            background: #f97316;
+            color: white;
+        }
+
+        .cargo-item {
+            background: #f9f9fc;
+            border-radius: 24px;
+            padding: 1.2rem;
+            margin-bottom: 1rem;
             border: 1px solid #e2e8f0;
         }
 
-        .service-card i {
-            font-size: 2.8rem;
-            color: #f97316;
-            margin-bottom: 1rem;
+        .btn {
+            background: #f97316;
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 8px;
         }
-
-        /* About */
-        .about {
-            padding: 5rem 0;
-        }
-
-        .about-grid {
-            display: flex;
-            gap: 3rem;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .about-text {
-            flex: 1;
-        }
-
-        .about-icon {
-            flex: 1;
-            text-align: center;
-            font-size: 10rem;
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #f97316;
             color: #f97316;
         }
-
-        /* Contact form */
-        .contact {
-            background-color: #1e293b;
-            color: white;
-            padding: 4rem 0;
+        .btn-danger {
+            background: #ef4444;
         }
-
-        .contact h2 {
-            color: white;
-        }
-
-        .contact-form {
-            max-width: 600px;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .contact-form input, .contact-form textarea {
+        .summary-box {
+            background: #fef9f0;
             padding: 1rem;
             border-radius: 24px;
-            border: none;
-            font-family: inherit;
+            margin: 1rem 0;
         }
-
-        .contact-form button {
-            width: fit-content;
-            margin-top: 0.5rem;
+        .contact-form-area {
+            background: #f1f5f9;
+            padding: 1.5rem;
+            border-radius: 28px;
+            margin-top: 2rem;
         }
-
-        /* Footer */
-        .footer {
-            padding: 2rem 0;
-            text-align: center;
-            background: #0f172a;
-            color: #94a3b8;
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
         }
-
-        @media (max-width: 768px) {
-            h1 { font-size: 2.2rem; }
-            h2 { font-size: 1.8rem; }
-            .nav-links {
-                display: none;
-                width: 100%;
-                flex-direction: column;
-                text-align: center;
-                padding: 1rem 0;
-                gap: 1rem;
-            }
-            .nav-links.active {
-                display: flex;
-            }
-            .menu-icon {
-                display: block;
-            }
-            .hero-grid {
-                flex-direction: column;
-            }
-            .calc-form {
-                flex-direction: column;
-            }
+        hr {
+            margin: 1rem 0;
+        }
+        .weight-convert-hint {
+            font-size: 0.75rem;
+            color: #f97316;
+            margin-top: 4px;
+        }
+        @media (max-width: 680px) {
+            .container { padding: 1.2rem; }
         }
     </style>
 </head>
 <body>
+<div class="container">
+    <h1><i class="fas fa-dune" style="color:#f97316"></i> ООО «Дюна» <small>грузовые перевозки</small></h1>
+    <div class="sub">Калькулятор логистики — точный расчёт и индивидуальный подход</div>
 
-<header class="header">
-    <div class="container">
-        <div class="nav">
-            <a href="#" class="logo">CLEVER <span>LOGISTICS</span></a>
-            <div class="menu-icon" id="menuToggle">
-                <i class="fas fa-bars"></i>
-            </div>
-            <ul class="nav-links" id="navLinks">
-                <li><a href="#services">Услуги</a></li>
-                <li><a href="#calculator">Калькулятор</a></li>
-                <li><a href="#about">О компании</a></li>
-                <li><a href="#contact">Контакты</a></li>
-            </ul>
-        </div>
+    <!-- Шаги (навигация) -->
+    <div class="steps">
+        <button class="step-btn" data-step="1">1. Маршрут</button>
+        <button class="step-btn" data-step="2">2. Тип отправки</button>
+        <button class="step-btn" data-step="3">3. Параметры груза/ТС</button>
+        <button class="step-btn" data-step="4">4. Итоги и заявка</button>
     </div>
-</header>
 
-<main>
-    <!-- Hero -->
-    <section class="hero">
-        <div class="container hero-grid">
-            <div class="hero-content">
-                <h1>Умная логистика<br>для вашего бизнеса</h1>
-                <p style="font-size: 1.2rem; margin-bottom: 2rem; color: #334155;">Грузоперевозки по всей России — быстро, надёжно, с индивидуальным подходом.</p>
-                <a href="#calculator" class="btn-primary">Рассчитать стоимость</a>
+    <!-- ================= ШАГ 1: МАРШРУТ ================= -->
+    <div id="step1" class="step-panel active-panel">
+        <h3>📍 Откуда и куда едем?</h3>
+        <div class="row-2col">
+            <div class="form-group">
+                <label>Город отправления</label>
+                <input type="text" id="fromCity" placeholder="Санкт-Петербург" value="Санкт-Петербург">
             </div>
-            <div class="hero-image">
-                <i class="fas fa-truck-moving"></i>
+            <div class="form-group">
+                <label>Город назначения (туда)</label>
+                <input type="text" id="toCity" placeholder="Москва" value="Москва">
             </div>
         </div>
-    </section>
-
-    <!-- Калькулятор тарифа -->
-    <div class="container" id="calculator">
-        <div class="calculator">
-            <h3 style="text-align: center;">🧮 Калькулятор грузоперевозки</h3>
-            <div class="calc-form">
-                <div class="calc-field">
-                    <label>Тип груза</label>
-                    <select id="cargoType">
-                        <option value="обычный">Обычный</option>
-                        <option value="хрупкий">Хрупкий</option>
-                        <option value="опасный">Опасный</option>
-                    </select>
-                </div>
-                <div class="calc-field">
-                    <label>Вес (кг)</label>
-                    <input type="number" id="weight" value="500" step="100">
-                </div>
-                <div class="calc-field">
-                    <label>Расстояние (км)</label>
-                    <input type="number" id="distance" value="1000" step="100">
-                </div>
-                <button class="btn-primary" id="calcBtn">Рассчитать цену</button>
-            </div>
-            <div class="price-result" id="priceDisplay">Ориентировочная стоимость: — ₽</div>
-            <p style="font-size: 0.8rem; text-align: center; margin-top: 1rem;">*Цена рассчитывается автоматически, итоговая стоимость уточняется у менеджера</p>
+        <div class="form-group">
+            <label style="display: flex; gap: 12px; align-items: center;">
+                <input type="checkbox" id="roundTripCheckbox"> <span>🔄 Кругорейс (обратно в город отправления)</span>
+            </label>
+            <small class="weight-convert-hint">Пример: Санкт-Петербург → Москва → Санкт-Петербург</small>
+        </div>
+        <div class="flex-between">
+            <button class="btn" id="nextFromStep1">Далее →</button>
         </div>
     </div>
 
-    <!-- Услуги -->
-    <section class="services" id="services">
-        <div class="container">
-            <h2>Наши услуги</h2>
-            <div class="section-subhead">Полный спектр логистических решений под ключ</div>
-            <div class="services-grid">
-                <div class="service-card"><i class="fas fa-box"></i><h3>Сборные грузы</h3><p>Объединяем небольшие отправления в одну машину — экономьте до 30%.</p></div>
-                <div class="service-card"><i class="fas fa-temperature-low"></i><h3>Рефрижераторы</h3><p>Перевозка скоропортящихся товаров при строгом соблюдении температурного режима.</p></div>
-                <div class="service-card"><i class="fas fa-weight-hanging"></i><h3>Тяжеловесы</h3><p>Спецтехника и негабарит — индивидуальный маршрут и разрешения.</p></div>
-                <div class="service-card"><i class="fas fa-warehouse"></i><h3>Складское хранение</h3><p>Ответственное хранение, маркировка, кросс-докинг.</p></div>
+    <!-- ================= ШАГ 2: ТИП ОТПРАВКИ ================= -->
+    <div id="step2" class="step-panel">
+        <h3>🚛 Выберите тип перевозки</h3>
+        <div class="card-grid">
+            <div class="truck-card" data-shipment="groupage">
+                <i class="fas fa-cubes"></i>
+                <div class="truck-name">Сборный груз</div>
+                <div class="truck-desc">Для небольших грузов, коробки, паллеты</div>
+            </div>
+            <div class="truck-card" data-shipment="dedicated">
+                <i class="fas fa-truck"></i>
+                <div class="truck-name">Выделенный транспорт</div>
+                <div class="truck-desc">Для крупногабаритных грузов</div>
             </div>
         </div>
-    </section>
+        <div class="flex-between" style="margin-top: 1.5rem;">
+            <button class="btn btn-outline" id="backToStep1">← Назад</button>
+            <button class="btn" id="nextFromStep2" disabled>Далее →</button>
+        </div>
+    </div>
 
-    <!-- О компании -->
-    <section class="about" id="about">
-        <div class="container about-grid">
-            <div class="about-text">
-                <h2>Почему CLEVER LOGISTICS?</h2>
-                <p style="margin-bottom: 1rem;">Мы работаем с 2014 года и перевезли более 120 000 тонн грузов. Собственный парк техники, онлайн-отслеживание и персональный менеджер для каждого клиента.</p>
-                <ul style="list-style: none; margin-top: 1.5rem;">
-                    <li><i class="fas fa-check-circle" style="color:#f97316;"></i> Гарантия сроков — штраф за задержку</li>
-                    <li><i class="fas fa-check-circle" style="color:#f97316;"></i> Страхование груза на 100%</li>
-                    <li><i class="fas fa-check-circle" style="color:#f97316;"></i> 24/7 поддержка и GPS-мониторинг</li>
-                </ul>
-            </div>
-            <div class="about-icon">
-                <i class="fas fa-chart-line"></i>
+    <!-- ================= ШАГ 3: ДИНАМИЧЕСКИЙ (сборный/выделенный) ================= -->
+    <div id="step3" class="step-panel">
+        <div id="groupageContainer" style="display: none;">
+            <!-- Динамическое добавление грузов -->
+            <h3>📦 Параметры сборного груза</h3>
+            <div id="cargoList"></div>
+            <button class="btn btn-outline" id="addCargoBtn"><i class="fas fa-plus"></i> Добавить груз</button>
+            <div class="flex-between" style="margin-top: 2rem;">
+                <button class="btn btn-outline" id="backToStep2Group">← Назад</button>
+                <button class="btn" id="nextToSummaryGroup">Далее →</button>
             </div>
         </div>
-    </section>
 
-    <!-- Контактная форма -->
-    <section class="contact" id="contact">
-        <div class="container">
-            <h2>Остались вопросы?</h2>
-            <div class="section-subhead" style="color:#cbd5e1;">Напишите нам — мы ответим в течение 15 минут</div>
-            <form class="contact-form" id="contactForm">
-                <input type="text" placeholder="Ваше имя" required>
-                <input type="tel" placeholder="Телефон или email" required>
-                <textarea rows="3" placeholder="Сообщение"></textarea>
-                <button type="submit" class="btn-primary">Отправить заявку</button>
+        <div id="dedicatedContainer" style="display: none;">
+            <h3>🚚 Выберите подходящую машину</h3>
+            <div class="card-grid" id="truckSelectionGrid">
+                <!-- 6 машин из ТЗ -->
+            </div>
+            <div id="bodyTypeArea" style="display: none; margin-top: 1rem;">
+                <h4>Тип кузова</h4>
+                <div class="option-buttons" id="bodyTypeBtns"></div>
+            </div>
+            <div id="extraOptionsArea" style="display: none;">
+                <h4>Способы погрузки (можно несколько)</h4>
+                <div class="option-buttons" id="loadingOptions"></div>
+                <h4>Дополнительное оборудование</h4>
+                <div class="option-buttons" id="extraEquip"></div>
+            </div>
+            <div class="flex-between" style="margin-top: 2rem;">
+                <button class="btn btn-outline" id="backToStep2Ded">← Назад</button>
+                <button class="btn" id="nextToSummaryDed" disabled>Далее →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= ШАГ 4: ИТОГИ + ФОРМА ================= -->
+    <div id="step4" class="step-panel">
+        <h3>📋 Ваша заявка</h3>
+        <div id="summaryData" class="summary-box"></div>
+        <div class="contact-form-area">
+            <h4>📞 Оформить заказ</h4>
+            <form id="finalOrderForm">
+                <div class="form-group">
+                    <label>Ваше имя</label>
+                    <input type="text" id="clientName" required placeholder="Иванов Иван">
+                </div>
+                <div class="row-2col">
+                    <div class="form-group">
+                        <label>Телефон для связи</label>
+                        <input type="tel" id="clientPhone" required placeholder="+7 999 123-45-67">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="clientEmail" required placeholder="ivan@example.com">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Комментарий к заказу</label>
+                    <textarea rows="2" id="commentOrder" placeholder="Укажите особые пожелания..."></textarea>
+                </div>
+                <button type="submit" class="btn">✉️ Отправить заявку на почту владельцам</button>
             </form>
         </div>
-    </section>
-</main>
-
-<footer class="footer">
-    <div class="container">
-        <p>© 2025 CLEVER LOGISTICS — Все права защищены. Россия, Москва, ул. Логистическая, 12</p>
-        <p style="margin-top: 0.5rem;"><i class="fas fa-phone-alt"></i> +7 (495) 123-45-67 | <i class="fas fa-envelope"></i> info@clever-logistics.ru</p>
+        <div class="flex-between" style="margin-top: 1.5rem;">
+            <button class="btn btn-outline" id="backToStep3">← Назад</button>
+        </div>
     </div>
-</footer>
+</div>
 
 <script>
-    // Мобильное меню
-    const menuToggle = document.getElementById('menuToggle');
-    const navLinks = document.getElementById('navLinks');
-    menuToggle.addEventListener('click', () => {
-        navLinks.classList.toggle('active');
-    });
+    // Глобальное состояние
+    let appState = {
+        step: 1,
+        route: { from: "Санкт-Петербург", to: "Москва", isRoundTrip: false },
+        shipmentType: null, // 'groupage' or 'dedicated'
+        groupageCargos: [],   // массив грузов
+        dedicated: {
+            selectedTruck: null,
+            bodyType: null,
+            loadingTypes: [],   // массив ['Зад','Бок','Верх']
+            extraTypes: []      // массив ['Ремни','Гидроборт']
+        }
+    };
 
-    // Калькулятор стоимости
-    const cargoSelect = document.getElementById('cargoType');
-    const weightInput = document.getElementById('weight');
-    const distanceInput = document.getElementById('distance');
-    const calcBtn = document.getElementById('calcBtn');
-    const priceDisplay = document.getElementById('priceDisplay');
+    // Хелперы
+    function saveToLocal() { localStorage.setItem('duna_state', JSON.stringify(appState)); }
+    function loadFromLocal() { /* можно не грузить, чисто для демо */ }
 
-    function calculatePrice() {
-        let weight = parseFloat(weightInput.value) || 0;
-        let distance = parseFloat(distanceInput.value) || 0;
-        let cargo = cargoSelect.value;
-        let baseRate = 5; // руб за кг*км условно
-        let multiplier = 1;
-        if (cargo === 'хрупкий') multiplier = 1.5;
-        if (cargo === 'опасный') multiplier = 2.2;
-        let price = weight * distance * baseRate * multiplier / 100;
-        if (isNaN(price) || price < 0) price = 0;
-        priceDisplay.innerHTML = `💰 Ориентировочная стоимость: ${Math.round(price).toLocaleString('ru-RU')} ₽`;
+    // Генерация ID для грузов
+    let nextCargoId = 1;
+
+    // Функция для рендера шага 3 (сборный груз)
+    function renderGroupageCargos() {
+        const container = document.getElementById('cargoList');
+        if (!container) return;
+        if (appState.groupageCargos.length === 0) {
+            // Добавим один пустой груз по умолчанию, если совсем пусто
+            if (appState.groupageCargos.length === 0) {
+                appState.groupageCargos.push({
+                    id: nextCargoId++,
+                    length: 50, width: 40, height: 30, // см
+                    weight: 10, weightUnit: 'kg',   // kg, g, t
+                    quantity: 1,
+                    rotatable: false,
+                    stackable: false,
+                    convertedWeightKg: 10
+                });
+            }
+        }
+        container.innerHTML = '';
+        appState.groupageCargos.forEach(cargo => {
+            const cargoDiv = document.createElement('div');
+            cargoDiv.className = 'cargo-item';
+            cargoDiv.dataset.id = cargo.id;
+            // конвертированный вес в кг
+            let weightKg = convertToKg(cargo.weight, cargo.weightUnit);
+            cargo.convertedWeightKg = weightKg;
+            cargoDiv.innerHTML = `
+                <div class="flex-between"><strong>Груз #${cargo.id}</strong> <button class="btn btn-outline btn-danger remove-cargo" data-id="${cargo.id}" style="background:#fee2e2; color:#b91c1c; padding:4px 12px;">Удалить</button></div>
+                <div class="row-2col">
+                    <div><label>Длина (см)</label><input type="number" class="cargo-length" value="${cargo.length}" step="1"></div>
+                    <div><label>Ширина (см)</label><input type="number" class="cargo-width" value="${cargo.width}" step="1"></div>
+                    <div><label>Высота (см)</label><input type="number" class="cargo-height" value="${cargo.height}" step="1"></div>
+                </div>
+                <div class="row-2col">
+                    <div><label>Вес</label><input type="number" class="cargo-weight-val" value="${cargo.weight}" step="any"></div>
+                    <div><label>Единица веса</label><select class="cargo-weight-unit">
+                        <option value="g" ${cargo.weightUnit === 'g' ? 'selected' : ''}>граммы (г)</option>
+                        <option value="kg" ${cargo.weightUnit === 'kg' ? 'selected' : ''}>килограммы (кг)</option>
+                        <option value="t" ${cargo.weightUnit === 't' ? 'selected' : ''}>тонны (т)</option>
+                    </select></div>
+                    <div><label>Кол-во (шт)</label><input type="number" class="cargo-qty" value="${cargo.quantity}" step="1" min="1"></div>
+                </div>
+                <div class="weight-convert-hint" id="hint-${cargo.id}">➡️ ${weightKg} кг (общий вес позиции: ${(weightKg * cargo.quantity).toFixed(2)} кг)</div>
+                <div style="display: flex; gap: 16px; margin-top: 8px;">
+                    <label><input type="checkbox" class="cargo-rotatable" ${cargo.rotatable ? 'checked' : ''}> Можно вращать</label>
+                    <label><input type="checkbox" class="cargo-stackable" ${cargo.stackable ? 'checked' : ''}> Можно ставить друг на друга</label>
+                </div>
+            `;
+            container.appendChild(cargoDiv);
+            // добавление обработчиков
+            const weightInput = cargoDiv.querySelector('.cargo-weight-val');
+            const unitSelect = cargoDiv.querySelector('.cargo-weight-unit');
+            const lengthInp = cargoDiv.querySelector('.cargo-length');
+            const widthInp = cargoDiv.querySelector('.cargo-width');
+            const heightInp = cargoDiv.querySelector('.cargo-height');
+            const qtyInp = cargoDiv.querySelector('.cargo-qty');
+            const rotChk = cargoDiv.querySelector('.cargo-rotatable');
+            const stackChk = cargoDiv.querySelector('.cargo-stackable');
+
+            function updateCargo() {
+                cargo.length = parseFloat(lengthInp.value) || 0;
+                cargo.width = parseFloat(widthInp.value) || 0;
+                cargo.height = parseFloat(heightInp.value) || 0;
+                cargo.weight = parseFloat(weightInput.value) || 0;
+                cargo.weightUnit = unitSelect.value;
+                cargo.quantity = parseInt(qtyInp.value) || 1;
+                cargo.rotatable = rotChk.checked;
+                cargo.stackable = stackChk.checked;
+                const kg = convertToKg(cargo.weight, cargo.weightUnit);
+                cargo.convertedWeightKg = kg;
+                const hintSpan = cargoDiv.querySelector(`.weight-convert-hint`);
+                if (hintSpan) hintSpan.innerHTML = `➡️ ${kg} кг (общий вес позиции: ${(kg * cargo.quantity).toFixed(2)} кг)`;
+            }
+
+            weightInput.addEventListener('input', updateCargo);
+            unitSelect.addEventListener('change', updateCargo);
+            lengthInp.addEventListener('input', updateCargo);
+            widthInp.addEventListener('input', updateCargo);
+            heightInp.addEventListener('input', updateCargo);
+            qtyInp.addEventListener('input', updateCargo);
+            rotChk.addEventListener('change', updateCargo);
+            stackChk.addEventListener('change', updateCargo);
+            updateCargo();
+        });
+
+        // события удаления
+        document.querySelectorAll('.remove-cargo').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = parseInt(btn.dataset.id);
+                appState.groupageCargos = appState.groupageCargos.filter(c => c.id !== id);
+                renderGroupageCargos();
+            });
+        });
     }
 
-    calcBtn.addEventListener('click', calculatePrice);
-    calculatePrice(); // начальный расчёт
+    function convertToKg(value, unit) {
+        if (unit === 'g') return value / 1000;
+        if (unit === 't') return value * 1000;
+        return value; // kg
+    }
 
-    // Обработка формы (демо)
-    const contactForm = document.getElementById('contactForm');
-    contactForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        alert('Спасибо! Наш менеджер свяжется с вами в ближайшее время.');
-        contactForm.reset();
+    // Рендер выбора машин (6 картинок)
+    const trucksData = [
+        { name: "1,5 тонны", volume: "10 кубов", icon: "fa-truck", tonnage: 1.5 },
+        { name: "3 тонны", volume: "25 кубов", icon: "fa-truck", tonnage: 3 },
+        { name: "5 тонн", volume: "36 кубов", icon: "fa-truck-moving", tonnage: 5 },
+        { name: "10 тонн", volume: "45 кубов", icon: "fa-truck-ramp-box", tonnage: 10 },
+        { name: "20 тонн", volume: "92 куба", icon: "fa-truck-container", tonnage: 20 },
+        { name: "20 тонн", volume: "115 кубов", icon: "fa-truck-fast", tonnage: 20 }
+    ];
+
+    function renderTruckSelection() {
+        const grid = document.getElementById('truckSelectionGrid');
+        if (!grid) return;
+        grid.innerHTML = '';
+        trucksData.forEach((truck, idx) => {
+            const card = document.createElement('div');
+            card.className = `truck-card ${appState.dedicated.selectedTruck === idx ? 'selected' : ''}`;
+            card.innerHTML = `<i class="fas ${truck.icon}"></i><div class="truck-name">${truck.name}</div><div class="truck-desc">${truck.volume}</div>`;
+            card.addEventListener('click', () => {
+                appState.dedicated.selectedTruck = idx;
+                renderTruckSelection();
+                // показать выбор кузова
+                document.getElementById('bodyTypeArea').style.display = 'block';
+                renderBodyTypeSelection();
+                document.getElementById('extraOptionsArea').style.display = 'none';
+                appState.dedicated.bodyType = null;
+                appState.dedicated.loadingTypes = [];
+                appState.dedicated.extraTypes = [];
+                document.getElementById('nextToSummaryDed').disabled = true;
+            });
+            grid.appendChild(card);
+        });
+    }
+
+    function renderBodyTypeSelection() {
+        const container = document.getElementById('bodyTypeBtns');
+        const types = ['Тентовый', 'Изотермо', 'Бортовую'];
+        container.innerHTML = '';
+        types.forEach(type => {
+            const btn = document.createElement('button');
+            btn.innerText = type;
+            btn.className = `opt-btn ${appState.dedicated.bodyType === type ? 'active-opt' : ''}`;
+            btn.addEventListener('click', () => {
+                appState.dedicated.bodyType = type;
+                renderBodyTypeSelection();
+                document.getElementById('extraOptionsArea').style.display = 'block';
+                renderLoadingAndExtras();
+                document.getElementById('nextToSummaryDed').disabled = false;
+            });
+            container.appendChild(btn);
+        });
+    }
+
+    function renderLoadingAndExtras() {
+        const loadingDiv = document.getElementById('loadingOptions');
+        const extraDiv = document.getElementById('extraEquip');
+        const loadingOps = ['Зад', 'Бок', 'Верх'];
+        const extraOps = ['Ремни', 'Гидроборт'];
+        loadingDiv.innerHTML = '';
+        extraDiv.innerHTML = '';
+        loadingOps.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.innerText = opt;
+            btn.className = `opt-btn ${appState.dedicated.loadingTypes.includes(opt) ? 'active-opt' : ''}`;
+            btn.addEventListener('click', () => {
+                if (appState.dedicated.loadingTypes.includes(opt)) {
+                    appState.dedicated.loadingTypes = appState.dedicated.loadingTypes.filter(l => l !== opt);
+                } else {
+                    appState.dedicated.loadingTypes.push(opt);
+                }
+                renderLoadingAndExtras();
+            });
+            loadingDiv.appendChild(btn);
+        });
+        extraOps.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.innerText = opt;
+            btn.className = `opt-btn ${appState.dedicated.extraTypes.includes(opt) ? 'active-opt' : ''}`;
+            btn.addEventListener('click', () => {
+                if (appState.dedicated.extraTypes.includes(opt)) {
+                    appState.dedicated.extraTypes = appState.dedicated.extraTypes.filter(e => e !== opt);
+                } else {
+                    appState.dedicated.extraTypes.push(opt);
+                }
+                renderLoadingAndExtras();
+            });
+            extraDiv.appendChild(btn);
+        });
+    }
+
+    // построение итоговой сводки
+    function buildSummaryHTML() {
+        let html = `<b>📍 Маршрут:</b> ${appState.route.from} → ${appState.route.to}`;
+        if (appState.route.isRoundTrip) html += ` → ${appState.route.from} (кругорейс)`;
+        html += `<br><b>🚛 Тип перевозки:</b> ${appState.shipmentType === 'groupage' ? 'Сборный груз' : 'Выделенный транспорт'}`;
+        if (appState.shipmentType === 'groupage') {
+            html += `<br><b>📦 Грузы:</b><ul>`;
+            appState.groupageCargos.forEach(c => {
+                let totalKg = c.convertedWeightKg * c.quantity;
+                html += `<li>Груз #${c.id}: ${c.length}x${c.width}x${c.height} см, вес: ${c.weight} ${c.weightUnit} (${c.convertedWeightKg} кг за шт), кол-во ${c.quantity} шт, общий вес ${totalKg.toFixed(2)} кг. Вращать: ${c.rotatable ? 'да' : 'нет'}, стакать: ${c.stackable ? 'да' : 'нет'}</li>`;
+            });
+            html += `</ul>`;
+        } else {
+            if (appState.dedicated.selectedTruck !== null) {
+                let truck = trucksData[appState.dedicated.selectedTruck];
+                html += `<br><b>🚛 Машина:</b> ${truck.name} (${truck.volume})`;
+            }
+            if (appState.dedicated.bodyType) html += `<br><b>Тип кузова:</b> ${appState.dedicated.bodyType}`;
+            if (appState.dedicated.loadingTypes.length) html += `<br><b>Способы погрузки:</b> ${appState.dedicated.loadingTypes.join(', ')}`;
+            if (appState.dedicated.extraTypes.length) html += `<br><b>Доп. оборудование:</b> ${appState.dedicated.extraTypes.join(', ')}`;
+        }
+        return html;
+    }
+
+    // Отправка на почту (симуляция, но по ТЗ - перенос на почту владельцев)
+    function sendToOwnerEmail(formData, fullOrderText) {
+        // В реальном проекте тут POST на бэкенд, мы покажем алерт и залогируем.
+        console.log("=== ДАННЫЕ ДЛЯ ОТПРАВКИ НА ПОЧТУ (ООО Дюна) ===");
+        console.log(fullOrderText);
+        alert(`✅ Заявка успешно отправлена на почту владельцев ООО "Дюна" (duna@example.com).\nМенеджер свяжется с вами в ближайшее время.\n\nДанные заказа:\n${fullOrderText}`);
+        return true;
+    }
+
+    // UI Управление шагами
+    function showStep(step) {
+        document.querySelectorAll('.step-panel').forEach(panel => panel.classList.remove('active-panel'));
+        document.getElementById(`step${step}`).classList.add('active-panel');
+        document.querySelectorAll('.step-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelector(`.step-btn[data-step="${step}"]`).classList.add('active');
+        appState.step = step;
+        if (step === 3) {
+            const isGroup = (appState.shipmentType === 'groupage');
+            document.getElementById('groupageContainer').style.display = isGroup ? 'block' : 'none';
+            document.getElementById('dedicatedContainer').style.display = isGroup ? 'none' : 'block';
+            if (isGroup) renderGroupageCargos();
+            else {
+                renderTruckSelection();
+                document.getElementById('bodyTypeArea').style.display = appState.dedicated.selectedTruck !== null ? 'block' : 'none';
+                if (appState.dedicated.bodyType) {
+                    document.getElementById('extraOptionsArea').style.display = 'block';
+                    renderLoadingAndExtras();
+                } else {
+                    document.getElementById('extraOptionsArea').style.display = 'none';
+                }
+            }
+        }
+        if (step === 4) {
+            const summaryDiv = document.getElementById('summaryData');
+            summaryDiv.innerHTML = buildSummaryHTML();
+        }
+    }
+
+    // обработчики переходов
+    document.getElementById('nextFromStep1').addEventListener('click', () => {
+        appState.route.from = document.getElementById('fromCity').value;
+        appState.route.to = document.getElementById('toCity').value;
+        appState.route.isRoundTrip = document.getElementById('roundTripCheckbox').checked;
+        showStep(2);
     });
+    let selectedShipment = null;
+    document.querySelectorAll('[data-shipment]').forEach(card => {
+        card.addEventListener('click', function() {
+            selectedShipment = this.dataset.shipment;
+            document.querySelectorAll('[data-shipment]').forEach(c => c.classList.remove('selected'));
+            this.classList.add('selected');
+            document.getElementById('nextFromStep2').disabled = false;
+        });
+    });
+    document.getElementById('nextFromStep2').addEventListener('click', () => {
+        if (selectedShipment) {
+            appState.shipmentType = selectedShipment;
+            if (selectedShipment === 'groupage' && appState.groupageCargos.length === 0) {
+                appState.groupageCargos = [{
+                    id: nextCargoId++,
+                    length: 50, width: 40, height: 30, weight: 10, weightUnit: 'kg', quantity: 1, rotatable: false, stackable: false, convertedWeightKg: 10
+                }];
+            }
+            showStep(3);
+        } else alert("Выберите тип отправки");
+    });
+    document.getElementById('backToStep1').addEventListener('click', () => showStep(1));
+    document.getElementById('backToStep2Group').addEventListener('click', () => showStep(2));
+    document.getElementById('backToStep2Ded').addEventListener('click', () => showStep(2));
+    document.getElementById('nextToSummaryGroup').addEventListener('click', () => showStep(4));
+    document.getElementById('nextToSummaryDed').addEventListener('click', () => {
+        if (!appState.dedicated.selectedTruck) alert("Выберите машину");
+        else if (!appState.dedicated.bodyType) alert("Выберите тип кузова");
+        else showStep(4);
+    });
+    document.getElementById('backToStep3').addEventListener('click', () => showStep(3));
+    document.getElementById('addCargoBtn')?.addEventListener('click', () => {
+        appState.groupageCargos.push({
+            id: nextCargoId++,
+            length: 30, width: 30, height: 30, weight: 5, weightUnit: 'kg', quantity: 1, rotatable: false, stackable: false, convertedWeightKg: 5
+        });
+        renderGroupageCargos();
+    });
+    document.getElementById('finalOrderForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('clientName').value;
+        const phone = document.getElementById('clientPhone').value;
+        const email = document.getElementById('clientEmail').value;
+        const comment = document.getElementById('commentOrder').value;
+        if (!name || !phone || !email) { alert("Заполните имя, телефон и email"); return; }
+        const orderInfo = buildSummaryHTML();
+        const fullMessage = `${orderInfo}\n\n--- КОНТАКТЫ ---\nИмя: ${name}\nТелефон: ${phone}\nEmail: ${email}\nКомментарий: ${comment}\n---\nОтправлено через калькулятор ООО "Дюна"`;
+        sendToOwnerEmail({name,phone,email,comment}, fullMessage);
+        // очистка формы не требуется, но можно
+        document.getElementById('finalOrderForm').reset();
+    });
+    // начальная инициализация
+    showStep(1);
+    // предзагрузка массивов
+    if (!appState.groupageCargos.length) {
+        appState.groupageCargos = [{ id: nextCargoId++, length: 50, width: 40, height: 30, weight: 10, weightUnit: 'kg', quantity: 1, rotatable: false, stackable: false, convertedWeightKg: 10 }];
+    }
+    renderGroupageCargos();
 </script>
 </body>
 </html>

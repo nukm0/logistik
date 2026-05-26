@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Clever Logistics — умные грузоперевозки по России</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: #1e293b;
+            background-color: #ffffff;
+            line-height: 1.5;
+            scroll-behavior: smooth;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        h1, h2, h3 {
+            font-weight: 700;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .section-subhead {
+            text-align: center;
+            color: #475569;
+            max-width: 700px;
+            margin: 0 auto 3rem auto;
+            font-size: 1.125rem;
+        }
+
+        .btn-primary {
+            display: inline-block;
+            background-color: #f97316;
+            color: white;
+            font-weight: 600;
+            padding: 0.875rem 2rem;
+            border-radius: 40px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary:hover {
+            background-color: #ea580c;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-outline {
+            display: inline-block;
+            background-color: transparent;
+            border: 2px solid #f97316;
+            color: #f97316;
+            font-weight: 600;
+            padding: 0.75rem 1.75rem;
+            border-radius: 40px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline:hover {
+            background-color: #f97316;
+            color: white;
+        }
+
+        /* Header */
+        .header {
+            background-color: #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(8px);
+            background-color: rgba(255,255,255,0.95);
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #f97316;
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: #1e293b;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            font-weight: 500;
+            color: #1e293b;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: #f97316;
+        }
+
+        .menu-icon {
+            display: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+        }
+
+        /* Hero */
+        .hero {
+            padding: 4rem 0 5rem;
+            background: linear-gradient(135deg, #fef9f0 0%, #ffffff 100%);
+        }
+
+        .hero-grid {
+            display: flex;
+            align-items: center;
+            gap: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .hero-content {
+            flex: 1;
+        }
+
+        .hero-image {
+            flex: 1;
+            text-align: center;
+        }
+
+        .hero-image i {
+            font-size: 12rem;
+            color: #f97316;
+            opacity: 0.7;
+        }
+
+        /* Calculator card */
+        .calculator {
+            background-color: white;
+            border-radius: 32px;
+            box-shadow: 0 20px 35px -10px rgba(0,0,0,0.1);
+            padding: 2rem;
+            margin: 2rem 0;
+            border: 1px solid #f1f5f9;
+        }
+
+        .calc-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            align-items: flex-end;
+        }
+
+        .calc-field {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .calc-field label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .calc-field select, .calc-field input {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 16px;
+            border: 1px solid #cbd5e1;
+            font-family: inherit;
+        }
+
+        .price-result {
+            margin-top: 1.5rem;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #f97316;
+            text-align: center;
+        }
+
+        /* Services grid */
+        .services {
+            padding: 5rem 0;
+            background-color: #f8fafc;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 2rem;
+        }
+
+        .service-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 28px;
+            text-align: center;
+            transition: all 0.2s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.02);
+            border: 1px solid #e2e8f0;
+        }
+
+        .service-card i {
+            font-size: 2.8rem;
+            color: #f97316;
+            margin-bottom: 1rem;
+        }
+
+        /* About */
+        .about {
+            padding: 5rem 0;
+        }
+
+        .about-grid {
+            display: flex;
+            gap: 3rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .about-text {
+            flex: 1;
+        }
+
+        .about-icon {
+            flex: 1;
+            text-align: center;
+            font-size: 10rem;
+            color: #f97316;
+        }
+
+        /* Contact form */
+        .contact {
+            background-color: #1e293b;
+            color: white;
+            padding: 4rem 0;
+        }
+
+        .contact h2 {
+            color: white;
+        }
+
+        .contact-form {
+            max-width: 600px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .contact-form input, .contact-form textarea {
+            padding: 1rem;
+            border-radius: 24px;
+            border: none;
+            font-family: inherit;
+        }
+
+        .contact-form button {
+            width: fit-content;
+            margin-top: 0.5rem;
+        }
+
+        /* Footer */
+        .footer {
+            padding: 2rem 0;
+            text-align: center;
+            background: #0f172a;
+            color: #94a3b8;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2.2rem; }
+            h2 { font-size: 1.8rem; }
+            .nav-links {
+                display: none;
+                width: 100%;
+                flex-direction: column;
+                text-align: center;
+                padding: 1rem 0;
+                gap: 1rem;
+            }
+            .nav-links.active {
+                display: flex;
+            }
+            .menu-icon {
+                display: block;
+            }
+            .hero-grid {
+                flex-direction: column;
+            }
+            .calc-form {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <div class="container">
+        <div class="nav">
+            <a href="#" class="logo">CLEVER <span>LOGISTICS</span></a>
+            <div class="menu-icon" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </div>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#services">Услуги</a></li>
+                <li><a href="#calculator">Калькулятор</a></li>
+                <li><a href="#about">О компании</a></li>
+                <li><a href="#contact">Контакты</a></li>
+            </ul>
+        </div>
+    </div>
+</header>
+
+<main>
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container hero-grid">
+            <div class="hero-content">
+                <h1>Умная логистика<br>для вашего бизнеса</h1>
+                <p style="font-size: 1.2rem; margin-bottom: 2rem; color: #334155;">Грузоперевозки по всей России — быстро, надёжно, с индивидуальным подходом.</p>
+                <a href="#calculator" class="btn-primary">Рассчитать стоимость</a>
+            </div>
+            <div class="hero-image">
+                <i class="fas fa-truck-moving"></i>
+            </div>
+        </div>
+    </section>
+
+    <!-- Калькулятор тарифа -->
+    <div class="container" id="calculator">
+        <div class="calculator">
+            <h3 style="text-align: center;">🧮 Калькулятор грузоперевозки</h3>
+            <div class="calc-form">
+                <div class="calc-field">
+                    <label>Тип груза</label>
+                    <select id="cargoType">
+                        <option value="обычный">Обычный</option>
+                        <option value="хрупкий">Хрупкий</option>
+                        <option value="опасный">Опасный</option>
+                    </select>
+                </div>
+                <div class="calc-field">
+                    <label>Вес (кг)</label>
+                    <input type="number" id="weight" value="500" step="100">
+                </div>
+                <div class="calc-field">
+                    <label>Расстояние (км)</label>
+                    <input type="number" id="distance" value="1000" step="100">
+                </div>
+                <button class="btn-primary" id="calcBtn">Рассчитать цену</button>
+            </div>
+            <div class="price-result" id="priceDisplay">Ориентировочная стоимость: — ₽</div>
+            <p style="font-size: 0.8rem; text-align: center; margin-top: 1rem;">*Цена рассчитывается автоматически, итоговая стоимость уточняется у менеджера</p>
+        </div>
+    </div>
+
+    <!-- Услуги -->
+    <section class="services" id="services">
+        <div class="container">
+            <h2>Наши услуги</h2>
+            <div class="section-subhead">Полный спектр логистических решений под ключ</div>
+            <div class="services-grid">
+                <div class="service-card"><i class="fas fa-box"></i><h3>Сборные грузы</h3><p>Объединяем небольшие отправления в одну машину — экономьте до 30%.</p></div>
+                <div class="service-card"><i class="fas fa-temperature-low"></i><h3>Рефрижераторы</h3><p>Перевозка скоропортящихся товаров при строгом соблюдении температурного режима.</p></div>
+                <div class="service-card"><i class="fas fa-weight-hanging"></i><h3>Тяжеловесы</h3><p>Спецтехника и негабарит — индивидуальный маршрут и разрешения.</p></div>
+                <div class="service-card"><i class="fas fa-warehouse"></i><h3>Складское хранение</h3><p>Ответственное хранение, маркировка, кросс-докинг.</p></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- О компании -->
+    <section class="about" id="about">
+        <div class="container about-grid">
+            <div class="about-text">
+                <h2>Почему CLEVER LOGISTICS?</h2>
+                <p style="margin-bottom: 1rem;">Мы работаем с 2014 года и перевезли более 120 000 тонн грузов. Собственный парк техники, онлайн-отслеживание и персональный менеджер для каждого клиента.</p>
+                <ul style="list-style: none; margin-top: 1.5rem;">
+                    <li><i class="fas fa-check-circle" style="color:#f97316;"></i> Гарантия сроков — штраф за задержку</li>
+                    <li><i class="fas fa-check-circle" style="color:#f97316;"></i> Страхование груза на 100%</li>
+                    <li><i class="fas fa-check-circle" style="color:#f97316;"></i> 24/7 поддержка и GPS-мониторинг</li>
+                </ul>
+            </div>
+            <div class="about-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+        </div>
+    </section>
+
+    <!-- Контактная форма -->
+    <section class="contact" id="contact">
+        <div class="container">
+            <h2>Остались вопросы?</h2>
+            <div class="section-subhead" style="color:#cbd5e1;">Напишите нам — мы ответим в течение 15 минут</div>
+            <form class="contact-form" id="contactForm">
+                <input type="text" placeholder="Ваше имя" required>
+                <input type="tel" placeholder="Телефон или email" required>
+                <textarea rows="3" placeholder="Сообщение"></textarea>
+                <button type="submit" class="btn-primary">Отправить заявку</button>
+            </form>
+        </div>
+    </section>
+</main>
+
+<footer class="footer">
+    <div class="container">
+        <p>© 2025 CLEVER LOGISTICS — Все права защищены. Россия, Москва, ул. Логистическая, 12</p>
+        <p style="margin-top: 0.5rem;"><i class="fas fa-phone-alt"></i> +7 (495) 123-45-67 | <i class="fas fa-envelope"></i> info@clever-logistics.ru</p>
+    </div>
+</footer>
+
+<script>
+    // Мобильное меню
+    const menuToggle = document.getElementById('menuToggle');
+    const navLinks = document.getElementById('navLinks');
+    menuToggle.addEventListener('click', () => {
+        navLinks.classList.toggle('active');
+    });
+
+    // Калькулятор стоимости
+    const cargoSelect = document.getElementById('cargoType');
+    const weightInput = document.getElementById('weight');
+    const distanceInput = document.getElementById('distance');
+    const calcBtn = document.getElementById('calcBtn');
+    const priceDisplay = document.getElementById('priceDisplay');
+
+    function calculatePrice() {
+        let weight = parseFloat(weightInput.value) || 0;
+        let distance = parseFloat(distanceInput.value) || 0;
+        let cargo = cargoSelect.value;
+        let baseRate = 5; // руб за кг*км условно
+        let multiplier = 1;
+        if (cargo === 'хрупкий') multiplier = 1.5;
+        if (cargo === 'опасный') multiplier = 2.2;
+        let price = weight * distance * baseRate * multiplier / 100;
+        if (isNaN(price) || price < 0) price = 0;
+        priceDisplay.innerHTML = `💰 Ориентировочная стоимость: ${Math.round(price).toLocaleString('ru-RU')} ₽`;
+    }
+
+    calcBtn.addEventListener('click', calculatePrice);
+    calculatePrice(); // начальный расчёт
+
+    // Обработка формы (демо)
+    const contactForm = document.getElementById('contactForm');
+    contactForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        alert('Спасибо! Наш менеджер свяжется с вами в ближайшее время.');
+        contactForm.reset();
+    });
+</script>
+</body>
+</html>

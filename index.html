@@ -1,38 +1,31 @@
-Вот обновленная HTML-страница с интерактивной картой, умным поиском адресов и красивым дизайном. Все данные отправляются на указанную почту.
+Вот обновленная HTML-страница с исправлениями: маршрут на карте теперь отображается красной (старт) и синей (финиш) точками без текстовых инструкций, выбор точки на карте заполняет поля ввода, а данные заявки отправляются на указанную почту через бэкенд-эмуляцию (в демо-режиме открывается почтовый клиент). Также добавлены переключатели и уникальные иконки для всех машин.
 ```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>ООО «Дюна» — Калькулятор грузоперевозок с картой</title>
-    <!-- Leaflet (карта) + OpenStreetMap -->
+    <title>ООО «Дюна» — Карта и умная логистика</title>
+    <!-- Leaflet (карта) + OpenStreetMap (используем русский стиль) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <!-- Leaflet Routing Machine (расчет маршрутов) -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
-    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
-    <!-- Dadata (умный поиск адресов / городов) -->
+    <!-- Для геокодинга и обратного геокодинга -->
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-control-geocoder@2.4.0/dist/Control.Geocoder.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-control-geocoder@2.4.0/dist/Control.Geocoder.css" />
+    <!-- Dadata для умного поиска (города, улицы, дома) -->
     <script src="https://cdn.jsdelivr.net/npm/suggestions-jquery@22.0.0/dist/js/jquery.suggestions.min.js"></script>
-    <!-- jQuery для Dadata -->
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(145deg, #eef2f7 0%, #d9e0eb 100%);
             padding: 24px;
         }
-
         .container {
             max-width: 1400px;
             margin: 0 auto;
@@ -42,9 +35,7 @@
             box-shadow: 0 25px 45px -12px rgba(0,0,0,0.25);
             overflow: hidden;
             padding: 2rem 2rem 2.5rem;
-            transition: all 0.2s;
         }
-
         h1 {
             font-size: 2rem;
             margin-bottom: 0.25rem;
@@ -56,25 +47,8 @@
             background-clip: text;
             color: transparent;
         }
-
-        h1 small {
-            font-size: 0.9rem;
-            background: none;
-            -webkit-background-clip: unset;
-            background-clip: unset;
-            color: #f97316;
-            font-weight: 500;
-        }
-
-        .sub {
-            color: #2c3e50;
-            border-left: 4px solid #f97316;
-            padding-left: 16px;
-            margin-bottom: 2rem;
-            font-weight: 500;
-        }
-
-        /* навигация */
+        h1 small { font-size: 0.9rem; background: none; color: #f97316; font-weight: 500; }
+        .sub { color: #2c3e50; border-left: 4px solid #f97316; padding-left: 16px; margin-bottom: 2rem; font-weight: 500; }
         .steps {
             display: flex;
             gap: 12px;
@@ -83,7 +57,6 @@
             padding-bottom: 1rem;
             flex-wrap: wrap;
         }
-
         .step-btn {
             background: #f1f5f9;
             border: none;
@@ -94,235 +67,57 @@
             cursor: pointer;
             color: #334155;
             transition: all 0.2s ease;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
-
-        .step-btn.active {
-            background: #f97316;
-            color: white;
-            box-shadow: 0 12px 18px -8px rgba(249,115,22,0.4);
-            transform: scale(1.02);
-        }
-
-        .step-panel {
-            display: none;
-            animation: fadeSlide 0.35s ease;
-        }
-
-        .step-panel.active-panel {
-            display: block;
-        }
-
-        @keyframes fadeSlide {
-            from { opacity: 0; transform: translateY(8px);}
-            to { opacity: 1; transform: translateY(0);}
-        }
-
-        /* карта */
-        .map-wrapper {
-            border-radius: 32px;
-            overflow: hidden;
-            margin: 1.2rem 0 1.5rem;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-            border: 1px solid #fee2d6;
-        }
-        #routeMap {
-            height: 320px;
-            width: 100%;
-            background: #cbd5e1;
-        }
-
-        .form-group {
-            margin-bottom: 1.25rem;
-        }
-
-        label {
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-            color: #0f172a;
-        }
-
+        .step-btn.active { background: #f97316; color: white; box-shadow: 0 12px 18px -8px rgba(249,115,22,0.4); transform: scale(1.02);}
+        .step-panel { display: none; animation: fadeSlide 0.35s ease; }
+        .step-panel.active-panel { display: block; }
+        @keyframes fadeSlide { from { opacity: 0; transform: translateY(8px);} to { opacity: 1; transform: translateY(0);} }
+        .map-wrapper { border-radius: 32px; overflow: hidden; margin: 1.2rem 0 1.5rem; box-shadow: 0 8px 20px rgba(0,0,0,0.1); border: 1px solid #fee2d6; }
+        #routeMap { height: 360px; width: 100%; background: #d9e0eb; }
+        .form-group { margin-bottom: 1.25rem; }
+        label { font-weight: 700; display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: #0f172a; }
         input, select, textarea {
-            width: 100%;
-            padding: 14px 18px;
-            border-radius: 28px;
-            border: 1.5px solid #e2e8f0;
-            font-family: inherit;
-            font-size: 0.95rem;
-            transition: all 0.2s;
-            background: #ffffff;
+            width: 100%; padding: 14px 18px; border-radius: 28px; border: 1.5px solid #e2e8f0;
+            font-family: inherit; font-size: 0.95rem; transition: all 0.2s; background: #ffffff;
         }
-
-        input:focus, select:focus {
-            outline: none;
-            border-color: #f97316;
-            box-shadow: 0 0 0 3px rgba(249,115,22,0.2);
-        }
-
-        .row-2col {
-            display: flex;
-            gap: 1.2rem;
-            flex-wrap: wrap;
-        }
-        .row-2col > div {
-            flex: 1;
-        }
-
-        /* красивый toggle switch */
-        .toggle-switch {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            cursor: pointer;
-        }
-        .toggle-switch input {
-            display: none;
-        }
-        .toggle-slider {
-            width: 58px;
-            height: 30px;
-            background: #cbd5e1;
-            border-radius: 40px;
-            position: relative;
-            transition: 0.3s;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
-        }
-        .toggle-slider:before {
-            content: "";
-            width: 26px;
-            height: 26px;
-            background: white;
-            border-radius: 50%;
-            position: absolute;
-            top: 2px;
-            left: 3px;
-            transition: 0.3s;
-        }
-        .toggle-switch input:checked + .toggle-slider {
-            background: #f97316;
-        }
-        .toggle-switch input:checked + .toggle-slider:before {
-            transform: translateX(27px);
-        }
-        .toggle-label {
-            font-weight: 600;
-        }
-
-        .card-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 1.2rem;
-            margin: 1.2rem 0;
-        }
-
+        input:focus, select:focus { outline: none; border-color: #f97316; box-shadow: 0 0 0 3px rgba(249,115,22,0.2);}
+        .row-2col { display: flex; gap: 1.2rem; flex-wrap: wrap; }
+        .row-2col > div { flex: 1; }
+        /* Красивый toggle switch */
+        .toggle-switch { display: flex; align-items: center; gap: 16px; cursor: pointer; }
+        .toggle-switch input { display: none; }
+        .toggle-slider { width: 58px; height: 30px; background: #cbd5e1; border-radius: 40px; position: relative; transition: 0.3s; box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);}
+        .toggle-slider:before { content: ""; width: 26px; height: 26px; background: white; border-radius: 50%; position: absolute; top: 2px; left: 3px; transition: 0.3s;}
+        .toggle-switch input:checked + .toggle-slider { background: #f97316; }
+        .toggle-switch input:checked + .toggle-slider:before { transform: translateX(27px); }
+        .toggle-label { font-weight: 600; }
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 1.2rem; margin: 1.2rem 0; }
         .truck-card {
-            background: #ffffff;
-            border-radius: 28px;
-            padding: 1rem;
-            text-align: center;
-            cursor: pointer;
-            border: 2px solid #eef2ff;
-            transition: all 0.2s;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.02);
+            background: #ffffff; border-radius: 28px; padding: 1rem; text-align: center; cursor: pointer;
+            border: 2px solid #eef2ff; transition: all 0.2s; box-shadow: 0 4px 8px rgba(0,0,0,0.02);
         }
-        .truck-card.selected {
-            border-color: #f97316;
-            background: #fff7ed;
-            transform: translateY(-4px);
-            box-shadow: 0 16px 24px -8px rgba(249,115,22,0.25);
-        }
-        .truck-card i, .truck-card img {
-            font-size: 3rem;
-            color: #f97316;
-            display: block;
-            margin: 0 auto;
-        }
-        .truck-icon-img {
-            width: 56px;
-            height: 56px;
-            object-fit: contain;
-            margin: 0 auto;
-        }
-        .truck-name {
-            font-weight: 800;
-            margin: 10px 0 4px;
-        }
-
-        .option-buttons {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin: 1rem 0;
-        }
-        .opt-btn {
-            background: #f1f5f9;
-            border: none;
-            padding: 10px 24px;
-            border-radius: 48px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .opt-btn.active-opt {
-            background: #f97316;
-            color: white;
-            box-shadow: 0 6px 12px -4px #f97316;
-        }
-
-        .btn {
-            background: linear-gradient(105deg, #f97316, #fd8c4a);
-            border: none;
-            color: white;
-            padding: 12px 28px;
-            border-radius: 48px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.25s;
-            box-shadow: 0 8px 18px -6px rgba(249,115,22,0.4);
-        }
-        .btn-outline {
-            background: transparent;
-            border: 2px solid #f97316;
-            color: #f97316;
-            box-shadow: none;
-        }
-        .btn-danger {
-            background: #ef4444;
-            box-shadow: none;
-        }
-        .summary-box {
-            background: #fef9f0;
-            padding: 1.5rem;
-            border-radius: 32px;
-            margin: 1rem 0;
-            border-left: 6px solid #f97316;
-        }
-        .contact-form-area {
-            background: #f8fafc;
-            padding: 1.8rem;
-            border-radius: 36px;
-            margin-top: 2rem;
-            border: 1px solid #ffe2cf;
-        }
-        hr {
-            margin: 1rem 0;
-        }
-        @media (max-width: 680px) {
-            .container { padding: 1.2rem; }
-            #routeMap { height: 240px; }
-        }
-        .suggestions-wrapper {
-            position: relative;
-        }
+        .truck-card.selected { border-color: #f97316; background: #fff7ed; transform: translateY(-4px); box-shadow: 0 16px 24px -8px rgba(249,115,22,0.25);}
+        .truck-card i, .truck-card img { font-size: 3rem; color: #f97316; display: block; margin: 0 auto; background: #ffedd5; border-radius: 60px; padding: 12px; width: 70px; height: 70px; object-fit: contain;}
+        .truck-icon-img { width: 66px; height: 66px; object-fit: contain; background: #ffedd5; border-radius: 60px; padding: 8px; margin-bottom: 8px; }
+        .truck-name { font-weight: 800; margin: 10px 0 4px; }
+        .truck-desc { font-size: 0.85rem; color: #475569; }
+        .option-buttons { display: flex; gap: 12px; flex-wrap: wrap; margin: 1rem 0; }
+        .opt-btn { background: #f1f5f9; border: none; padding: 10px 24px; border-radius: 48px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .opt-btn.active-opt { background: #f97316; color: white; box-shadow: 0 6px 12px -4px #f97316; }
+        .btn { background: linear-gradient(105deg, #f97316, #fd8c4a); border: none; color: white; padding: 12px 28px; border-radius: 48px; font-weight: 700; cursor: pointer; transition: 0.25s; box-shadow: 0 8px 18px -6px rgba(249,115,22,0.4);}
+        .btn-outline { background: transparent; border: 2px solid #f97316; color: #f97316; box-shadow: none; }
+        .btn-danger { background: #ef4444; box-shadow: none; }
+        .summary-box { background: #fef9f0; padding: 1.5rem; border-radius: 32px; margin: 1rem 0; border-left: 6px solid #f97316; }
+        .contact-form-area { background: #f8fafc; padding: 1.8rem; border-radius: 36px; margin-top: 2rem; border: 1px solid #ffe2cf; }
+        .cargo-item { background: #fefce8; border-radius: 28px; padding: 1rem; margin-bottom: 1rem; border: 1px solid #ffe2cf; }
+        @media (max-width: 680px) { .container { padding: 1.2rem; } #routeMap { height: 260px; } }
+        .suggestions-wrapper { position: relative; }
     </style>
 </head>
 <body>
 <div class="container">
-    <h1><i class="fas fa-dune" style="color:#f97316"></i> ООО «Дюна» <small>грузовые перевозки с картой</small></h1>
-    <div class="sub">Построение маршрута, умный поиск адресов, точный расчёт</div>
+    <h1><i class="fas fa-dune" style="color:#f97316"></i> ООО «Дюна» <small>грузоперевозки с умной картой</small></h1>
+    <div class="sub">Поставьте точки на карте — адреса подставятся автоматически</div>
 
     <div class="steps">
         <button class="step-btn" data-step="1">1. Маршрут + Карта</button>
@@ -331,9 +126,9 @@
         <button class="step-btn" data-step="4">4. Итоги и заявка</button>
     </div>
 
-    <!-- ШАГ 1: Маршрут с картой и умным поиском -->
+    <!-- ШАГ 1: Карта с точками старт/финиш (красный/синий) без маршрутных инструкций -->
     <div id="step1" class="step-panel active-panel">
-        <h3><i class="fas fa-map-marked-alt"></i> Маршрут на карте</h3>
+        <h3><i class="fas fa-map-marked-alt"></i> Кликните на карте: первая точка — откуда (красная), вторая — куда (синяя)</h3>
         <div class="map-wrapper">
             <div id="routeMap"></div>
         </div>
@@ -353,10 +148,8 @@
                 <span class="toggle-slider"></span>
                 <span class="toggle-label">🔄 Кругорейс (обратно в пункт отправления)</span>
             </label>
-            <small class="weight-convert-hint" style="color:#f97316;">Пример: СПб → Москва → СПб</small>
         </div>
         <div class="flex-between" style="display: flex; justify-content: flex-end; gap: 12px;">
-            <button class="btn" id="refreshMapBtn"><i class="fas fa-sync-alt"></i> Обновить маршрут</button>
             <button class="btn" id="nextFromStep1">Далее →</button>
         </div>
     </div>
@@ -393,7 +186,6 @@
                 <button class="btn" id="nextToSummaryGroup">Далее →</button>
             </div>
         </div>
-
         <div id="dedicatedContainer" style="display: none;">
             <h3>🚚 Выберите подходящую машину</h3>
             <div class="card-grid" id="truckSelectionGrid"></div>
@@ -458,17 +250,85 @@
         dedicated: { selectedTruck: null, bodyType: null, loadingTypes: [], extraTypes: [] }
     };
     let nextCargoId = 1;
-    let mapInstance, routingControl = null;
-    let lastFrom = "", lastTo = "";
+    let mapInstance, startMarker, endMarker;
+    let startPoint = null, endPoint = null;
 
-    // Инициализация карты
+    // Инициализация карты (русский стиль Green)
     function initMap() {
         if (mapInstance) mapInstance.remove();
-        mapInstance = L.map('routeMap').setView([55.7558, 37.6173], 5);
+        mapInstance = L.map('routeMap').setView([55.7558, 37.6173], 6);
+        // Используем спутниковый или топо-стиль с зелёной гаммой - выбираем "CartoDB Voyager" без логотипов стран
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> & CartoDB'
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+            subdomains: 'abcd',
+            minZoom: 4,
+            maxZoom: 18
         }).addTo(mapInstance);
-        updateMapRoute();
+        
+        // Обработчик клика по карте: первая точка - красная, вторая - синяя
+        let clickCount = 0;
+        mapInstance.on('click', async function(e) {
+            if (clickCount === 0) {
+                // Точка старта (откуда) - красная
+                if (startMarker) mapInstance.removeLayer(startMarker);
+                startMarker = L.marker(e.latlng, { icon: L.divIcon({ html: '<div style="background:#e34234; width:18px; height:18px; border-radius:50%; border:3px solid white; box-shadow:0 0 0 2px #e34234;"></div>', className: '', iconSize: [18,18] }) }).addTo(mapInstance);
+                startPoint = e.latlng;
+                const address = await reverseGeocode(e.latlng.lat, e.latlng.lng);
+                document.getElementById('fromCity').value = address;
+                appState.route.from = address;
+                clickCount++;
+            } else if (clickCount === 1) {
+                // Точка финиша (куда) - синяя
+                if (endMarker) mapInstance.removeLayer(endMarker);
+                endMarker = L.marker(e.latlng, { icon: L.divIcon({ html: '<div style="background:#3b82f6; width:18px; height:18px; border-radius:50%; border:3px solid white; box-shadow:0 0 0 2px #3b82f6;"></div>', className: '', iconSize: [18,18] }) }).addTo(mapInstance);
+                endPoint = e.latlng;
+                const addressTo = await reverseGeocode(e.latlng.lat, e.latlng.lng);
+                document.getElementById('toCity').value = addressTo;
+                appState.route.to = addressTo;
+                clickCount = 0; // сброс для возможности переопределения (но можно оставить)
+                // после выбора второй точки обновим маршрут отображением линии (опционально)
+                drawRouteLine();
+            }
+        });
+    }
+
+    async function reverseGeocode(lat, lng) {
+        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+        try {
+            const resp = await fetch(url, { headers: { 'User-Agent': 'DunaLogistics' } });
+            const data = await resp.json();
+            if(data.display_name) return data.display_name.split(',')[0] + ', ' + (data.address.road || data.address.city || data.address.town || data.address.village || '');
+            return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+        } catch(e) { return `${lat.toFixed(4)}, ${lng.toFixed(4)}`; }
+    }
+
+    function drawRouteLine() {
+        if (window.routeLayer) mapInstance.removeLayer(window.routeLayer);
+        if (startPoint && endPoint) {
+            const latlngs = [startPoint, endPoint];
+            window.routeLayer = L.polyline(latlngs, { color: '#f97316', weight: 4, opacity: 0.7, dashArray: '8, 8' }).addTo(mapInstance);
+            mapInstance.fitBounds(latlngs, { padding: [40,40] });
+        }
+    }
+
+    // Функция обновления маршрута по текстовым полям (геокодер)
+    async function updateFromText() {
+        const fromText = document.getElementById('fromCity').value;
+        const toText = document.getElementById('toCity').value;
+        if (!fromText || !toText) return;
+        const fromCoord = await geocodeAddress(fromText);
+        const toCoord = await geocodeAddress(toText);
+        if (fromCoord) {
+            if (startMarker) mapInstance.removeLayer(startMarker);
+            startMarker = L.marker([fromCoord.lat, fromCoord.lon], { icon: L.divIcon({ html: '<div style="background:#e34234; width:18px; height:18px; border-radius:50%; border:3px solid white;"></div>', className: '', iconSize: [18,18] }) }).addTo(mapInstance);
+            startPoint = L.latLng(fromCoord.lat, fromCoord.lon);
+        }
+        if (toCoord) {
+            if (endMarker) mapInstance.removeLayer(endMarker);
+            endMarker = L.marker([toCoord.lat, toCoord.lon], { icon: L.divIcon({ html: '<div style="background:#3b82f6; width:18px; height:18px; border-radius:50%; border:3px solid white;"></div>', className: '', iconSize: [18,18] }) }).addTo(mapInstance);
+            endPoint = L.latLng(toCoord.lat, toCoord.lon);
+        }
+        if (startPoint && endPoint) drawRouteLine();
     }
 
     async function geocodeAddress(address) {
@@ -477,48 +337,24 @@
         try {
             const res = await fetch(url, { headers: { 'User-Agent': 'DunaLogistics' } });
             const data = await res.json();
-            if (data && data[0]) return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
-        } catch(e) { console.warn(e); }
+            if(data && data[0]) return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+        } catch(e) {}
         return null;
     }
 
-    async function updateMapRoute() {
-        if (routingControl) mapInstance.removeControl(routingControl);
-        const fromAddr = document.getElementById('fromCity').value;
-        const toAddr = document.getElementById('toCity').value;
-        if (!fromAddr || !toAddr) return;
-        const fromPoint = await geocodeAddress(fromAddr);
-        const toPoint = await geocodeAddress(toAddr);
-        if (!fromPoint || !toPoint) {
-            console.warn("Геокодирование не удалось");
-            return;
-        }
-        routingControl = L.Routing.control({
-            waypoints: [L.latLng(fromPoint.lat, fromPoint.lon), L.latLng(toPoint.lat, toPoint.lon)],
-            routeWhileDragging: true,
-            showAlternatives: false,
-            lineOptions: { styles: [{ color: '#f97316', weight: 5, opacity: 0.8 }] }
-        }).addTo(mapInstance);
-        mapInstance.fitBounds([
-            [fromPoint.lat, fromPoint.lon],
-            [toPoint.lat, toPoint.lon]
-        ], { padding: [40,40] });
-    }
-
-    // ========= УМНЫЙ ПОИСК DADATA (города, улицы) =========
+    // Умный поиск DADATA
     function initSmartSearch() {
-        const token = "d5b2f3c7e6a4b9c1d2e3f4a5b6c7d8e9f0a1b2c3"; // публичный демо-токен, для продакшена заменить
+        const token = "d5b2f3c7e6a4b9c1d2e3f4a5b6c7d8e9f0a1b2c3";
         $('#fromCity, #toCity').suggestions({
             token: token,
             type: "ADDRESS",
             hint: false,
             bounds: "city-street-building",
-            constraints: { locations: { country: "*" } },
-            onSelect: function(suggestion) {
-                // автообновление карты при выборе
-                updateMapRoute();
-            }
+            onSelect: function() { updateFromText(); }
         });
+        // Обновление маршрута при ручном вводе
+        document.getElementById('fromCity').addEventListener('change', updateFromText);
+        document.getElementById('toCity').addEventListener('change', updateFromText);
     }
 
     // ------ Логика сборного груза ------
@@ -527,7 +363,6 @@
         if (unit === 't') return value * 1000;
         return value;
     }
-
     function renderGroupageCargos() {
         const container = document.getElementById('cargoList');
         if (!container) return;
@@ -540,10 +375,6 @@
             cargo.convertedWeightKg = weightKg;
             const cargoDiv = document.createElement('div');
             cargoDiv.className = 'cargo-item';
-            cargoDiv.style.background = '#fefce8';
-            cargoDiv.style.borderRadius = '28px';
-            cargoDiv.style.padding = '1rem';
-            cargoDiv.style.marginBottom = '1rem';
             cargoDiv.innerHTML = `
                 <div style="display:flex; justify-content:space-between;"><strong>📦 Груз #${cargo.id}</strong> <button class="btn btn-outline remove-cargo" data-id="${cargo.id}" style="background:#fff0f0; color:#b91c1c; padding:4px 16px;">Удалить</button></div>
                 <div class="row-2col" style="margin-top:10px;">
@@ -553,15 +384,12 @@
                 </div>
                 <div class="row-2col">
                     <div><label>Вес</label><input type="number" class="cargo-weight-val" value="${cargo.weight}"></div>
-                    <div><label>Ед. веса</label><select class="cargo-weight-unit">
-                        <option value="g" ${cargo.weightUnit==='g'?'selected':''}>г</option>
-                        <option value="kg" ${cargo.weightUnit==='kg'?'selected':''}>кг</option>
-                        <option value="t" ${cargo.weightUnit==='t'?'selected':''}>т</option>
-                    </select></div>
+                    <div><label>Ед. веса</label><select class="cargo-weight-unit"><option value="g" ${cargo.weightUnit==='g'?'selected':''}>г</option><option value="kg" ${cargo.weightUnit==='kg'?'selected':''}>кг</option><option value="t" ${cargo.weightUnit==='t'?'selected':''}>т</option></select></div>
                     <div><label>Кол-во</label><input type="number" class="cargo-qty" value="${cargo.quantity}" min="1"></div>
                 </div>
                 <div class="weight-convert-hint" style="margin:6px 0">⚖️ ${weightKg} кг / шт → общий вес ${(weightKg * cargo.quantity).toFixed(2)} кг</div>
-                <div style="display:flex; gap:20px;"><label><input type="checkbox" class="cargo-rotatable" ${cargo.rotatable?'checked':''}> Вращать</label><label><input type="checkbox" class="cargo-stackable" ${cargo.stackable?'checked':''}> Стакать</label></div>
+                <div style="display:flex; gap:20px;"><label class="toggle-switch" style="width:auto;"><input type="checkbox" class="cargo-rotatable" ${cargo.rotatable?'checked':''}><span class="toggle-slider" style="width:40px; height:22px;"></span><span>Вращать</span></label>
+                <label class="toggle-switch" style="width:auto;"><input type="checkbox" class="cargo-stackable" ${cargo.stackable?'checked':''}><span class="toggle-slider" style="width:40px; height:22px;"></span><span>Стакать</span></label></div>
             `;
             container.appendChild(cargoDiv);
             const update = () => {
@@ -589,14 +417,14 @@
         });
     }
 
-    // Машины + картинка для 20 тонн (иконка FontAwesome но можно заменить эмоджи)
+    // Машины с уникальными иконками в оранжевом фоне
     const trucksData = [
-        { name: "1,5 тонны", volume: "10 кубов", icon: "fa-truck", tonnage: 1.5, customImg: null },
-        { name: "3 тонны", volume: "25 кубов", icon: "fa-truck", tonnage: 3, customImg: null },
-        { name: "5 тонн", volume: "36 кубов", icon: "fa-truck-moving", tonnage: 5, customImg: null },
-        { name: "10 тонн", volume: "45 кубов", icon: "fa-truck-ramp-box", tonnage: 10, customImg: null },
-        { name: "20 тонн (стандарт)", volume: "92 куба", icon: "fa-truck-container", tonnage: 20, customImg: null },
-        { name: "20 тонн (мега)", volume: "115 кубов", icon: "", tonnage: 20, customImg: "https://cdn-icons-png.flaticon.com/512/3342/3342130.png" }
+        { name: "1,5 тонны", volume: "10 кубов", icon: "fa-truck", tonnage: 1.5, img: null },
+        { name: "3 тонны", volume: "25 кубов", icon: "fa-truck-moving", tonnage: 3, img: null },
+        { name: "5 тонн", volume: "36 кубов", icon: "fa-truck-ramp-box", tonnage: 5, img: null },
+        { name: "10 тонн", volume: "45 кубов", icon: "fa-truck-container", tonnage: 10, img: null },
+        { name: "20 тонн (стандарт)", volume: "92 куба", icon: "fa-truck-fast", tonnage: 20, img: "https://cdn-icons-png.flaticon.com/512/2165/2165671.png" },
+        { name: "20 тонн (мега)", volume: "115 кубов", icon: "", tonnage: 20, img: "https://cdn-icons-png.flaticon.com/512/2932/2932492.png" }
     ];
     function renderTruckSelection() {
         const grid = document.getElementById('truckSelectionGrid');
@@ -605,7 +433,7 @@
         trucksData.forEach((truck, idx) => {
             const card = document.createElement('div');
             card.className = `truck-card ${appState.dedicated.selectedTruck === idx ? 'selected' : ''}`;
-            if(truck.customImg) card.innerHTML = `<img src="${truck.customImg}" class="truck-icon-img" alt="20тонн"><div class="truck-name">${truck.name}</div><div class="truck-desc">${truck.volume}</div>`;
+            if(truck.img) card.innerHTML = `<img src="${truck.img}" class="truck-icon-img" alt="truck"><div class="truck-name">${truck.name}</div><div class="truck-desc">${truck.volume}</div>`;
             else card.innerHTML = `<i class="fas ${truck.icon}"></i><div class="truck-name">${truck.name}</div><div class="truck-desc">${truck.volume}</div>`;
             card.addEventListener('click', () => {
                 appState.dedicated.selectedTruck = idx;
@@ -690,15 +518,16 @@
         return html;
     }
 
-    // Отправка на почту (asmirnov526@gmail.com)
+    // Отправка на почту через email-клиент (реалистичная)
     function sendToOwnerEmail(fullOrderText) {
-        const template = `=== ЗАЯВКА ООО "ДЮНА" ===\n${fullOrderText}\n---\nОтправлено через онлайн-калькулятор`;
-        console.log("EMAIL TO: asmirnov526@gmail.com", template);
-        alert(`✅ Заявка успешно отправлена на почту asmirnov526@gmail.com\n\nМенеджер свяжется с вами в ближайшее время.`);
+        const email = "asmirnov526@gmail.com";
+        const subject = encodeURIComponent("Заявка на грузоперевозку от ООО Дюна");
+        const body = encodeURIComponent(fullOrderText);
+        window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+        alert("✅ Открывается почтовый клиент. Пожалуйста, отправьте письмо на asmirnov526@gmail.com");
         return true;
     }
 
-    // Навигация по шагам
     function showStep(step) {
         document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active-panel'));
         document.getElementById(`step${step}`).classList.add('active-panel');
@@ -714,8 +543,7 @@
         if(step === 4) document.getElementById('summaryData').innerHTML = buildSummaryHTML();
     }
 
-    // Обработчики
-    document.getElementById('refreshMapBtn')?.addEventListener('click', () => updateMapRoute());
+    // Обработчики переходов
     document.getElementById('nextFromStep1').addEventListener('click', () => {
         appState.route.from = document.getElementById('fromCity').value;
         appState.route.to = document.getElementById('toCity').value;
@@ -731,35 +559,30 @@
             document.getElementById('nextFromStep2').disabled = false;
         });
     });
-    document.getElementById('nextFromStep2').addEventListener('click', () => {
-        if(selectedShipment) { appState.shipmentType = selectedShipment; showStep(3); }
-        else alert("Выберите тип отправки");
-    });
+    document.getElementById('nextFromStep2').onclick = () => { if(selectedShipment) { appState.shipmentType = selectedShipment; showStep(3); } else alert("Выберите тип отправки"); };
     document.getElementById('backToStep1').onclick = () => showStep(1);
     document.getElementById('backToStep2Group').onclick = () => showStep(2);
     document.getElementById('backToStep2Ded').onclick = () => showStep(2);
     document.getElementById('nextToSummaryGroup').onclick = () => showStep(4);
     document.getElementById('nextToSummaryDed').onclick = () => { if(!appState.dedicated.bodyType) alert("Выберите кузов"); else showStep(4); };
     document.getElementById('backToStep3').onclick = () => showStep(3);
-    document.getElementById('addCargoBtn')?.addEventListener('click', () => {
-        appState.groupageCargos.push({ id: nextCargoId++, length: 50, width: 40, height: 30, weight: 8, weightUnit: 'kg', quantity: 1, rotatable: false, stackable: false, convertedWeightKg: 8 });
-        renderGroupageCargos();
-    });
+    document.getElementById('addCargoBtn').onclick = () => { appState.groupageCargos.push({ id: nextCargoId++, length: 50, width: 40, height: 30, weight: 8, weightUnit: 'kg', quantity: 1, rotatable: false, stackable: false, convertedWeightKg: 8 }); renderGroupageCargos(); };
     document.getElementById('finalOrderForm').addEventListener('submit', (e) => {
         e.preventDefault();
         const name = document.getElementById('clientName').value;
         const phone = document.getElementById('clientPhone').value;
         const email = document.getElementById('clientEmail').value;
         const comment = document.getElementById('commentOrder').value;
-        if(!name || !phone || !email) { alert("Заполните обязательные поля"); return; }
+        if(!name || !phone || !email) { alert("Заполните имя, телефон и email"); return; }
         const summary = buildSummaryHTML();
-        const full = `${summary}\n\n📌 КОНТАКТЫ:\nИмя: ${name}\nТелефон: ${phone}\nEmail: ${email}\nКомментарий: ${comment}`;
+        const full = `${summary}\n\n📌 КОНТАКТЫ:\nИмя: ${name}\nТелефон: ${phone}\nEmail: ${email}\nКомментарий: ${comment}\n---\nОтправлено через калькулятор Дюна`;
         sendToOwnerEmail(full);
-        document.getElementById('finalOrderForm').reset();
     });
+
     initMap();
     initSmartSearch();
     if(!appState.groupageCargos.length) appState.groupageCargos = [{ id: nextCargoId++, length: 50, width: 40, height: 30, weight: 10, weightUnit: 'kg', quantity: 1, rotatable: false, stackable: false, convertedWeightKg: 10 }];
+    updateFromText();
     showStep(1);
 </script>
 </body>

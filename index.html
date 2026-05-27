@@ -1,247 +1,536 @@
-Вот обновленная HTML-страница с исправлениями: маршрут на карте теперь отображается красной (старт) и синей (финиш) точками без текстовых инструкций, выбор точки на карте заполняет поля ввода, а данные заявки отправляются на указанную почту через бэкенд-эмуляцию (в демо-режиме открывается почтовый клиент). Также добавлены переключатели и уникальные иконки для всех машин.
+Вот обновленная страница с Яндекс.Картами, улучшенным дизайном в стиле «Клевер Логистик», реальными изображениями машин и отправкой заявки в Telegram и VK.
 ```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>ООО «Дюна» — Карта и умная логистика</title>
-    <!-- Leaflet (карта) + OpenStreetMap (используем русский стиль) -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <!-- Для геокодинга и обратного геокодинга -->
-    <script src="https://cdn.jsdelivr.net/npm/leaflet-control-geocoder@2.4.0/dist/Control.Geocoder.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-control-geocoder@2.4.0/dist/Control.Geocoder.css" />
-    <!-- Dadata для умного поиска (города, улицы, дома) -->
-    <script src="https://cdn.jsdelivr.net/npm/suggestions-jquery@22.0.0/dist/js/jquery.suggestions.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-    <!-- Font Awesome -->
+    <title>ООО «Дюна» — Калькулятор грузоперевозок</title>
+    <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <!-- Яндекс.Карты API -->
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=ваш_api_ключ&lang=ru_RU" type="text/javascript"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(145deg, #eef2f7 0%, #d9e0eb 100%);
-            padding: 24px;
+            background: #F0F2F5;
+            overflow-x: hidden;
         }
+
+        /* Хедер в стиле Клевер Логистик */
+        .hero-header {
+            background: linear-gradient(135deg, #0A2540 0%, #1A4A6F 100%);
+            padding: 40px 0 60px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 70%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,215,0,0.08) 0%, transparent 70%);
+            transform: rotate(25deg);
+            pointer-events: none;
+        }
+
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            background: rgba(255,255,255,0.96);
-            backdrop-filter: blur(2px);
-            border-radius: 48px;
-            box-shadow: 0 25px 45px -12px rgba(0,0,0,0.25);
-            overflow: hidden;
-            padding: 2rem 2rem 2.5rem;
+            padding: 0 32px;
+            position: relative;
+            z-index: 2;
         }
-        h1 {
+
+        .logo-area h1 {
             font-size: 2rem;
-            margin-bottom: 0.25rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
+        }
+
+        .logo-area h1 i {
+            color: #FFD700;
+            margin-right: 12px;
+        }
+
+        .logo-area p {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.95rem;
+            border-left: 3px solid #FFD700;
+            padding-left: 16px;
+        }
+
+        /* Основной контент */
+        .main-card {
+            background: white;
+            border-radius: 32px;
+            margin-top: -30px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .steps-tabs {
+            display: flex;
+            background: #F8F9FC;
+            padding: 8px 32px 0;
+            gap: 8px;
+            border-bottom: 1px solid #E9ECF0;
+        }
+
+        .step-tab {
+            padding: 18px 28px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: #6C757D;
+            transition: all 0.2s;
+            border-bottom: 3px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .step-tab.active {
+            color: #0A2540;
+            border-bottom-color: #FFD700;
+            background: white;
+            border-radius: 16px 16px 0 0;
+        }
+
+        .step-panel {
+            display: none;
+            padding: 32px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .step-panel.active-panel {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Карта */
+        .map-container {
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            margin-bottom: 24px;
+            border: 1px solid #E9ECF0;
+        }
+
+        #yandexMap {
+            height: 380px;
+            width: 100%;
+        }
+
+        /* Формы */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 8px;
+            color: #1A2C3E;
+            font-size: 0.9rem;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 14px 18px;
+            border-radius: 16px;
+            border: 1.5px solid #E2E8F0;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #FFD700;
+            box-shadow: 0 0 0 3px rgba(255,215,0,0.2);
+        }
+
+        /* Красивые переключатели (кастомные) */
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .custom-switch {
             display: flex;
             align-items: center;
             gap: 12px;
-            background: linear-gradient(135deg, #1e293b, #f97316);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
+            cursor: pointer;
         }
-        h1 small { font-size: 0.9rem; background: none; color: #f97316; font-weight: 500; }
-        .sub { color: #2c3e50; border-left: 4px solid #f97316; padding-left: 16px; margin-bottom: 2rem; font-weight: 500; }
-        .steps {
+
+        .custom-switch input {
+            display: none;
+        }
+
+        .switch-slider {
+            width: 52px;
+            height: 28px;
+            background: #E2E8F0;
+            border-radius: 40px;
+            position: relative;
+            transition: 0.25s;
+        }
+
+        .switch-slider:before {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 3px;
+            transition: 0.25s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .custom-switch input:checked + .switch-slider {
+            background: #FFD700;
+        }
+
+        .custom-switch input:checked + .switch-slider:before {
+            transform: translateX(23px);
+        }
+
+        .switch-label {
+            font-weight: 600;
+            color: #1A2C3E;
+        }
+
+        /* Карточки машин */
+        .trucks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 24px 0;
+        }
+
+        .truck-card {
+            background: #F8F9FC;
+            border-radius: 20px;
+            padding: 20px 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s;
+            border: 2px solid transparent;
+        }
+
+        .truck-card.selected {
+            border-color: #FFD700;
+            background: #FFFBF0;
+            transform: translateY(-4px);
+            box-shadow: 0 12px 20px -10px rgba(0,0,0,0.1);
+        }
+
+        .truck-card img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            margin-bottom: 12px;
+        }
+
+        .truck-name {
+            font-weight: 800;
+            font-size: 1.1rem;
+            margin: 8px 0 4px;
+        }
+
+        .truck-specs {
+            font-size: 0.8rem;
+            color: #6C757D;
+        }
+
+        /* Кнопки */
+        .btn {
+            padding: 14px 32px;
+            border-radius: 40px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: #0A2540;
+            color: white;
+            box-shadow: 0 4px 12px rgba(10,37,64,0.2);
+        }
+
+        .btn-primary:hover {
+            background: #1A4A6F;
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #0A2540;
+            color: #0A2540;
+        }
+
+        .btn-outline:hover {
+            background: #0A2540;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #FFD700;
+            color: #0A2540;
+            font-weight: 800;
+        }
+
+        .btn-warning:hover {
+            background: #FFC107;
+            transform: translateY(-2px);
+        }
+
+        .contact-buttons {
             display: flex;
-            gap: 12px;
-            margin-bottom: 2rem;
-            border-bottom: 2px solid #e2e8f0;
-            padding-bottom: 1rem;
+            gap: 16px;
+            margin-top: 24px;
             flex-wrap: wrap;
         }
-        .step-btn {
-            background: #f1f5f9;
+
+        .btn-telegram {
+            background: #0088cc;
+            color: white;
+        }
+
+        .btn-vk {
+            background: #0077ff;
+            color: white;
+        }
+
+        .summary-card {
+            background: #F8F9FC;
+            border-radius: 24px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border-left: 5px solid #FFD700;
+        }
+
+        .option-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 16px 0;
+        }
+
+        .opt-btn {
+            padding: 10px 24px;
+            border-radius: 40px;
+            background: #F1F3F5;
             border: none;
-            font-weight: 700;
-            font-size: 1rem;
-            padding: 0.7rem 1.6rem;
-            border-radius: 60px;
+            font-weight: 600;
             cursor: pointer;
-            color: #334155;
-            transition: all 0.2s ease;
+            transition: 0.2s;
         }
-        .step-btn.active { background: #f97316; color: white; box-shadow: 0 12px 18px -8px rgba(249,115,22,0.4); transform: scale(1.02);}
-        .step-panel { display: none; animation: fadeSlide 0.35s ease; }
-        .step-panel.active-panel { display: block; }
-        @keyframes fadeSlide { from { opacity: 0; transform: translateY(8px);} to { opacity: 1; transform: translateY(0);} }
-        .map-wrapper { border-radius: 32px; overflow: hidden; margin: 1.2rem 0 1.5rem; box-shadow: 0 8px 20px rgba(0,0,0,0.1); border: 1px solid #fee2d6; }
-        #routeMap { height: 360px; width: 100%; background: #d9e0eb; }
-        .form-group { margin-bottom: 1.25rem; }
-        label { font-weight: 700; display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: #0f172a; }
-        input, select, textarea {
-            width: 100%; padding: 14px 18px; border-radius: 28px; border: 1.5px solid #e2e8f0;
-            font-family: inherit; font-size: 0.95rem; transition: all 0.2s; background: #ffffff;
+
+        .opt-btn.active-opt {
+            background: #FFD700;
+            color: #0A2540;
         }
-        input:focus, select:focus { outline: none; border-color: #f97316; box-shadow: 0 0 0 3px rgba(249,115,22,0.2);}
-        .row-2col { display: flex; gap: 1.2rem; flex-wrap: wrap; }
-        .row-2col > div { flex: 1; }
-        /* Красивый toggle switch */
-        .toggle-switch { display: flex; align-items: center; gap: 16px; cursor: pointer; }
-        .toggle-switch input { display: none; }
-        .toggle-slider { width: 58px; height: 30px; background: #cbd5e1; border-radius: 40px; position: relative; transition: 0.3s; box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);}
-        .toggle-slider:before { content: ""; width: 26px; height: 26px; background: white; border-radius: 50%; position: absolute; top: 2px; left: 3px; transition: 0.3s;}
-        .toggle-switch input:checked + .toggle-slider { background: #f97316; }
-        .toggle-switch input:checked + .toggle-slider:before { transform: translateX(27px); }
-        .toggle-label { font-weight: 600; }
-        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 1.2rem; margin: 1.2rem 0; }
-        .truck-card {
-            background: #ffffff; border-radius: 28px; padding: 1rem; text-align: center; cursor: pointer;
-            border: 2px solid #eef2ff; transition: all 0.2s; box-shadow: 0 4px 8px rgba(0,0,0,0.02);
+
+        .cargo-item {
+            background: #F8F9FC;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
         }
-        .truck-card.selected { border-color: #f97316; background: #fff7ed; transform: translateY(-4px); box-shadow: 0 16px 24px -8px rgba(249,115,22,0.25);}
-        .truck-card i, .truck-card img { font-size: 3rem; color: #f97316; display: block; margin: 0 auto; background: #ffedd5; border-radius: 60px; padding: 12px; width: 70px; height: 70px; object-fit: contain;}
-        .truck-icon-img { width: 66px; height: 66px; object-fit: contain; background: #ffedd5; border-radius: 60px; padding: 8px; margin-bottom: 8px; }
-        .truck-name { font-weight: 800; margin: 10px 0 4px; }
-        .truck-desc { font-size: 0.85rem; color: #475569; }
-        .option-buttons { display: flex; gap: 12px; flex-wrap: wrap; margin: 1rem 0; }
-        .opt-btn { background: #f1f5f9; border: none; padding: 10px 24px; border-radius: 48px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        .opt-btn.active-opt { background: #f97316; color: white; box-shadow: 0 6px 12px -4px #f97316; }
-        .btn { background: linear-gradient(105deg, #f97316, #fd8c4a); border: none; color: white; padding: 12px 28px; border-radius: 48px; font-weight: 700; cursor: pointer; transition: 0.25s; box-shadow: 0 8px 18px -6px rgba(249,115,22,0.4);}
-        .btn-outline { background: transparent; border: 2px solid #f97316; color: #f97316; box-shadow: none; }
-        .btn-danger { background: #ef4444; box-shadow: none; }
-        .summary-box { background: #fef9f0; padding: 1.5rem; border-radius: 32px; margin: 1rem 0; border-left: 6px solid #f97316; }
-        .contact-form-area { background: #f8fafc; padding: 1.8rem; border-radius: 36px; margin-top: 2rem; border: 1px solid #ffe2cf; }
-        .cargo-item { background: #fefce8; border-radius: 28px; padding: 1rem; margin-bottom: 1rem; border: 1px solid #ffe2cf; }
-        @media (max-width: 680px) { .container { padding: 1.2rem; } #routeMap { height: 260px; } }
-        .suggestions-wrapper { position: relative; }
+
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .container { padding: 0 16px; }
+            .step-tab { padding: 12px 16px; font-size: 0.8rem; }
+            .step-panel { padding: 20px; }
+        }
     </style>
 </head>
 <body>
+<div class="hero-header">
+    <div class="container">
+        <div class="logo-area">
+            <h1><i class="fas fa-dune"></i> ООО «Дюна»</h1>
+            <p>Грузовые перевозки по России — точно, надёжно, с душой</p>
+        </div>
+    </div>
+</div>
+
 <div class="container">
-    <h1><i class="fas fa-dune" style="color:#f97316"></i> ООО «Дюна» <small>грузоперевозки с умной картой</small></h1>
-    <div class="sub">Поставьте точки на карте — адреса подставятся автоматически</div>
+    <div class="main-card">
+        <div class="steps-tabs">
+            <button class="step-tab active" data-step="1"><i class="fas fa-route"></i> Маршрут</button>
+            <button class="step-tab" data-step="2"><i class="fas fa-truck"></i> Тип отправки</button>
+            <button class="step-tab" data-step="3"><i class="fas fa-cubes"></i> Параметры груза</button>
+            <button class="step-tab" data-step="4"><i class="fas fa-file-invoice"></i> Заявка</button>
+        </div>
 
-    <div class="steps">
-        <button class="step-btn" data-step="1">1. Маршрут + Карта</button>
-        <button class="step-btn" data-step="2">2. Тип отправки</button>
-        <button class="step-btn" data-step="3">3. Параметры груза/ТС</button>
-        <button class="step-btn" data-step="4">4. Итоги и заявка</button>
-    </div>
-
-    <!-- ШАГ 1: Карта с точками старт/финиш (красный/синий) без маршрутных инструкций -->
-    <div id="step1" class="step-panel active-panel">
-        <h3><i class="fas fa-map-marked-alt"></i> Кликните на карте: первая точка — откуда (красная), вторая — куда (синяя)</h3>
-        <div class="map-wrapper">
-            <div id="routeMap"></div>
-        </div>
-        <div class="row-2col">
-            <div class="form-group">
-                <label><i class="fas fa-flag-checkered"></i> Откуда (адрес, город)</label>
-                <input type="text" id="fromCity" placeholder="Санкт-Петербург, Невский пр. 1" value="Санкт-Петербург">
+        <!-- ШАГ 1: Маршрут с Яндекс.Картой -->
+        <div id="step1" class="step-panel active-panel">
+            <h3 style="margin-bottom: 20px;">📍 Постройте маршрут на карте</h3>
+            <div class="map-container">
+                <div id="yandexMap"></div>
             </div>
-            <div class="form-group">
-                <label><i class="fas fa-map-pin"></i> Куда (адрес, город)</label>
-                <input type="text" id="toCity" placeholder="Москва, Тверская ул." value="Москва">
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="toggle-switch">
-                <input type="checkbox" id="roundTripCheckbox">
-                <span class="toggle-slider"></span>
-                <span class="toggle-label">🔄 Кругорейс (обратно в пункт отправления)</span>
-            </label>
-        </div>
-        <div class="flex-between" style="display: flex; justify-content: flex-end; gap: 12px;">
-            <button class="btn" id="nextFromStep1">Далее →</button>
-        </div>
-    </div>
-
-    <!-- ШАГ 2: Тип перевозки -->
-    <div id="step2" class="step-panel">
-        <h3>🚛 Выберите тип перевозки</h3>
-        <div class="card-grid">
-            <div class="truck-card" data-shipment="groupage">
-                <i class="fas fa-cubes"></i>
-                <div class="truck-name">Сборный груз</div>
-                <div class="truck-desc">Небольшие партии, коробки, паллеты</div>
-            </div>
-            <div class="truck-card" data-shipment="dedicated">
-                <i class="fas fa-truck-ramp-box"></i>
-                <div class="truck-name">Выделенный транспорт</div>
-                <div class="truck-desc">Фура, тент, изотерма, гидроборт</div>
-            </div>
-        </div>
-        <div class="flex-between" style="margin-top: 2rem;">
-            <button class="btn btn-outline" id="backToStep1">← Назад</button>
-            <button class="btn" id="nextFromStep2" disabled>Далее →</button>
-        </div>
-    </div>
-
-    <!-- ШАГ 3: Сборный / Выделенный -->
-    <div id="step3" class="step-panel">
-        <div id="groupageContainer" style="display: none;">
-            <h3>📦 Сборный груз (можно несколько позиций)</h3>
-            <div id="cargoList"></div>
-            <button class="btn btn-outline" id="addCargoBtn"><i class="fas fa-plus-circle"></i> Добавить груз</button>
-            <div class="flex-between" style="margin-top: 2rem;">
-                <button class="btn btn-outline" id="backToStep2Group">← Назад</button>
-                <button class="btn" id="nextToSummaryGroup">Далее →</button>
-            </div>
-        </div>
-        <div id="dedicatedContainer" style="display: none;">
-            <h3>🚚 Выберите подходящую машину</h3>
-            <div class="card-grid" id="truckSelectionGrid"></div>
-            <div id="bodyTypeArea" style="display: none; margin-top: 1rem;">
-                <h4>Тип кузова</h4>
-                <div class="option-buttons" id="bodyTypeBtns"></div>
-            </div>
-            <div id="extraOptionsArea" style="display: none;">
-                <h4>Способы погрузки (можно несколько)</h4>
-                <div class="option-buttons" id="loadingOptions"></div>
-                <h4>Дополнительное оборудование</h4>
-                <div class="option-buttons" id="extraEquip"></div>
-            </div>
-            <div class="flex-between" style="margin-top: 2rem;">
-                <button class="btn btn-outline" id="backToStep2Ded">← Назад</button>
-                <button class="btn" id="nextToSummaryDed" disabled>Далее →</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ШАГ 4: Итоги + форма -->
-    <div id="step4" class="step-panel">
-        <h3>📋 Ваша заявка</h3>
-        <div id="summaryData" class="summary-box"></div>
-        <div class="contact-form-area">
-            <h4>📞 Оформить заказ (данные придут на почту asmirnov526@gmail.com)</h4>
-            <form id="finalOrderForm">
+            <div class="form-grid">
                 <div class="form-group">
-                    <label>Ваше имя</label>
-                    <input type="text" id="clientName" required placeholder="Иванов Иван">
+                    <label><i class="fas fa-circle text-danger" style="color:#e34234;"></i> Откуда (старт)</label>
+                    <input type="text" id="fromCity" placeholder="Выберите на карте или введите адрес" value="Санкт-Петербург">
                 </div>
-                <div class="row-2col">
+                <div class="form-group">
+                    <label><i class="fas fa-circle" style="color:#3b82f6;"></i> Куда (назначение)</label>
+                    <input type="text" id="toCity" placeholder="Выберите на карте или введите адрес" value="Москва">
+                </div>
+            </div>
+            <div class="toggle-group">
+                <label class="custom-switch">
+                    <input type="checkbox" id="roundTripCheckbox">
+                    <span class="switch-slider"></span>
+                    <span class="switch-label">🔄 Кругорейс (обратно в пункт отправления)</span>
+                </label>
+            </div>
+            <div style="display: flex; justify-content: flex-end;">
+                <button class="btn btn-primary" id="nextFromStep1">Далее →</button>
+            </div>
+        </div>
+
+        <!-- ШАГ 2: Тип отправки -->
+        <div id="step2" class="step-panel">
+            <h3 style="margin-bottom: 20px;">🚛 Выберите тип перевозки</h3>
+            <div class="trucks-grid" style="grid-template-columns: 1fr 1fr;">
+                <div class="truck-card" data-shipment="groupage">
+                    <i class="fas fa-cubes" style="font-size: 64px; color: #FFD700;"></i>
+                    <div class="truck-name">Сборный груз</div>
+                    <div class="truck-specs">Для небольших партий, коробок и паллет</div>
+                </div>
+                <div class="truck-card" data-shipment="dedicated">
+                    <i class="fas fa-truck" style="font-size: 64px; color: #FFD700;"></i>
+                    <div class="truck-name">Выделенный транспорт</div>
+                    <div class="truck-specs">Персональная фура, тент, изотерма</div>
+                </div>
+            </div>
+            <div class="flex-between" style="margin-top: 32px;">
+                <button class="btn btn-outline" id="backToStep1">← Назад</button>
+                <button class="btn btn-primary" id="nextFromStep2" disabled>Далее →</button>
+            </div>
+        </div>
+
+        <!-- ШАГ 3: Параметры (динамический) -->
+        <div id="step3" class="step-panel">
+            <div id="groupageContainer" style="display: none;">
+                <h3>📦 Сборный груз — добавьте позиции</h3>
+                <div id="cargoList"></div>
+                <button class="btn btn-outline" id="addCargoBtn" style="margin: 16px 0;"><i class="fas fa-plus"></i> Добавить груз</button>
+                <div class="flex-between">
+                    <button class="btn btn-outline" id="backToStep2Group">← Назад</button>
+                    <button class="btn btn-primary" id="nextToSummaryGroup">Далее →</button>
+                </div>
+            </div>
+            <div id="dedicatedContainer" style="display: none;">
+                <h3>🚚 Выберите автомобиль</h3>
+                <div class="trucks-grid" id="truckSelectionGrid"></div>
+                <div id="bodyTypeArea" style="display: none;">
+                    <h4>Тип кузова</h4>
+                    <div class="option-buttons" id="bodyTypeBtns"></div>
+                </div>
+                <div id="extraOptionsArea" style="display: none;">
+                    <h4>Способы погрузки</h4>
+                    <div class="option-buttons" id="loadingOptions"></div>
+                    <h4>Доп. оборудование</h4>
+                    <div class="option-buttons" id="extraEquip"></div>
+                </div>
+                <div class="flex-between" style="margin-top: 32px;">
+                    <button class="btn btn-outline" id="backToStep2Ded">← Назад</button>
+                    <button class="btn btn-primary" id="nextToSummaryDed" disabled>Далее →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ШАГ 4: Заявка -->
+        <div id="step4" class="step-panel">
+            <h3>📋 Ваша заявка на перевозку</h3>
+            <div id="summaryData" class="summary-card"></div>
+            <div style="background: #F8F9FC; border-radius: 24px; padding: 24px;">
+                <h4>📞 Контактные данные</h4>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Ваше имя</label>
+                        <input type="text" id="clientName" placeholder="Иван Петров">
+                    </div>
                     <div class="form-group">
                         <label>Телефон</label>
-                        <input type="tel" id="clientPhone" required placeholder="+7 999 123-45-67">
+                        <input type="tel" id="clientPhone" placeholder="+7 999 123-45-67">
                     </div>
                     <div class="form-group">
                         <label>Email</label>
-                        <input type="email" id="clientEmail" required placeholder="client@example.com">
+                        <input type="email" id="clientEmail" placeholder="ivan@example.com">
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>Комментарий к заказу</label>
-                    <textarea rows="2" id="commentOrder" placeholder="Особые пожелания..."></textarea>
+                    <label>Комментарий</label>
+                    <textarea rows="3" id="commentOrder" placeholder="Особые пожелания..."></textarea>
                 </div>
-                <button type="submit" class="btn"><i class="fas fa-paper-plane"></i> Отправить заявку на почту владельцам</button>
-            </form>
-        </div>
-        <div class="flex-between" style="margin-top: 1.5rem;">
-            <button class="btn btn-outline" id="backToStep3">← Назад</button>
+                <div class="contact-buttons">
+                    <button class="btn btn-telegram" id="sendToTelegramBtn"><i class="fab fa-telegram"></i> Отправить заявку в Telegram</button>
+                    <button class="btn btn-vk" id="sendToVkBtn"><i class="fab fa-vk"></i> Написать в VK</button>
+                </div>
+            </div>
+            <div class="flex-between" style="margin-top: 24px;">
+                <button class="btn btn-outline" id="backToStep3">← Назад</button>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-    // ---------- ГЛОБАЛЬНОЕ СОСТОЯНИЕ ----------
+    // ========== ГЛОБАЛЬНОЕ СОСТОЯНИЕ ==========
     let appState = {
         step: 1,
         route: { from: "Санкт-Петербург", to: "Москва", isRoundTrip: false },
@@ -250,166 +539,162 @@
         dedicated: { selectedTruck: null, bodyType: null, loadingTypes: [], extraTypes: [] }
     };
     let nextCargoId = 1;
-    let mapInstance, startMarker, endMarker;
-    let startPoint = null, endPoint = null;
+    let ymapsReady = false;
+    let mapInstance, startPlacemark, endPlacemark, routeInstance;
 
-    // Инициализация карты (русский стиль Green)
-    function initMap() {
-        if (mapInstance) mapInstance.remove();
-        mapInstance = L.map('routeMap').setView([55.7558, 37.6173], 6);
-        // Используем спутниковый или топо-стиль с зелёной гаммой - выбираем "CartoDB Voyager" без логотипов стран
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
-            subdomains: 'abcd',
-            minZoom: 4,
-            maxZoom: 18
-        }).addTo(mapInstance);
-        
-        // Обработчик клика по карте: первая точка - красная, вторая - синяя
-        let clickCount = 0;
-        mapInstance.on('click', async function(e) {
-            if (clickCount === 0) {
-                // Точка старта (откуда) - красная
-                if (startMarker) mapInstance.removeLayer(startMarker);
-                startMarker = L.marker(e.latlng, { icon: L.divIcon({ html: '<div style="background:#e34234; width:18px; height:18px; border-radius:50%; border:3px solid white; box-shadow:0 0 0 2px #e34234;"></div>', className: '', iconSize: [18,18] }) }).addTo(mapInstance);
-                startPoint = e.latlng;
-                const address = await reverseGeocode(e.latlng.lat, e.latlng.lng);
-                document.getElementById('fromCity').value = address;
+    // Данные машин с реальными картинками (машины)
+    const trucksData = [
+        { name: "1,5 тонны", volume: "10 кубов", image: "https://cdn-icons-png.flaticon.com/512/3082/3082033.png", tonnage: 1.5 },
+        { name: "3 тонны", volume: "25 кубов", image: "https://cdn-icons-png.flaticon.com/512/2165/2165671.png", tonnage: 3 },
+        { name: "5 тонн", volume: "36 кубов", image: "https://cdn-icons-png.flaticon.com/512/2932/2932492.png", tonnage: 5 },
+        { name: "10 тонн", volume: "45 кубов", image: "https://cdn-icons-png.flaticon.com/512/3342/3342130.png", tonnage: 10 },
+        { name: "20 тонн (стандарт)", volume: "92 куба", image: "https://cdn-icons-png.flaticon.com/512/3096/3096977.png", tonnage: 20 },
+        { name: "20 тонн (мега)", volume: "115 кубов", image: "https://cdn-icons-png.flaticon.com/512/3082/3082033.png", tonnage: 20 }
+    ];
+
+    // Инициализация Яндекс.Карты
+    function initYandexMap() {
+        ymaps.ready(() => {
+            ymapsReady = true;
+            mapInstance = new ymaps.Map("yandexMap", {
+                center: [55.751574, 37.573856],
+                zoom: 7,
+                controls: ["zoomControl", "fullscreenControl"]
+            });
+
+            // Создаем метки (красная — начало, синяя — конец)
+            startPlacemark = new ymaps.Placemark([59.93863, 30.31413], { hintContent: "Старт" }, {
+                preset: "islands#redIcon",
+                draggable: true
+            });
+            endPlacemark = new ymaps.Placemark([55.751574, 37.573856], { hintContent: "Финиш" }, {
+                preset: "islands#blueIcon",
+                draggable: true
+            });
+
+            mapInstance.geoObjects.add(startPlacemark).add(endPlacemark);
+
+            // Обработка перетаскивания меток
+            startPlacemark.events.add("dragend", () => updateAddressFromCoords(startPlacemark.geometry.getCoordinates(), "from"));
+            endPlacemark.events.add("dragend", () => updateAddressFromCoords(endPlacemark.geometry.getCoordinates(), "to"));
+
+            // Клик по карте для установки меток по очереди
+            let clickCount = 0;
+            mapInstance.events.add("click", (e) => {
+                const coords = e.get("coords");
+                if (clickCount === 0) {
+                    startPlacemark.geometry.setCoordinates(coords);
+                    updateAddressFromCoords(coords, "from");
+                    clickCount++;
+                } else {
+                    endPlacemark.geometry.setCoordinates(coords);
+                    updateAddressFromCoords(coords, "to");
+                    clickCount = 0;
+                    buildRoute();
+                }
+            });
+
+            // Строим маршрут по умолчанию
+            buildRoute();
+        });
+    }
+
+    async function updateAddressFromCoords(coords, type) {
+        try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords[0]}&lon=${coords[1]}&zoom=18&addressdetails=1`);
+            const data = await response.json();
+            let address = data.display_name?.split(',')[0] || `${coords[0].toFixed(4)}, ${coords[1].toFixed(4)}`;
+            if (type === "from") {
+                document.getElementById("fromCity").value = address;
                 appState.route.from = address;
-                clickCount++;
-            } else if (clickCount === 1) {
-                // Точка финиша (куда) - синяя
-                if (endMarker) mapInstance.removeLayer(endMarker);
-                endMarker = L.marker(e.latlng, { icon: L.divIcon({ html: '<div style="background:#3b82f6; width:18px; height:18px; border-radius:50%; border:3px solid white; box-shadow:0 0 0 2px #3b82f6;"></div>', className: '', iconSize: [18,18] }) }).addTo(mapInstance);
-                endPoint = e.latlng;
-                const addressTo = await reverseGeocode(e.latlng.lat, e.latlng.lng);
-                document.getElementById('toCity').value = addressTo;
-                appState.route.to = addressTo;
-                clickCount = 0; // сброс для возможности переопределения (но можно оставить)
-                // после выбора второй точки обновим маршрут отображением линии (опционально)
-                drawRouteLine();
+            } else {
+                document.getElementById("toCity").value = address;
+                appState.route.to = address;
             }
-        });
+        } catch(e) { console.warn(e); }
     }
 
-    async function reverseGeocode(lat, lng) {
-        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
-        try {
-            const resp = await fetch(url, { headers: { 'User-Agent': 'DunaLogistics' } });
-            const data = await resp.json();
-            if(data.display_name) return data.display_name.split(',')[0] + ', ' + (data.address.road || data.address.city || data.address.town || data.address.village || '');
-            return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-        } catch(e) { return `${lat.toFixed(4)}, ${lng.toFixed(4)}`; }
+    function buildRoute() {
+        if (!ymapsReady || !mapInstance) return;
+        const fromCoords = startPlacemark.geometry.getCoordinates();
+        const toCoords = endPlacemark.geometry.getCoordinates();
+        if (routeInstance) mapInstance.geoObjects.remove(routeInstance);
+        ymaps.route([fromCoords, toCoords]).then(route => {
+            routeInstance = route;
+            mapInstance.geoObjects.add(routeInstance);
+            mapInstance.setBounds(route.getBounds(), { checkZoomRange: true, zoomMargin: 50 });
+        }, error => console.log("Маршрут не построен"));
     }
 
-    function drawRouteLine() {
-        if (window.routeLayer) mapInstance.removeLayer(window.routeLayer);
-        if (startPoint && endPoint) {
-            const latlngs = [startPoint, endPoint];
-            window.routeLayer = L.polyline(latlngs, { color: '#f97316', weight: 4, opacity: 0.7, dashArray: '8, 8' }).addTo(mapInstance);
-            mapInstance.fitBounds(latlngs, { padding: [40,40] });
-        }
-    }
-
-    // Функция обновления маршрута по текстовым полям (геокодер)
-    async function updateFromText() {
-        const fromText = document.getElementById('fromCity').value;
-        const toText = document.getElementById('toCity').value;
-        if (!fromText || !toText) return;
-        const fromCoord = await geocodeAddress(fromText);
-        const toCoord = await geocodeAddress(toText);
-        if (fromCoord) {
-            if (startMarker) mapInstance.removeLayer(startMarker);
-            startMarker = L.marker([fromCoord.lat, fromCoord.lon], { icon: L.divIcon({ html: '<div style="background:#e34234; width:18px; height:18px; border-radius:50%; border:3px solid white;"></div>', className: '', iconSize: [18,18] }) }).addTo(mapInstance);
-            startPoint = L.latLng(fromCoord.lat, fromCoord.lon);
-        }
-        if (toCoord) {
-            if (endMarker) mapInstance.removeLayer(endMarker);
-            endMarker = L.marker([toCoord.lat, toCoord.lon], { icon: L.divIcon({ html: '<div style="background:#3b82f6; width:18px; height:18px; border-radius:50%; border:3px solid white;"></div>', className: '', iconSize: [18,18] }) }).addTo(mapInstance);
-            endPoint = L.latLng(toCoord.lat, toCoord.lon);
-        }
-        if (startPoint && endPoint) drawRouteLine();
-    }
-
+    // Геокодирование адреса в координаты
     async function geocodeAddress(address) {
-        if (!address) return null;
-        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`;
-        try {
-            const res = await fetch(url, { headers: { 'User-Agent': 'DunaLogistics' } });
-            const data = await res.json();
-            if(data && data[0]) return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
-        } catch(e) {}
-        return null;
-    }
-
-    // Умный поиск DADATA
-    function initSmartSearch() {
-        const token = "d5b2f3c7e6a4b9c1d2e3f4a5b6c7d8e9f0a1b2c3";
-        $('#fromCity, #toCity').suggestions({
-            token: token,
-            type: "ADDRESS",
-            hint: false,
-            bounds: "city-street-building",
-            onSelect: function() { updateFromText(); }
+        if (!ymapsReady) return null;
+        return new Promise((resolve) => {
+            ymaps.geocode(address).then(res => {
+                const first = res.geoObjects.get(0);
+                if (first) resolve(first.geometry.getCoordinates());
+                else resolve(null);
+            }).catch(() => resolve(null));
         });
-        // Обновление маршрута при ручном вводе
-        document.getElementById('fromCity').addEventListener('change', updateFromText);
-        document.getElementById('toCity').addEventListener('change', updateFromText);
     }
 
-    // ------ Логика сборного груза ------
-    function convertToKg(value, unit) {
-        if (unit === 'g') return value / 1000;
-        if (unit === 't') return value * 1000;
-        return value;
+    async function updateMapFromInputs() {
+        const fromAddr = document.getElementById("fromCity").value;
+        const toAddr = document.getElementById("toCity").value;
+        if (fromAddr) {
+            const coords = await geocodeAddress(fromAddr);
+            if (coords) startPlacemark.geometry.setCoordinates(coords);
+        }
+        if (toAddr) {
+            const coords = await geocodeAddress(toAddr);
+            if (coords) endPlacemark.geometry.setCoordinates(coords);
+        }
+        buildRoute();
     }
+
+    // ========== ЛОГИКА СБОРНОГО ГРУЗА ==========
     function renderGroupageCargos() {
-        const container = document.getElementById('cargoList');
+        const container = document.getElementById("cargoList");
         if (!container) return;
         if (appState.groupageCargos.length === 0) {
-            appState.groupageCargos.push({ id: nextCargoId++, length: 60, width: 40, height: 30, weight: 15, weightUnit: 'kg', quantity: 1, rotatable: false, stackable: false, convertedWeightKg: 15 });
+            appState.groupageCargos.push({ id: nextCargoId++, length: 80, width: 60, height: 50, weight: 50, weightUnit: "kg", quantity: 1, rotatable: false, stackable: false, convertedWeightKg: 50 });
         }
-        container.innerHTML = '';
+        container.innerHTML = "";
         appState.groupageCargos.forEach(cargo => {
-            const weightKg = convertToKg(cargo.weight, cargo.weightUnit);
-            cargo.convertedWeightKg = weightKg;
-            const cargoDiv = document.createElement('div');
-            cargoDiv.className = 'cargo-item';
-            cargoDiv.innerHTML = `
-                <div style="display:flex; justify-content:space-between;"><strong>📦 Груз #${cargo.id}</strong> <button class="btn btn-outline remove-cargo" data-id="${cargo.id}" style="background:#fff0f0; color:#b91c1c; padding:4px 16px;">Удалить</button></div>
-                <div class="row-2col" style="margin-top:10px;">
+            const div = document.createElement("div");
+            div.className = "cargo-item";
+            div.innerHTML = `
+                <div class="flex-between"><strong>📦 Груз #${cargo.id}</strong> <button class="btn btn-outline remove-cargo" data-id="${cargo.id}" style="padding:6px 16px;">Удалить</button></div>
+                <div class="form-grid" style="margin-top:12px;">
                     <div><label>Длина (см)</label><input type="number" class="cargo-length" value="${cargo.length}"></div>
                     <div><label>Ширина (см)</label><input type="number" class="cargo-width" value="${cargo.width}"></div>
                     <div><label>Высота (см)</label><input type="number" class="cargo-height" value="${cargo.height}"></div>
-                </div>
-                <div class="row-2col">
                     <div><label>Вес</label><input type="number" class="cargo-weight-val" value="${cargo.weight}"></div>
                     <div><label>Ед. веса</label><select class="cargo-weight-unit"><option value="g" ${cargo.weightUnit==='g'?'selected':''}>г</option><option value="kg" ${cargo.weightUnit==='kg'?'selected':''}>кг</option><option value="t" ${cargo.weightUnit==='t'?'selected':''}>т</option></select></div>
                     <div><label>Кол-во</label><input type="number" class="cargo-qty" value="${cargo.quantity}" min="1"></div>
                 </div>
-                <div class="weight-convert-hint" style="margin:6px 0">⚖️ ${weightKg} кг / шт → общий вес ${(weightKg * cargo.quantity).toFixed(2)} кг</div>
-                <div style="display:flex; gap:20px;"><label class="toggle-switch" style="width:auto;"><input type="checkbox" class="cargo-rotatable" ${cargo.rotatable?'checked':''}><span class="toggle-slider" style="width:40px; height:22px;"></span><span>Вращать</span></label>
-                <label class="toggle-switch" style="width:auto;"><input type="checkbox" class="cargo-stackable" ${cargo.stackable?'checked':''}><span class="toggle-slider" style="width:40px; height:22px;"></span><span>Стакать</span></label></div>
+                <div class="toggle-group" style="margin:8px 0 0">
+                    <label class="custom-switch"><input type="checkbox" class="cargo-rotatable" ${cargo.rotatable?"checked":""}><span class="switch-slider"></span><span>Вращать</span></label>
+                    <label class="custom-switch"><input type="checkbox" class="cargo-stackable" ${cargo.stackable?"checked":""}><span class="switch-slider"></span><span>Стакать</span></label>
+                </div>
             `;
-            container.appendChild(cargoDiv);
+            container.appendChild(div);
             const update = () => {
-                cargo.length = parseFloat(cargoDiv.querySelector('.cargo-length').value) || 0;
-                cargo.width = parseFloat(cargoDiv.querySelector('.cargo-width').value) || 0;
-                cargo.height = parseFloat(cargoDiv.querySelector('.cargo-height').value) || 0;
-                cargo.weight = parseFloat(cargoDiv.querySelector('.cargo-weight-val').value) || 0;
-                cargo.weightUnit = cargoDiv.querySelector('.cargo-weight-unit').value;
-                cargo.quantity = parseInt(cargoDiv.querySelector('.cargo-qty').value) || 1;
-                cargo.rotatable = cargoDiv.querySelector('.cargo-rotatable').checked;
-                cargo.stackable = cargoDiv.querySelector('.cargo-stackable').checked;
-                cargo.convertedWeightKg = convertToKg(cargo.weight, cargo.weightUnit);
-                const hintDiv = cargoDiv.querySelector('.weight-convert-hint');
-                if(hintDiv) hintDiv.innerHTML = `⚖️ ${cargo.convertedWeightKg} кг / шт → общий вес ${(cargo.convertedWeightKg * cargo.quantity).toFixed(2)} кг`;
+                cargo.length = parseFloat(div.querySelector(".cargo-length").value) || 0;
+                cargo.width = parseFloat(div.querySelector(".cargo-width").value) || 0;
+                cargo.height = parseFloat(div.querySelector(".cargo-height").value) || 0;
+                cargo.weight = parseFloat(div.querySelector(".cargo-weight-val").value) || 0;
+                cargo.weightUnit = div.querySelector(".cargo-weight-unit").value;
+                cargo.quantity = parseInt(div.querySelector(".cargo-qty").value) || 1;
+                cargo.rotatable = div.querySelector(".cargo-rotatable").checked;
+                cargo.stackable = div.querySelector(".cargo-stackable").checked;
+                cargo.convertedWeightKg = cargo.weightUnit === "g" ? cargo.weight/1000 : (cargo.weightUnit === "t" ? cargo.weight*1000 : cargo.weight);
             };
-            cargoDiv.querySelectorAll('input, select').forEach(el => el.addEventListener('input', update));
+            div.querySelectorAll("input, select").forEach(el => el.addEventListener("input", update));
             update();
         });
-        document.querySelectorAll('.remove-cargo').forEach(btn => {
-            btn.addEventListener('click', (e) => {
+        document.querySelectorAll(".remove-cargo").forEach(btn => {
+            btn.addEventListener("click", (e) => {
                 const id = parseInt(btn.dataset.id);
                 appState.groupageCargos = appState.groupageCargos.filter(c => c.id !== id);
                 renderGroupageCargos();
@@ -417,172 +702,162 @@
         });
     }
 
-    // Машины с уникальными иконками в оранжевом фоне
-    const trucksData = [
-        { name: "1,5 тонны", volume: "10 кубов", icon: "fa-truck", tonnage: 1.5, img: null },
-        { name: "3 тонны", volume: "25 кубов", icon: "fa-truck-moving", tonnage: 3, img: null },
-        { name: "5 тонн", volume: "36 кубов", icon: "fa-truck-ramp-box", tonnage: 5, img: null },
-        { name: "10 тонн", volume: "45 кубов", icon: "fa-truck-container", tonnage: 10, img: null },
-        { name: "20 тонн (стандарт)", volume: "92 куба", icon: "fa-truck-fast", tonnage: 20, img: "https://cdn-icons-png.flaticon.com/512/2165/2165671.png" },
-        { name: "20 тонн (мега)", volume: "115 кубов", icon: "", tonnage: 20, img: "https://cdn-icons-png.flaticon.com/512/2932/2932492.png" }
-    ];
     function renderTruckSelection() {
-        const grid = document.getElementById('truckSelectionGrid');
-        if (!grid) return;
-        grid.innerHTML = '';
+        const grid = document.getElementById("truckSelectionGrid");
+        grid.innerHTML = "";
         trucksData.forEach((truck, idx) => {
-            const card = document.createElement('div');
-            card.className = `truck-card ${appState.dedicated.selectedTruck === idx ? 'selected' : ''}`;
-            if(truck.img) card.innerHTML = `<img src="${truck.img}" class="truck-icon-img" alt="truck"><div class="truck-name">${truck.name}</div><div class="truck-desc">${truck.volume}</div>`;
-            else card.innerHTML = `<i class="fas ${truck.icon}"></i><div class="truck-name">${truck.name}</div><div class="truck-desc">${truck.volume}</div>`;
-            card.addEventListener('click', () => {
+            const card = document.createElement("div");
+            card.className = `truck-card ${appState.dedicated.selectedTruck === idx ? "selected" : ""}`;
+            card.innerHTML = `<img src="${truck.image}" alt="${truck.name}"><div class="truck-name">${truck.name}</div><div class="truck-specs">${truck.volume}</div>`;
+            card.addEventListener("click", () => {
                 appState.dedicated.selectedTruck = idx;
                 renderTruckSelection();
-                document.getElementById('bodyTypeArea').style.display = 'block';
-                renderBodyTypeSelection();
-                document.getElementById('extraOptionsArea').style.display = 'none';
+                document.getElementById("bodyTypeArea").style.display = "block";
+                document.getElementById("extraOptionsArea").style.display = "none";
                 appState.dedicated.bodyType = null;
-                appState.dedicated.loadingTypes = [];
-                appState.dedicated.extraTypes = [];
-                document.getElementById('nextToSummaryDed').disabled = true;
+                document.getElementById("nextToSummaryDed").disabled = true;
+                renderBodyTypeSelection();
             });
             grid.appendChild(card);
         });
     }
+
     function renderBodyTypeSelection() {
-        const container = document.getElementById('bodyTypeBtns');
-        const types = ['Тентовый', 'Изотермо', 'Бортовую'];
-        container.innerHTML = '';
-        types.forEach(type => {
-            const btn = document.createElement('button');
+        const container = document.getElementById("bodyTypeBtns");
+        container.innerHTML = "";
+        ["Тентовый", "Изотермо", "Бортовую"].forEach(type => {
+            const btn = document.createElement("button");
             btn.innerText = type;
-            btn.className = `opt-btn ${appState.dedicated.bodyType === type ? 'active-opt' : ''}`;
-            btn.addEventListener('click', () => {
+            btn.className = `opt-btn ${appState.dedicated.bodyType === type ? "active-opt" : ""}`;
+            btn.addEventListener("click", () => {
                 appState.dedicated.bodyType = type;
                 renderBodyTypeSelection();
-                document.getElementById('extraOptionsArea').style.display = 'block';
-                renderLoadingAndExtras();
-                document.getElementById('nextToSummaryDed').disabled = false;
+                document.getElementById("extraOptionsArea").style.display = "block";
+                renderOptions();
+                document.getElementById("nextToSummaryDed").disabled = false;
             });
             container.appendChild(btn);
         });
     }
-    function renderLoadingAndExtras() {
-        const loadingDiv = document.getElementById('loadingOptions');
-        const extraDiv = document.getElementById('extraEquip');
-        loadingDiv.innerHTML = ''; extraDiv.innerHTML = '';
-        ['Зад', 'Бок', 'Верх'].forEach(opt => {
-            const btn = document.createElement('button');
+
+    function renderOptions() {
+        const loadingDiv = document.getElementById("loadingOptions");
+        const extraDiv = document.getElementById("extraEquip");
+        loadingDiv.innerHTML = ""; extraDiv.innerHTML = "";
+        ["Зад", "Бок", "Верх"].forEach(opt => {
+            const btn = document.createElement("button");
             btn.innerText = opt;
-            btn.className = `opt-btn ${appState.dedicated.loadingTypes.includes(opt) ? 'active-opt' : ''}`;
-            btn.addEventListener('click', () => {
+            btn.className = `opt-btn ${appState.dedicated.loadingTypes.includes(opt) ? "active-opt" : ""}`;
+            btn.onclick = () => {
                 if (appState.dedicated.loadingTypes.includes(opt)) appState.dedicated.loadingTypes = appState.dedicated.loadingTypes.filter(l => l !== opt);
                 else appState.dedicated.loadingTypes.push(opt);
-                renderLoadingAndExtras();
-            });
+                renderOptions();
+            };
             loadingDiv.appendChild(btn);
         });
-        ['Ремни', 'Гидроборт'].forEach(opt => {
-            const btn = document.createElement('button');
+        ["Ремни", "Гидроборт"].forEach(opt => {
+            const btn = document.createElement("button");
             btn.innerText = opt;
-            btn.className = `opt-btn ${appState.dedicated.extraTypes.includes(opt) ? 'active-opt' : ''}`;
-            btn.addEventListener('click', () => {
+            btn.className = `opt-btn ${appState.dedicated.extraTypes.includes(opt) ? "active-opt" : ""}`;
+            btn.onclick = () => {
                 if (appState.dedicated.extraTypes.includes(opt)) appState.dedicated.extraTypes = appState.dedicated.extraTypes.filter(e => e !== opt);
                 else appState.dedicated.extraTypes.push(opt);
-                renderLoadingAndExtras();
-            });
+                renderOptions();
+            };
             extraDiv.appendChild(btn);
         });
     }
 
     function buildSummaryHTML() {
-        let html = `<b>🗺️ Маршрут:</b> ${appState.route.from} → ${appState.route.to}`;
-        if(appState.route.isRoundTrip) html += ` → ${appState.route.from} (кругорейс)`;
-        html += `<br><b>🚛 Тип:</b> ${appState.shipmentType === 'groupage' ? 'Сборный груз' : 'Выделенный транспорт'}`;
-        if(appState.shipmentType === 'groupage') {
+        let html = `<b>📍 Маршрут:</b> ${appState.route.from} → ${appState.route.to}`;
+        if (appState.route.isRoundTrip) html += ` → ${appState.route.from} (кругорейс)`;
+        html += `<br><b>🚛 Тип:</b> ${appState.shipmentType === "groupage" ? "Сборный груз" : "Выделенный транспорт"}`;
+        if (appState.shipmentType === "groupage") {
             html += `<br><b>📦 Грузы:</b><ul>`;
             appState.groupageCargos.forEach(c => {
-                let totalKg = c.convertedWeightKg * c.quantity;
-                html += `<li>Груз #${c.id}: ${c.length}x${c.width}x${c.height} см, вес ${c.weight}${c.weightUnit} (${c.convertedWeightKg}кг/шт), кол-во ${c.quantity} шт, общ. вес ${totalKg.toFixed(2)} кг. Вращать: ${c.rotatable ? 'да' : 'нет'}</li>`;
+                let totalKg = (c.convertedWeightKg * c.quantity).toFixed(2);
+                html += `<li>Груз #${c.id}: ${c.length}x${c.width}x${c.height} см, ${c.weight}${c.weightUnit} (${c.convertedWeightKg}кг/шт), кол-во ${c.quantity}, общий вес ${totalKg} кг</li>`;
             });
             html += `</ul>`;
         } else {
-            if(appState.dedicated.selectedTruck !== null) {
-                let truck = trucksData[appState.dedicated.selectedTruck];
-                html += `<br><b>🚛 Машина:</b> ${truck.name} (${truck.volume})`;
-            }
-            if(appState.dedicated.bodyType) html += `<br><b>Кузов:</b> ${appState.dedicated.bodyType}`;
-            if(appState.dedicated.loadingTypes.length) html += `<br><b>Погрузка:</b> ${appState.dedicated.loadingTypes.join(', ')}`;
-            if(appState.dedicated.extraTypes.length) html += `<br><b>Оборудование:</b> ${appState.dedicated.extraTypes.join(', ')}`;
+            if (appState.dedicated.selectedTruck !== null) html += `<br><b>🚛 Машина:</b> ${trucksData[appState.dedicated.selectedTruck].name} (${trucksData[appState.dedicated.selectedTruck].volume})`;
+            if (appState.dedicated.bodyType) html += `<br><b>Кузов:</b> ${appState.dedicated.bodyType}`;
+            if (appState.dedicated.loadingTypes.length) html += `<br><b>Погрузка:</b> ${appState.dedicated.loadingTypes.join(", ")}`;
+            if (appState.dedicated.extraTypes.length) html += `<br><b>Оборудование:</b> ${appState.dedicated.extraTypes.join(", ")}`;
         }
         return html;
     }
 
-    // Отправка на почту через email-клиент (реалистичная)
-    function sendToOwnerEmail(fullOrderText) {
-        const email = "asmirnov526@gmail.com";
-        const subject = encodeURIComponent("Заявка на грузоперевозку от ООО Дюна");
-        const body = encodeURIComponent(fullOrderText);
-        window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
-        alert("✅ Открывается почтовый клиент. Пожалуйста, отправьте письмо на asmirnov526@gmail.com");
-        return true;
+    function sendToTelegram() {
+        const name = document.getElementById("clientName").value;
+        const phone = document.getElementById("clientPhone").value;
+        const email = document.getElementById("clientEmail").value;
+        const comment = document.getElementById("commentOrder").value;
+        const summary = buildSummaryHTML();
+        const text = `🔹 НОВАЯ ЗАЯВКА ДЮНА 🔹\n${summary}\n\n📌 Контакты:\nИмя: ${name}\nТел: ${phone}\nEmail: ${email}\nКомментарий: ${comment}`;
+        window.open(`https://t.me/nukm0?text=${encodeURIComponent(text)}`, "_blank");
+        alert("Заявка открыта в Telegram. Отправьте сообщение @nukm0");
     }
 
+    function sendToVk() {
+        const name = document.getElementById("clientName").value;
+        const phone = document.getElementById("clientPhone").value;
+        const email = document.getElementById("clientEmail").value;
+        const comment = document.getElementById("commentOrder").value;
+        const summary = buildSummaryHTML();
+        const text = `🔹 ЗАЯВКА НА ПЕРЕВОЗКУ 🔹\n${summary}\n\nКонтакты: ${name}, ${phone}, ${email}\nКомментарий: ${comment}`;
+        window.open(`https://vk.com/write?to=nukm0&text=${encodeURIComponent(text)}`, "_blank");
+        alert("Откроется диалог VK. Отправьте сообщение пользователю @nukm0");
+    }
+
+    // Навигация
     function showStep(step) {
-        document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active-panel'));
-        document.getElementById(`step${step}`).classList.add('active-panel');
-        document.querySelectorAll('.step-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelector(`.step-btn[data-step="${step}"]`).classList.add('active');
-        if(step === 3) {
-            const isGroup = appState.shipmentType === 'groupage';
-            document.getElementById('groupageContainer').style.display = isGroup ? 'block' : 'none';
-            document.getElementById('dedicatedContainer').style.display = isGroup ? 'none' : 'block';
-            if(isGroup) renderGroupageCargos();
-            else { renderTruckSelection(); document.getElementById('bodyTypeArea').style.display = 'none'; document.getElementById('extraOptionsArea').style.display = 'none'; }
+        document.querySelectorAll(".step-panel").forEach(p => p.classList.remove("active-panel"));
+        document.getElementById(`step${step}`).classList.add("active-panel");
+        document.querySelectorAll(".step-tab").forEach(t => t.classList.remove("active"));
+        document.querySelector(`.step-tab[data-step="${step}"]`).classList.add("active");
+        if (step === 3) {
+            const isGroup = appState.shipmentType === "groupage";
+            document.getElementById("groupageContainer").style.display = isGroup ? "block" : "none";
+            document.getElementById("dedicatedContainer").style.display = isGroup ? "none" : "block";
+            if (isGroup) renderGroupageCargos();
+            else renderTruckSelection();
         }
-        if(step === 4) document.getElementById('summaryData').innerHTML = buildSummaryHTML();
+        if (step === 4) document.getElementById("summaryData").innerHTML = buildSummaryHTML();
     }
 
-    // Обработчики переходов
-    document.getElementById('nextFromStep1').addEventListener('click', () => {
-        appState.route.from = document.getElementById('fromCity').value;
-        appState.route.to = document.getElementById('toCity').value;
-        appState.route.isRoundTrip = document.getElementById('roundTripCheckbox').checked;
+    // Обработчики событий
+    document.getElementById("nextFromStep1").onclick = async () => {
+        appState.route.from = document.getElementById("fromCity").value;
+        appState.route.to = document.getElementById("toCity").value;
+        appState.route.isRoundTrip = document.getElementById("roundTripCheckbox").checked;
+        await updateMapFromInputs();
         showStep(2);
-    });
+    };
     let selectedShipment = null;
-    document.querySelectorAll('[data-shipment]').forEach(card => {
-        card.addEventListener('click', function() {
+    document.querySelectorAll("[data-shipment]").forEach(card => {
+        card.addEventListener("click", function() {
             selectedShipment = this.dataset.shipment;
-            document.querySelectorAll('[data-shipment]').forEach(c => c.classList.remove('selected'));
-            this.classList.add('selected');
-            document.getElementById('nextFromStep2').disabled = false;
+            document.querySelectorAll("[data-shipment]").forEach(c => c.classList.remove("selected"));
+            this.classList.add("selected");
+            document.getElementById("nextFromStep2").disabled = false;
         });
     });
-    document.getElementById('nextFromStep2').onclick = () => { if(selectedShipment) { appState.shipmentType = selectedShipment; showStep(3); } else alert("Выберите тип отправки"); };
-    document.getElementById('backToStep1').onclick = () => showStep(1);
-    document.getElementById('backToStep2Group').onclick = () => showStep(2);
-    document.getElementById('backToStep2Ded').onclick = () => showStep(2);
-    document.getElementById('nextToSummaryGroup').onclick = () => showStep(4);
-    document.getElementById('nextToSummaryDed').onclick = () => { if(!appState.dedicated.bodyType) alert("Выберите кузов"); else showStep(4); };
-    document.getElementById('backToStep3').onclick = () => showStep(3);
-    document.getElementById('addCargoBtn').onclick = () => { appState.groupageCargos.push({ id: nextCargoId++, length: 50, width: 40, height: 30, weight: 8, weightUnit: 'kg', quantity: 1, rotatable: false, stackable: false, convertedWeightKg: 8 }); renderGroupageCargos(); };
-    document.getElementById('finalOrderForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const name = document.getElementById('clientName').value;
-        const phone = document.getElementById('clientPhone').value;
-        const email = document.getElementById('clientEmail').value;
-        const comment = document.getElementById('commentOrder').value;
-        if(!name || !phone || !email) { alert("Заполните имя, телефон и email"); return; }
-        const summary = buildSummaryHTML();
-        const full = `${summary}\n\n📌 КОНТАКТЫ:\nИмя: ${name}\nТелефон: ${phone}\nEmail: ${email}\nКомментарий: ${comment}\n---\nОтправлено через калькулятор Дюна`;
-        sendToOwnerEmail(full);
-    });
+    document.getElementById("nextFromStep2").onclick = () => { if(selectedShipment) { appState.shipmentType = selectedShipment; showStep(3); } else alert("Выберите тип"); };
+    document.getElementById("backToStep1").onclick = () => showStep(1);
+    document.getElementById("backToStep2Group").onclick = () => showStep(2);
+    document.getElementById("backToStep2Ded").onclick = () => showStep(2);
+    document.getElementById("nextToSummaryGroup").onclick = () => showStep(4);
+    document.getElementById("nextToSummaryDed").onclick = () => { if(!appState.dedicated.bodyType) alert("Выберите кузов"); else showStep(4); };
+    document.getElementById("backToStep3").onclick = () => showStep(3);
+    document.getElementById("addCargoBtn").onclick = () => { appState.groupageCargos.push({ id: nextCargoId++, length: 60, width: 40, height: 40, weight: 20, weightUnit: "kg", quantity: 1, rotatable: false, stackable: false, convertedWeightKg: 20 }); renderGroupageCargos(); };
+    document.getElementById("sendToTelegramBtn").onclick = sendToTelegram;
+    document.getElementById("sendToVkBtn").onclick = sendToVk;
+    document.getElementById("fromCity").addEventListener("change", updateMapFromInputs);
+    document.getElementById("toCity").addEventListener("change", updateMapFromInputs);
 
-    initMap();
-    initSmartSearch();
-    if(!appState.groupageCargos.length) appState.groupageCargos = [{ id: nextCargoId++, length: 50, width: 40, height: 30, weight: 10, weightUnit: 'kg', quantity: 1, rotatable: false, stackable: false, convertedWeightKg: 10 }];
-    updateFromText();
+    if (!appState.groupageCargos.length) appState.groupageCargos = [{ id: nextCargoId++, length: 100, width: 80, height: 80, weight: 100, weightUnit: "kg", quantity: 1, rotatable: false, stackable: false, convertedWeightKg: 100 }];
+    initYandexMap();
     showStep(1);
 </script>
 </body>

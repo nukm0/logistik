@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -86,14 +87,6 @@
             -webkit-appearance: none;
             appearance: none;
         }
-        .input-field input:focus, .input-field select:focus, .input-field textarea:focus {
-            outline: none;
-            border-color: #c084fc;
-            background: rgba(10, 5, 20, 0.7);
-            box-shadow: 0 0 0 3px rgba(192, 132, 252, 0.2);
-        }
-        
-        /* Скрываем стрелки в числовых полях (только ручной ввод) */
         input[type=number]::-webkit-inner-spin-button,
         input[type=number]::-webkit-outer-spin-button {
             -webkit-appearance: none;
@@ -103,7 +96,7 @@
             -moz-appearance: textfield;
             appearance: textfield;
         }
-        
+        /* Кнопки */
         .btn-new-cargo, .btn-calc {
             display: inline-flex;
             align-items: center;
@@ -123,18 +116,11 @@
             border: 1.5px solid rgba(192, 132, 252, 0.7);
             color: #c084fc;
         }
-        .btn-new-cargo:hover, .btn-new-cargo:active {
-            background: rgba(192, 132, 252, 0.2);
-            transform: translateY(-2px);
-        }
         .btn-calc {
             background: linear-gradient(95deg, #c084fc, #a855f7);
             border: none;
             color: #1a0f2e;
             box-shadow: 0 4px 12px rgba(160, 100, 220, 0.4);
-        }
-        .btn-calc:active {
-            transform: translateY(1px);
         }
         .distance-box {
             background: rgba(0, 0, 0, 0.3);
@@ -155,8 +141,8 @@
             padding: 6px 18px;
             font-weight: 700;
             font-size: 1.2rem;
-            display: inline-block;
         }
+        /* Тип отправки */
         .type-selector {
             display: flex;
             gap: 1rem;
@@ -169,12 +155,10 @@
             padding: 1.2rem 0.8rem;
             text-align: center;
             cursor: pointer;
-            transition: 0.2s;
         }
         .type-card i { font-size: 2rem; color: #c084fc; margin-bottom: 0.5rem; }
-        .type-card h3 { font-size: 1.2rem; margin-bottom: 0.3rem; color: #f0eef7; }
-        .type-card p { font-size: 0.75rem; color: #b9a6d9; }
         .type-card.selected { border-color: #c084fc; background: rgba(192, 132, 252, 0.15); }
+        /* Автомобили */
         .vehicle-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -190,20 +174,13 @@
             border: 2px solid transparent;
         }
         .vehicle-card.selected { border-color: #c084fc; background: rgba(192, 132, 252, 0.2); }
-        .vehicle-icon { font-size: 2rem; color: #c084fc; margin-bottom: 6px; display: block; }
+        .vehicle-icon { font-size: 2rem; color: #c084fc; display: block; margin-bottom: 6px; }
+        /* Блок груза */
         .cargo-item {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 24px;
             padding: 1rem;
             margin-bottom: 1rem;
-        }
-        .cargo-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 0.8rem;
-            padding-bottom: 0.4rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
         .cargo-fields {
             display: flex;
@@ -211,17 +188,9 @@
             gap: 12px;
             margin-bottom: 1rem;
         }
-        .cargo-fields .field {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .cargo-fields .field label {
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: #b9a6d9;
-        }
-        .cargo-fields .field input, .cargo-fields .field select {
+        .field { display: flex; flex-direction: column; gap: 4px; }
+        .field label { font-size: 0.7rem; font-weight: 600; color: #b9a6d9; }
+        .field input, .field select {
             padding: 10px 12px;
             border-radius: 20px;
             background: rgba(0, 0, 0, 0.3);
@@ -229,25 +198,40 @@
             color: white;
             font-size: 0.9rem;
         }
-        .cargo-actions {
+        /* Кнопки единиц веса (красивое меню) */
+        .weight-unit-toggle {
             display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-            margin-top: 12px;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 40px;
+            padding: 4px;
+            width: fit-content;
         }
-        .cargo-toggles {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
+        .weight-unit-btn {
+            padding: 8px 16px;
+            border-radius: 32px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            background: transparent;
+            color: #b9a6d9;
+            transition: 0.2s;
         }
+        .weight-unit-btn.active {
+            background: #c084fc;
+            color: #1a0f2e;
+            box-shadow: 0 2px 8px rgba(192,132,252,0.4);
+        }
+        /* Переключатели (без галочек, только ползунок) */
         .toggle-switch {
             display: inline-flex;
             align-items: center;
             gap: 10px;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
+        }
+        .toggle-switch input {
+            display: none;
         }
         .slider {
             width: 46px;
@@ -255,6 +239,8 @@
             background: rgba(255, 255, 255, 0.2);
             border-radius: 30px;
             position: relative;
+            transition: 0.2s;
+            flex-shrink: 0;
         }
         .slider:before {
             content: "";
@@ -269,13 +255,27 @@
         }
         .toggle-switch input:checked + .slider { background: #c084fc; }
         .toggle-switch input:checked + .slider:before { transform: translateX(20px); }
-        .remove-btn {
-            background: rgba(255, 80, 80, 0.2);
-            border: none;
-            padding: 6px 14px;
-            border-radius: 30px;
-            color: #ffaaaa;
-            font-size: 0.8rem;
+        /* Для радиокнопок сделаем сегментированный контрол */
+        .segmented-control {
+            display: flex;
+            gap: 8px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 40px;
+            padding: 4px;
+            width: fit-content;
+        }
+        .segmented-btn {
+            padding: 8px 18px;
+            border-radius: 32px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            background: transparent;
+            color: #b9a6d9;
+            transition: 0.2s;
+        }
+        .segmented-btn.active {
+            background: #c084fc;
+            color: #1a0f2e;
         }
         .options-row {
             display: flex;
@@ -292,25 +292,45 @@
             flex-direction: column;
             gap: 12px;
         }
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            margin: 20px 0 10px;
+        }
+        .social-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .social-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-weight: 600;
+            text-decoration: none;
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        .social-btn.whatsapp { background: #25D366; color: #1a0f2e; }
+        .social-btn.telegram { background: #0088cc; color: white; }
+        .info-text { white-space: pre-line; background: rgba(0,0,0,0.2); border-radius: 24px; padding: 16px; margin: 15px 0; font-size: 0.9rem; }
         .page { display: none; }
         .page.active-page { display: block; }
-        
-        /* Мобильные улучшения */
         @media (min-width: 640px) {
             .type-selector { flex-direction: row; }
             .cargo-fields { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
             .options-row { flex-direction: row; }
             .container { padding: 1.5rem; }
-            .card { padding: 1.8rem; }
         }
         @media (max-width: 480px) {
             .btn-new-cargo, .btn-calc { width: 100%; }
-            .cargo-actions { flex-direction: column; align-items: stretch; }
             .vehicle-grid { grid-template-columns: 1fr 1fr; }
         }
-        .info-note { font-size: 0.7rem; text-align: center; margin-top: 10px; color: #b9a6d9; }
-        button { background: none; border: none; font-family: inherit; }
-        .action-buttons { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin: 20px 0 10px; }
     </style>
 </head>
 <body>
@@ -324,46 +344,32 @@
 </div>
 <div class="container">
     <div id="homePage" class="page active-page">
-        <div class="card" style="background: linear-gradient(110deg, rgba(43,27,61,0.8), rgba(26,15,46,0.9));">
+        <div class="card">
             <h1 style="font-size: 1.6rem;">🚛 Рассчитайте грузоперевозку за минуту</h1>
             <p style="font-size: 1rem;">Фиксированное расстояние: 1000 км. Выберите тип перевозки и заполните детали.</p>
-            <div class="action-buttons" style="justify-content: flex-start;">
-                <button class="btn-calc" id="gotoCalcHome"><i class="fas fa-calculator"></i> К калькулятору</button>
-            </div>
+            <button class="btn-calc" id="gotoCalcHome"><i class="fas fa-calculator"></i> К калькулятору</button>
         </div>
     </div>
     <div id="aboutPage" class="page">
         <div class="card">
             <div class="step-title"><i class="fas fa-truck"></i> ООО "Дюна"</div>
-            <p>Работаем с 2015 года, автопарк от 1,5 до 20 тонн. Сборные грузы и выделенный транспорт.</p>
-            <br><p><i class="fas fa-phone-alt"></i> 8 (800) 555-66-77</p>
+            <p>Работаем с 2015 года, автопарк от 1,5 до 20 тонн.</p>
+            <p><i class="fas fa-phone-alt"></i> 8 (800) 555-66-77</p>
             <p><i class="fas fa-envelope"></i> info@duna-logist.ru</p>
         </div>
     </div>
     <div id="calculatorPage" class="page">
         <div class="card">
             <div class="step-title"><i class="fas fa-route"></i> 1. Расстояние (фиксированное)</div>
-            <div style="text-align: center;">
-                <button class="btn-calc" id="calcRouteBtn"><i class="fas fa-route"></i> Установить маршрут (1000 км)</button>
-            </div>
-            <div class="distance-box" id="distanceDisplay">
-                <div><i class="fas fa-road"></i> Километраж: <strong id="distanceKm">— км</strong></div>
-            </div>
+            <button class="btn-calc" id="calcRouteBtn"><i class="fas fa-route"></i> Установить маршрут (1000 км)</button>
+            <div class="distance-box" id="distanceDisplay">Километраж: <strong id="distanceKm">— км</strong></div>
         </div>
         <div id="typeSelectorBlock" style="display: none;">
             <div class="card">
                 <div class="step-title"><i class="fas fa-boxes"></i> 2. Тип отправки</div>
                 <div class="type-selector">
-                    <div class="type-card" data-type="ltl">
-                        <i class="fas fa-cubes"></i>
-                        <h3>Сборный груз</h3>
-                        <p>Для небольших грузов, коробок, паллет</p>
-                    </div>
-                    <div class="type-card" data-type="dedicated">
-                        <i class="fas fa-truck"></i>
-                        <h3>Выделенный транспорт</h3>
-                        <p>Для крупногабаритных грузов</p>
-                    </div>
+                    <div class="type-card" data-type="ltl"><i class="fas fa-cubes"></i><h3>Сборный груз</h3><p>Для небольших грузов</p></div>
+                    <div class="type-card" data-type="dedicated"><i class="fas fa-truck"></i><h3>Выделенный транспорт</h3><p>Для крупногабаритных грузов</p></div>
                 </div>
             </div>
         </div>
@@ -376,18 +382,17 @@
                     <div class="input-field"><label>Ваше имя</label><input id="clientName" required></div>
                     <div class="input-field"><label>Телефон</label><input id="clientPhone" required></div>
                     <div class="input-field"><label>Email</label><input id="clientEmail" type="email" required></div>
-                    <div class="input-field"><label>Комментарий к заказу</label><textarea id="clientComment" rows="2"></textarea></div>
+                    <div class="input-field"><label>Комментарий</label><textarea id="clientComment" rows="2"></textarea></div>
                     <div class="action-buttons"><button type="submit" class="btn-calc"><i class="fas fa-paper-plane"></i> Отправить заявку</button></div>
                 </form>
             </div>
         </div>
     </div>
 </div>
-
 <script>
     let currentDistance = 0;
     let selectedShipType = null;
-    let dedicatedData = { vehicle: null, bodyType: null, loadingOptions: [], extraOptions: [] };
+    let dedicatedData = { vehicle: null, bodyType: null, loadingOptions: [], extraOptions: [], cargoInfo: { length: 100, width: 80, height: 80, weight: 200, weightUnit: 'кг' } };
     let ltlCargoList = [];
 
     function getRatePerKm(d) {
@@ -398,15 +403,11 @@
         if (d <= 300) return 54;
         return 54;
     }
-    function calcBasePrice(dist) {
-        let cost = dist * getRatePerKm(dist);
-        return Math.max(cost, 3000);
-    }
+    function calcBasePrice(dist) { return Math.max(dist * getRatePerKm(dist), 3000); }
     function calcDedicatedPrice(dist, mult, extras) {
         let base = calcBasePrice(dist);
-        let veh = base * mult;
         let extraSum = (extras.includes('remni') ? 600 : 0) + (extras.includes('gidrobort') ? 1200 : 0);
-        return Math.round(veh + extraSum);
+        return Math.round(base * mult + extraSum);
     }
     function calcLTLPrice(dist, cargoArr) {
         if (!cargoArr.length) return calcBasePrice(dist);
@@ -419,9 +420,8 @@
             totalVolKg += dimWeight * c.qty;
         });
         let chargeable = Math.max(totalKg, totalVolKg);
-        let base = calcBasePrice(dist);
         let factor = Math.max(0.7, Math.min(3.5, chargeable / 400));
-        return Math.max(Math.round(base * factor), 3000);
+        return Math.max(Math.round(calcBasePrice(dist) * factor), 3000);
     }
     const vehicleRates = [
         { name: "1,5т / 10м³", multiplier: 0.8, icon: "fa-truck-fast" },
@@ -436,127 +436,129 @@
         currentDistance = 1000;
         document.getElementById('distanceKm').innerText = currentDistance + " км";
         document.getElementById('typeSelectorBlock').style.display = 'block';
-        document.getElementById('typeSelectorBlock').scrollIntoView({ behavior: 'smooth' });
-    }
-
-    function validateLtlCargos() {
-        for (let c of ltlCargoList) {
-            if (c.length <= 0 || c.width <= 0 || c.height <= 0 || c.weightVal <= 0 || c.qty <= 0) return false;
-        }
-        return ltlCargoList.length > 0;
     }
 
     function showDynamicForm(type) {
         const container = document.getElementById('dynamicForms');
+        container.innerHTML = '';
         if (type === 'ltl') renderLTL(container);
         else renderDedicated(container);
     }
-    
+
+    // Красивое меню для единиц веса
+    function createWeightUnitToggle(currentUnit, onChange) {
+        const div = document.createElement('div');
+        div.className = 'weight-unit-toggle';
+        const kgBtn = document.createElement('div');
+        kgBtn.innerText = 'кг';
+        kgBtn.className = 'weight-unit-btn' + (currentUnit === 'кг' ? ' active' : '');
+        const tBtn = document.createElement('div');
+        tBtn.innerText = 'т';
+        tBtn.className = 'weight-unit-btn' + (currentUnit === 'т' ? ' active' : '');
+        kgBtn.onclick = () => { onChange('кг'); kgBtn.classList.add('active'); tBtn.classList.remove('active'); };
+        tBtn.onclick = () => { onChange('т'); tBtn.classList.add('active'); kgBtn.classList.remove('active'); };
+        div.appendChild(kgBtn); div.appendChild(tBtn);
+        return div;
+    }
+
     function renderLTL(container) {
-        container.innerHTML = `<div class="card">
-            <div class="step-title"><i class="fas fa-pallet"></i> Параметры грузов</div>
-            <div id="ltlList"></div>
-            <div class="action-buttons">
-                <button class="btn-new-cargo" id="addLtlBtn"><i class="fas fa-plus-circle"></i> Новый груз</button>
-                <button class="btn-calc" id="calcLtlFinalBtn">Рассчитать итоговую стоимость</button>
-            </div>
-            <div id="ltlErrorMsg" style="background:rgba(255,100,100,0.2); border-radius:20px; padding:10px; margin-top:15px; color:#ffaaaa; display:none;"></div>
-        </div>`;
+        container.innerHTML = `<div class="card"><div class="step-title"><i class="fas fa-pallet"></i> Параметры грузов</div><div id="ltlList"></div><div class="action-buttons"><button class="btn-new-cargo" id="addLtlBtn"><i class="fas fa-plus-circle"></i> Новый груз</button><button class="btn-calc" id="calcLtlFinalBtn">Рассчитать итоговую стоимость</button></div><div id="ltlErrorMsg" style="background:rgba(255,100,100,0.2); border-radius:20px; padding:10px; margin-top:15px; display:none;"></div></div>`;
         function refreshList() {
             let div = document.getElementById('ltlList');
             if (!div) return;
             div.innerHTML = '';
             ltlCargoList.forEach((c, idx) => {
-                let html = `
-                    <div class="cargo-item">
-                        <div class="cargo-header">
-                            <i class="fas fa-box"></i>
-                            <span>Груз ${idx+1}</span>
+                let cargoDiv = document.createElement('div'); cargoDiv.className = 'cargo-item';
+                cargoDiv.innerHTML = `<div class="cargo-header"><i class="fas fa-box"></i><span>Груз ${idx+1}</span></div>
+                    <div class="cargo-fields">
+                        <div class="field"><label>Длина (см)</label><input type="number" class="len" value="${c.length}"></div>
+                        <div class="field"><label>Ширина (см)</label><input type="number" class="wid" value="${c.width}"></div>
+                        <div class="field"><label>Высота (см)</label><input type="number" class="hei" value="${c.height}"></div>
+                        <div class="field"><label>Вес</label><input type="number" class="wgt" value="${c.weightVal}"></div>
+                        <div class="field"><label>Ед. веса</label><div class="weight-unit-container"></div></div>
+                        <div class="field"><label>Кол-во (шт)</label><input type="number" class="qty" value="${c.qty}"></div>
+                    </div>
+                    <div class="cargo-actions">
+                        <div class="cargo-toggles">
+                            <label class="toggle-switch">Вращать<input type="checkbox" class="rotate"><span class="slider"></span></label>
+                            <label class="toggle-switch">Ставить друг на друга<input type="checkbox" class="stack"><span class="slider"></span></label>
                         </div>
-                        <div class="cargo-fields">
-                            <div class="field"><label>Длина (см)</label><input type="number" class="len" value="${c.length}"></div>
-                            <div class="field"><label>Ширина (см)</label><input type="number" class="wid" value="${c.width}"></div>
-                            <div class="field"><label>Высота (см)</label><input type="number" class="hei" value="${c.height}"></div>
-                            <div class="field"><label>Вес</label><input type="number" class="wgt" value="${c.weightVal}"></div>
-                            <div class="field"><label>Ед. веса</label><select class="unit"><option ${c.weightUnit==='кг'?'selected':''}>кг</option><option ${c.weightUnit==='т'?'selected':''}>т</option></select></div>
-                            <div class="field"><label>Кол-во (шт)</label><input type="number" class="qty" value="${c.qty}"></div>
-                        </div>
-                        <div class="cargo-actions">
-                            <div class="cargo-toggles">
-                                <label class="toggle-switch" style="gap:6px">Вращать<input type="checkbox" class="rotate" ${c.rotate?'checked':''}><span class="slider"></span></label>
-                                <label class="toggle-switch" style="gap:6px">Ставить друг на друга<input type="checkbox" class="stack" ${c.stack?'checked':''}><span class="slider"></span></label>
-                            </div>
-                            <button class="remove-btn">Удалить</button>
-                        </div>
+                        <button class="remove-btn">Удалить</button>
                     </div>`;
-                div.insertAdjacentHTML('beforeend', html);
-                let block = div.lastElementChild;
-                block.querySelector('.len').onchange = e => ltlCargoList[idx].length = +e.target.value;
-                block.querySelector('.wid').onchange = e => ltlCargoList[idx].width = +e.target.value;
-                block.querySelector('.hei').onchange = e => ltlCargoList[idx].height = +e.target.value;
-                block.querySelector('.wgt').onchange = e => ltlCargoList[idx].weightVal = +e.target.value;
-                block.querySelector('.unit').onchange = e => ltlCargoList[idx].weightUnit = e.target.value;
-                block.querySelector('.qty').onchange = e => ltlCargoList[idx].qty = +e.target.value;
-                block.querySelector('.rotate').onchange = e => ltlCargoList[idx].rotate = e.target.checked;
-                block.querySelector('.stack').onchange = e => ltlCargoList[idx].stack = e.target.checked;
-                block.querySelector('.remove-btn').onclick = () => { ltlCargoList.splice(idx,1); refreshList(); };
+                div.appendChild(cargoDiv);
+                const lenInp = cargoDiv.querySelector('.len'); const widInp = cargoDiv.querySelector('.wid'); const heiInp = cargoDiv.querySelector('.hei');
+                const wgtInp = cargoDiv.querySelector('.wgt'); const qtyInp = cargoDiv.querySelector('.qty'); const rotateChk = cargoDiv.querySelector('.rotate'); const stackChk = cargoDiv.querySelector('.stack');
+                const unitContainer = cargoDiv.querySelector('.weight-unit-container');
+                const unitToggle = createWeightUnitToggle(c.weightUnit, (newUnit) => { ltlCargoList[idx].weightUnit = newUnit; });
+                unitContainer.appendChild(unitToggle);
+                lenInp.onchange = e => ltlCargoList[idx].length = +e.target.value;
+                widInp.onchange = e => ltlCargoList[idx].width = +e.target.value;
+                heiInp.onchange = e => ltlCargoList[idx].height = +e.target.value;
+                wgtInp.onchange = e => ltlCargoList[idx].weightVal = +e.target.value;
+                qtyInp.onchange = e => ltlCargoList[idx].qty = +e.target.value;
+                rotateChk.onchange = e => ltlCargoList[idx].rotate = e.target.checked;
+                stackChk.onchange = e => ltlCargoList[idx].stack = e.target.checked;
+                cargoDiv.querySelector('.remove-btn').onclick = () => { ltlCargoList.splice(idx,1); refreshList(); };
             });
         }
         if (!ltlCargoList.length) ltlCargoList.push({ length:60, width:40, height:40, weightVal:15, weightUnit:'кг', qty:1, rotate:false, stack:false });
         refreshList();
-        document.getElementById('addLtlBtn').onclick = () => {
-            ltlCargoList.push({ length:50, width:40, height:30, weightVal:10, weightUnit:'кг', qty:1, rotate:false, stack:false });
-            refreshList();
-        };
+        document.getElementById('addLtlBtn').onclick = () => { ltlCargoList.push({ length:50, width:40, height:30, weightVal:10, weightUnit:'кг', qty:1, rotate:false, stack:false }); refreshList(); };
         document.getElementById('calcLtlFinalBtn').onclick = () => {
-            const errorDiv = document.getElementById('ltlErrorMsg');
-            if (!validateLtlCargos()) {
-                errorDiv.style.display = 'block';
-                errorDiv.innerText = '❌ Заполните все габариты, вес и количество для каждого груза (значения > 0).';
-                return;
-            }
-            errorDiv.style.display = 'none';
+            let valid = ltlCargoList.every(c => c.length>0 && c.width>0 && c.height>0 && c.weightVal>0 && c.qty>0);
+            if (!valid) { document.getElementById('ltlErrorMsg').style.display='block'; document.getElementById('ltlErrorMsg').innerText='❌ Заполните все габариты, вес и количество (значения > 0)'; return; }
+            document.getElementById('ltlErrorMsg').style.display='none';
             let price = calcLTLPrice(currentDistance, ltlCargoList);
-            showFinalOrder(price, `Сборный груз (${ltlCargoList.length} позиций)`);
+            showFinalOrder(price, 'ltl');
         };
     }
-    
+
     function renderDedicated(container) {
-        container.innerHTML = `<div class="card">
-            <div class="step-title"><i class="fas fa-truck"></i> Выберите автомобиль</div>
-            <div class="vehicle-grid" id="vehicleGrid"></div>
-            <div id="bodyBlock" style="display:none;">
-                <div class="options-row">
-                    <div class="option-col"><strong>Тип кузова</strong><div class="checkbox-group" id="bodyGroup"></div></div>
-                    <div class="option-col"><strong>Погрузка (можно несколько)</strong><div class="checkbox-group" id="loadingGroup"></div></div>
-                    <div class="option-col"><strong>Доп. оборудование</strong><div class="checkbox-group" id="extraGroup"></div></div>
-                </div>
-            </div>
-            <div id="extrasBlock" style="display:none; text-align:center; margin-top:1rem;"><button class="btn-calc" id="calcDedicatedFinalBtn">Рассчитать итоговую стоимость</button></div>
-        </div>`;
+        container.innerHTML = `<div class="card"><div class="step-title"><i class="fas fa-truck"></i> Выберите автомобиль</div><div class="vehicle-grid" id="vehicleGrid"></div>
+        <div class="card" style="margin-top: 1rem;"><div class="step-title"><i class="fas fa-cube"></i> Данные груза</div>
+        <div class="cargo-fields" style="display: grid; grid-template-columns: 1fr 1fr; gap:12px;">
+            <div class="field"><label>Длина (см)</label><input type="number" id="cargoLen" value="120"></div>
+            <div class="field"><label>Ширина (см)</label><input type="number" id="cargoWid" value="80"></div>
+            <div class="field"><label>Высота (см)</label><input type="number" id="cargoHei" value="80"></div>
+            <div class="field"><label>Вес</label><input type="number" id="cargoWeight" value="500"></div>
+            <div class="field"><label>Ед. веса</label><div id="dedicatedWeightUnit"></div></div>
+        </div></div>
+        <div id="bodyBlock" style="display:none;"><div class="options-row"><div class="option-col"><strong>Тип кузова</strong><div id="bodyGroup" class="segmented-control"></div></div>
+        <div class="option-col"><strong>Погрузка</strong><div id="loadingGroup" class="checkbox-group"></div></div>
+        <div class="option-col"><strong>Доп. оборудование</strong><div id="extraGroup" class="checkbox-group"></div></div></div></div>
+        <div id="extrasBlock" style="display:none; text-align:center; margin-top:1rem;"><button class="btn-calc" id="calcDedicatedFinalBtn">Рассчитать итоговую стоимость</button></div>`;
+        
+        // Единицы веса для выделенного
+        const dedUnitContainer = document.getElementById('dedicatedWeightUnit');
+        const unitToggle = createWeightUnitToggle(dedicatedData.cargoInfo.weightUnit, (newUnit) => { dedicatedData.cargoInfo.weightUnit = newUnit; });
+        dedUnitContainer.appendChild(unitToggle);
+        const lenInp = document.getElementById('cargoLen'); const widInp = document.getElementById('cargoWid'); const heiInp = document.getElementById('cargoHei'); const wgtInp = document.getElementById('cargoWeight');
+        lenInp.onchange = () => dedicatedData.cargoInfo.length = +lenInp.value;
+        widInp.onchange = () => dedicatedData.cargoInfo.width = +widInp.value;
+        heiInp.onchange = () => dedicatedData.cargoInfo.height = +heiInp.value;
+        wgtInp.onchange = () => dedicatedData.cargoInfo.weight = +wgtInp.value;
+        dedicatedData.cargoInfo = { length: 120, width: 80, height: 80, weight: 500, weightUnit: 'кг' };
+        
         let grid = document.getElementById('vehicleGrid');
         vehicleRates.forEach(v => {
             let div = document.createElement('div'); div.className = 'vehicle-card';
             div.innerHTML = `<i class="fas ${v.icon} vehicle-icon"></i><div><strong>${v.name}</strong></div>`;
-            div.onclick = () => {
-                document.querySelectorAll('.vehicle-card').forEach(c => c.classList.remove('selected'));
-                div.classList.add('selected');
-                dedicatedData.vehicle = v;
-                showBodyOptions();
-            };
+            div.onclick = () => { document.querySelectorAll('.vehicle-card').forEach(c => c.classList.remove('selected')); div.classList.add('selected'); dedicatedData.vehicle = v; showBodyOptions(); };
             grid.appendChild(div);
         });
         function showBodyOptions() {
             document.getElementById('bodyBlock').style.display = 'block';
             let bg = document.getElementById('bodyGroup'); bg.innerHTML = '';
             ['Тентовый','Изотермо','Бортовая'].forEach(bt => {
-                let label = document.createElement('label'); label.className = 'toggle-switch';
-                let radio = document.createElement('input'); radio.type = 'radio'; radio.name = 'bodyType'; radio.value = bt;
-                let slider = document.createElement('span'); slider.className = 'slider';
-                let span = document.createElement('span'); span.innerText = bt;
-                label.appendChild(radio); label.appendChild(slider); label.appendChild(span);
-                radio.onchange = () => { if(radio.checked) { dedicatedData.bodyType = bt; showExtras(); } };
-                bg.appendChild(label);
+                let btn = document.createElement('div'); btn.innerText = bt; btn.className = 'segmented-btn';
+                if (dedicatedData.bodyType === bt) btn.classList.add('active');
+                btn.onclick = () => {
+                    document.querySelectorAll('#bodyGroup .segmented-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    dedicatedData.bodyType = bt;
+                    showExtras();
+                };
+                bg.appendChild(btn);
             });
         }
         function showExtras() {
@@ -564,58 +566,91 @@
             let loadDiv = document.getElementById('loadingGroup'); let extraDiv = document.getElementById('extraGroup');
             loadDiv.innerHTML = ''; extraDiv.innerHTML = '';
             ['Зад','Бок','Верх'].forEach(opt => {
-                let t = createOptToggle(opt, (ch) => { if(ch) dedicatedData.loadingOptions.push(opt); else dedicatedData.loadingOptions = dedicatedData.loadingOptions.filter(o=>o!==opt); });
-                loadDiv.appendChild(t);
+                let lbl = document.createElement('label'); lbl.className = 'toggle-switch';
+                let cb = document.createElement('input'); cb.type = 'checkbox';
+                let sp = document.createElement('span'); sp.className = 'slider';
+                lbl.appendChild(cb); lbl.appendChild(sp); lbl.appendChild(document.createTextNode(opt));
+                cb.onchange = e => { if(e.target.checked) dedicatedData.loadingOptions.push(opt); else dedicatedData.loadingOptions = dedicatedData.loadingOptions.filter(o=>o!==opt); };
+                loadDiv.appendChild(lbl);
             });
             ['Ремни','Гидроборт'].forEach(opt => {
                 let key = opt === 'Ремни' ? 'remni' : 'gidrobort';
-                let t = createOptToggle(opt, (ch) => { if(ch) dedicatedData.extraOptions.push(key); else dedicatedData.extraOptions = dedicatedData.extraOptions.filter(o=>o!==key); });
-                extraDiv.appendChild(t);
+                let lbl = document.createElement('label'); lbl.className = 'toggle-switch';
+                let cb = document.createElement('input'); cb.type = 'checkbox';
+                let sp = document.createElement('span'); sp.className = 'slider';
+                lbl.appendChild(cb); lbl.appendChild(sp); lbl.appendChild(document.createTextNode(opt));
+                cb.onchange = e => { if(e.target.checked) dedicatedData.extraOptions.push(key); else dedicatedData.extraOptions = dedicatedData.extraOptions.filter(o=>o!==key); };
+                extraDiv.appendChild(lbl);
             });
             document.getElementById('calcDedicatedFinalBtn').onclick = () => {
                 if (!dedicatedData.vehicle || !dedicatedData.bodyType) { alert("Выберите машину и кузов"); return; }
                 let price = calcDedicatedPrice(currentDistance, dedicatedData.vehicle.multiplier, dedicatedData.extraOptions);
-                showFinalOrder(price, `${dedicatedData.vehicle.name}, кузов ${dedicatedData.bodyType}, доп: ${dedicatedData.extraOptions.join(', ') || 'нет'}`);
+                showFinalOrder(price, 'dedicated');
             };
         }
-        function createOptToggle(text, onChange) {
-            let label = document.createElement('label'); label.className = 'toggle-switch';
-            let cb = document.createElement('input'); cb.type = 'checkbox';
-            let slider = document.createElement('span'); slider.className = 'slider';
-            let span = document.createElement('span'); span.innerText = text;
-            label.appendChild(cb); label.appendChild(slider); label.appendChild(span);
-            cb.onchange = e => onChange(e.target.checked);
-            return label;
+    }
+
+    function generateCargoText(type) {
+        if (type === 'ltl') {
+            let text = "📦 ИНФОРМАЦИЯ О ГРУЗЕ (СБОРНЫЙ):\n";
+            ltlCargoList.forEach((c, i) => {
+                let weightKg = c.weightVal * (c.weightUnit === 'т' ? 1000 : 1);
+                text += `Груз ${i+1}: ДхВхШ = ${c.length}x${c.width}x${c.height} см, вес ${weightKg} кг, кол-во ${c.qty} шт.\n`;
+                if (c.rotate) text += `   • Вращение разрешено\n`;
+                if (c.stack) text += `   • Можно ставить друг на друга\n`;
+            });
+            return text;
+        } else {
+            let w = dedicatedData.cargoInfo.weight * (dedicatedData.cargoInfo.weightUnit === 'т' ? 1000 : 1);
+            return `📦 ИНФОРМАЦИЯ О ГРУЗЕ (ВЫДЕЛЕННЫЙ ТРАНСПОРТ):\nГабариты: ${dedicatedData.cargoInfo.length}x${dedicatedData.cargoInfo.width}x${dedicatedData.cargoInfo.height} см\nВес: ${w} кг\nТранспорт: ${dedicatedData.vehicle?.name}\nКузов: ${dedicatedData.bodyType}\nДоп.опции: ${dedicatedData.extraOptions.join(', ') || 'нет'}`;
         }
     }
-    
-    function showFinalOrder(price, detailsText) {
+
+    function showFinalOrder(price, cargoType) {
+        let cargoText = generateCargoText(cargoType);
+        let name = document.getElementById('clientName')?.value || '';
+        let phone = document.getElementById('clientPhone')?.value || '';
+        let email = document.getElementById('clientEmail')?.value || '';
         let finalDiv = document.getElementById('finalOrderBlock');
         let detailsDiv = document.getElementById('finalDetails');
-        detailsDiv.innerHTML = `<div class="distance-box" style="margin-bottom:20px; flex-direction:column; text-align:center;">
-            <div><strong>Маршрут:</strong> Фиксированный (1000 км)</div>
-            <div><strong>Километраж:</strong> ${currentDistance} км</div>
-            <div><strong>Итоговая стоимость:</strong> <span class="price-badge" style="font-size:1.2rem;">${price} ₽</span></div>
-            <div><strong>Детали:</strong> ${detailsText}</div>
+        detailsDiv.innerHTML = `<div class="distance-box" style="flex-direction:column;"><div>Маршрут: 1000 км</div><div>Стоимость: <span class="price-badge">${price} ₽</span></div></div>
+        <div class="info-text">${cargoText}</div>
+        <div class="social-buttons">
+            <a href="#" id="whatsappBtn" class="social-btn whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+            <a href="#" id="telegramBtn" class="social-btn telegram"><i class="fab fa-telegram-plane"></i> Telegram</a>
         </div>`;
         finalDiv.style.display = 'block';
         finalDiv.scrollIntoView({ behavior: 'smooth' });
+        const updateSocialLinks = () => {
+            let nameVal = document.getElementById('clientName').value;
+            let phoneVal = document.getElementById('clientPhone').value;
+            let emailVal = document.getElementById('clientEmail').value;
+            let comment = document.getElementById('clientComment').value;
+            let fullText = `ЗАЯВКА ООО "ДЮНА"\n\n${cargoText}\n\nКОНТАКТЫ:\nИмя: ${nameVal}\nТелефон: ${phoneVal}\nEmail: ${emailVal}\nКомментарий: ${comment}`;
+            let encoded = encodeURIComponent(fullText);
+            document.getElementById('whatsappBtn').href = `https://wa.me/?text=${encoded}`;
+            document.getElementById('telegramBtn').href = `https://t.me/share/url?url=&text=${encoded}`;
+        };
+        document.getElementById('clientName').addEventListener('input', updateSocialLinks);
+        document.getElementById('clientPhone').addEventListener('input', updateSocialLinks);
+        document.getElementById('clientEmail').addEventListener('input', updateSocialLinks);
+        document.getElementById('clientComment').addEventListener('input', updateSocialLinks);
+        updateSocialLinks();
         document.getElementById('orderForm').onsubmit = (e) => {
             e.preventDefault();
             let name = document.getElementById('clientName').value;
             let phone = document.getElementById('clientPhone').value;
             let email = document.getElementById('clientEmail').value;
             let comment = document.getElementById('clientComment').value;
-            let body = `ЗАЯВКА ООО "ДЮНА"\nИмя: ${name}\nТелефон: ${phone}\nEmail: ${email}\nКомментарий: ${comment}\n\nМаршрут: фиксированный (1000 км)\nКилометраж: ${currentDistance} км\nИтоговая цена: ${price} ₽\n${detailsText}`;
+            let body = `ЗАЯВКА ООО "ДЮНА"\n${cargoText}\nИмя: ${name}\nТелефон: ${phone}\nEmail: ${email}\nКомментарий: ${comment}\nСтоимость: ${price} ₽`;
             window.location.href = `mailto:info@duna-logist.ru?subject=Заявка на перевозку от ${name}&body=${encodeURIComponent(body)}`;
-            alert("Заявка подготовлена. Отправьте письмо на info@duna-logist.ru.");
+            alert("Заявка подготовлена. Отправьте письмо.");
         };
     }
 
     function setActivePage(pageId) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
         document.getElementById(pageId).classList.add('active-page');
-        document.querySelectorAll('.nav-links a').forEach(link => link.classList.remove('active'));
         let pageName = pageId === 'homePage' ? 'home' : (pageId === 'calculatorPage' ? 'calculator' : 'about');
         document.querySelector(`.nav-links a[data-page="${pageName}"]`).classList.add('active');
     }
@@ -625,12 +660,11 @@
             let pageName = link.getAttribute('data-page');
             if (pageName === 'home') setActivePage('homePage');
             else if (pageName === 'calculator') setActivePage('calculatorPage');
-            else if (pageName === 'about') setActivePage('aboutPage');
+            else setActivePage('aboutPage');
         });
     });
-    document.getElementById('gotoCalcHome').addEventListener('click', () => setActivePage('calculatorPage'));
+    document.getElementById('gotoCalcHome').onclick = () => setActivePage('calculatorPage');
     document.getElementById('calcRouteBtn').onclick = setFixedRoute;
-
     document.querySelector('.type-selector')?.addEventListener('click', (e) => {
         const card = e.target.closest('.type-card');
         if (card) {
@@ -639,7 +673,6 @@
             card.classList.add('selected');
             selectedShipType = type;
             showDynamicForm(type);
-            document.getElementById('dynamicForms').scrollIntoView({ behavior: 'smooth' });
         }
     });
 </script>

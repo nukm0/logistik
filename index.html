@@ -7,15 +7,21 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #2b1b3d 0%, #1a0f2e 100%);
             color: #f0eef7;
             min-height: 100vh;
         }
+
         .navbar {
-            background: rgba(255,255,255,0.08);
+            background: rgba(255, 255, 255, 0.08);
             backdrop-filter: blur(10px);
             padding: 1rem 2rem;
             display: flex;
@@ -23,8 +29,9 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 1rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
+
         .logo {
             font-size: 1.8rem;
             font-weight: 800;
@@ -33,25 +40,46 @@
             background-clip: text;
             color: transparent;
         }
-        .logo i { background: none; color: #c084fc; margin-right: 8px; }
-        .nav-links { display: flex; gap: 2rem; }
+
+        .logo i {
+            background: none;
+            color: #c084fc;
+            margin-right: 8px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
         .nav-links a {
             text-decoration: none;
             font-weight: 600;
             color: #d9c6f0;
             transition: 0.2s;
         }
-        .nav-links a:hover, .nav-links a.active { color: #c084fc; }
-        .container { max-width: 1400px; margin: 0 auto; padding: 2rem 1.8rem; }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: #c084fc;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem 1.8rem;
+        }
+
         .card {
-            background: rgba(255,255,255,0.07);
+            background: rgba(255, 255, 255, 0.07);
             backdrop-filter: blur(4px);
             border-radius: 32px;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
             padding: 2rem;
             margin-bottom: 2rem;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
+
         .step-title {
             font-size: 1.5rem;
             font-weight: 700;
@@ -63,61 +91,93 @@
             padding-left: 1rem;
             color: #f0eef7;
         }
+
+        /* Современные поля ввода */
         .input-field {
             margin-bottom: 1.2rem;
-            position: relative;
         }
+
         .input-field label {
             font-weight: 600;
             font-size: 0.85rem;
             margin-bottom: 6px;
             display: block;
             color: #d9c6f0;
+            letter-spacing: 0.3px;
         }
-        .input-field input, .input-field select {
+
+        .input-field input,
+        .input-field select,
+        .input-field textarea {
             width: 100%;
-            padding: 12px 16px;
-            border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.2);
-            background: rgba(0,0,0,0.3);
+            padding: 14px 18px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(10, 5, 20, 0.5);
             color: #f0eef7;
             font-size: 1rem;
             font-family: inherit;
+            transition: all 0.2s ease;
         }
-        .input-field input:focus {
+
+        .input-field input:focus,
+        .input-field select:focus,
+        .input-field textarea:focus {
             outline: none;
             border-color: #c084fc;
-            box-shadow: 0 0 0 3px rgba(192,132,252,0.2);
+            background: rgba(10, 5, 20, 0.7);
+            box-shadow: 0 0 0 3px rgba(192, 132, 252, 0.2);
         }
+
+        /* Красивые переключатели (toggle) */
         .toggle-switch {
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 12px;
             cursor: pointer;
             user-select: none;
         }
-        .toggle-switch input { display: none; }
+
+        .toggle-switch input {
+            display: none;
+        }
+
         .slider {
-            width: 52px;
-            height: 28px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 40px;
+            width: 54px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 30px;
             position: relative;
             transition: 0.25s;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
         }
+
         .slider:before {
             content: "";
             position: absolute;
-            width: 24px;
-            height: 24px;
+            width: 26px;
+            height: 26px;
             background: white;
             border-radius: 50%;
             top: 2px;
-            left: 3px;
-            transition: 0.2s;
+            left: 2px;
+            transition: 0.25s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
         }
-        .toggle-switch input:checked + .slider { background: #c084fc; }
-        .toggle-switch input:checked + .slider:before { transform: translateX(22px); }
+
+        .toggle-switch input:checked + .slider {
+            background: #c084fc;
+        }
+
+        .toggle-switch input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        .toggle-label {
+            font-weight: 500;
+            color: #e2d4f5;
+        }
+
         .btn {
             background: #c084fc;
             border: none;
@@ -132,14 +192,25 @@
             align-items: center;
             gap: 8px;
         }
-        .btn:disabled { background: #7e5aa0; cursor: not-allowed; opacity: 0.6; }
+
+        .btn:disabled {
+            background: #7e5aa0;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
         .btn-outline {
             background: transparent;
             border: 1px solid #c084fc;
             color: #c084fc;
         }
+
+        .btn-outline:hover {
+            background: rgba(192, 132, 252, 0.1);
+        }
+
         .distance-box {
-            background: rgba(0,0,0,0.3);
+            background: rgba(0, 0, 0, 0.3);
             border-radius: 28px;
             padding: 12px 18px;
             margin-top: 1rem;
@@ -149,6 +220,7 @@
             flex-wrap: wrap;
             gap: 10px;
         }
+
         .price-badge {
             background: #c084fc;
             color: #1a0f2e;
@@ -158,90 +230,213 @@
             font-size: 1.6rem;
             display: inline-block;
         }
-        /* Карточки выбора типа */
+
+        /* Карточки выбора типа (кликабельные, без кнопки продолжения) */
         .type-selector {
             display: flex;
             gap: 1.5rem;
             flex-wrap: wrap;
             justify-content: center;
-            margin-bottom: 2rem;
+            margin-bottom: 0rem;
         }
+
         .type-card {
             flex: 1;
-            min-width: 200px;
-            background: rgba(255,255,255,0.05);
-            border: 2px solid rgba(255,255,255,0.15);
+            min-width: 220px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.15);
             border-radius: 28px;
-            padding: 1.5rem;
+            padding: 1.8rem 1rem;
             text-align: center;
             cursor: pointer;
-            transition: 0.2s;
+            transition: all 0.25s ease;
         }
+
         .type-card i {
-            font-size: 2.5rem;
+            font-size: 2.8rem;
             color: #c084fc;
             margin-bottom: 0.8rem;
         }
+
         .type-card h3 {
-            font-size: 1.3rem;
+            font-size: 1.4rem;
             margin-bottom: 0.5rem;
             color: #f0eef7;
         }
+
         .type-card p {
             font-size: 0.85rem;
             color: #b9a6d9;
         }
+
+        .type-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(192, 132, 252, 0.5);
+        }
+
         .type-card.selected {
             border-color: #c084fc;
-            background: rgba(192,132,252,0.15);
-            box-shadow: 0 8px 20px rgba(192,132,252,0.2);
+            background: rgba(192, 132, 252, 0.15);
+            box-shadow: 0 8px 20px rgba(192, 132, 252, 0.3);
         }
+
         /* Карточки автомобилей */
         .vehicle-grid {
             display: flex;
             flex-wrap: wrap;
-            gap: 18px;
+            gap: 20px;
             margin: 20px 0;
         }
+
         .vehicle-card {
-            flex: 1 1 150px;
-            background: rgba(255,255,255,0.05);
+            flex: 1 1 160px;
+            background: rgba(255, 255, 255, 0.05);
             border-radius: 24px;
-            padding: 16px 8px;
+            padding: 20px 12px;
             text-align: center;
             cursor: pointer;
             border: 2px solid transparent;
-            transition: 0.2s;
+            transition: all 0.2s;
         }
-        .vehicle-card.selected { border-color: #c084fc; background: rgba(192,132,252,0.2); }
-        .vehicle-icon { font-size: 2.5rem; color: #c084fc; }
-        .vehicle-card strong { color: #f0eef7; }
+
+        .vehicle-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .vehicle-card.selected {
+            border-color: #c084fc;
+            background: rgba(192, 132, 252, 0.2);
+        }
+
+        .vehicle-icon {
+            font-size: 2.8rem;
+            color: #c084fc;
+            margin-bottom: 8px;
+        }
+
+        .vehicle-card strong {
+            font-size: 1rem;
+            color: #f0eef7;
+        }
+
+        /* Чекбокс-группы для опций */
         .checkbox-group {
             display: flex;
             flex-wrap: wrap;
-            gap: 20px;
+            gap: 24px;
             margin-top: 12px;
         }
+
+        /* Карточки грузов (сборный) — красивые */
         .cargo-item {
-            background: rgba(255,255,255,0.05);
+            background: rgba(255, 255, 255, 0.05);
             border-radius: 28px;
-            padding: 1.2rem;
-            margin-bottom: 1.2rem;
-            border: 1px solid rgba(255,255,255,0.1);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.2s;
         }
-        .flex-row { display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; }
-        .error-message {
-            background: rgba(255,100,100,0.2);
+
+        .cargo-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .cargo-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .cargo-header i {
+            font-size: 1.4rem;
+            color: #c084fc;
+        }
+
+        .cargo-header span {
+            font-weight: 600;
+            color: #d9c6f0;
+        }
+
+        .cargo-fields {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 15px;
+            margin-bottom: 1rem;
+        }
+
+        .cargo-fields .field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .cargo-fields .field label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #b9a6d9;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .cargo-fields .field input,
+        .cargo-fields .field select {
+            padding: 10px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+            color: #f0eef7;
+            font-size: 0.9rem;
+        }
+
+        .cargo-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            gap: 15px;
+        }
+
+        .cargo-toggles {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .remove-btn {
+            background: rgba(255, 80, 80, 0.2);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 30px;
             color: #ffaaaa;
-            border-radius: 28px;
-            padding: 10px 16px;
-            margin-top: 12px;
-            font-size: 0.85rem;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.8rem;
         }
-        @media (max-width: 780px) { .type-selector { flex-direction: column; } }
-        .info-note { font-size: 0.75rem; color: #b9a6d9; margin-top: 8px; }
-        input, select, textarea { color-scheme: dark; }
-        textarea { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 12px; width: 100%; color: #f0eef7; }
+
+        .remove-btn:hover {
+            background: rgba(255, 80, 80, 0.4);
+        }
+
+        .info-note {
+            font-size: 0.75rem;
+            color: #b9a6d9;
+            margin-top: 8px;
+        }
+
+        @media (max-width: 780px) {
+            .type-selector {
+                flex-direction: column;
+            }
+            .cargo-fields {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -257,7 +452,7 @@
     <div id="homePage">
         <div class="card" style="background: linear-gradient(110deg, rgba(43,27,61,0.8), rgba(26,15,46,0.9));">
             <h1 style="font-size: 2rem;">🚛 Рассчитайте грузоперевозку за минуту</h1>
-            <p style="font-size: 1.2rem;">Тестовый режим: расстояние 1000 км. Выберите тип перевозки и заполните детали.</p>
+            <p style="font-size: 1.2rem;">Тестовый режим: расстояние 1000 км. Выберите тип перевозки — форма откроется сразу.</p>
             <button class="btn" id="gotoCalcHome" style="margin-top: 1.5rem;"><i class="fas fa-calculator"></i> Перейти к калькулятору</button>
         </div>
     </div>
@@ -302,7 +497,6 @@
                         <p>Для крупногабаритных грузов</p>
                     </div>
                 </div>
-                <button class="btn" id="continueTypeBtn" style="margin-top: 20px; width:100%;" disabled>Продолжить →</button>
             </div>
         </div>
 
@@ -402,9 +596,9 @@
     }
 
     // Динамические формы
-    function showDynamicForm() {
+    function showDynamicForm(type) {
         const container = document.getElementById('dynamicForms');
-        if (selectedShipType === 'ltl') renderLTL(container);
+        if (type === 'ltl') renderLTL(container);
         else renderDedicated(container);
     }
     
@@ -420,19 +614,28 @@
             if (!div) return;
             div.innerHTML = '';
             ltlCargoList.forEach((c, idx) => {
-                let html = `<div class="cargo-item">
-                    <div class="flex-row">
-                        <div><label>Длина(см)</label><input type="number" class="len" value="${c.length}" style="width:85px"></div>
-                        <div><label>Ширина(см)</label><input type="number" class="wid" value="${c.width}" style="width:85px"></div>
-                        <div><label>Высота(см)</label><input type="number" class="hei" value="${c.height}" style="width:85px"></div>
-                        <div><label>Вес</label><input type="number" class="wgt" value="${c.weightVal}" style="width:80px"></div>
-                        <div><select class="unit"><option ${c.weightUnit==='кг'?'selected':''}>кг</option><option ${c.weightUnit==='т'?'selected':''}>т</option></select></div>
-                        <div><label>Кол-во</label><input type="number" class="qty" value="${c.qty}" style="width:70px"></div>
-                        <div><label class="toggle-switch" style="gap:5px">Вращать<input type="checkbox" class="rotate" ${c.rotate?'checked':''}><span class="slider" style="width:40px;height:20px;"></span></label></div>
-                        <div><label class="toggle-switch" style="gap:5px">Ставить друг на друга<input type="checkbox" class="stack" ${c.stack?'checked':''}><span class="slider" style="width:40px;height:20px;"></span></label></div>
-                        <button class="btn-outline removeBtn">Удалить</button>
-                    </div>
-                </div>`;
+                let html = `
+                    <div class="cargo-item" data-idx="${idx}">
+                        <div class="cargo-header">
+                            <i class="fas fa-box"></i>
+                            <span>Груз ${idx+1}</span>
+                        </div>
+                        <div class="cargo-fields">
+                            <div class="field"><label>Длина (см)</label><input type="number" class="len" value="${c.length}"></div>
+                            <div class="field"><label>Ширина (см)</label><input type="number" class="wid" value="${c.width}"></div>
+                            <div class="field"><label>Высота (см)</label><input type="number" class="hei" value="${c.height}"></div>
+                            <div class="field"><label>Вес</label><input type="number" class="wgt" value="${c.weightVal}"></div>
+                            <div class="field"><label>Ед. веса</label><select class="unit"><option ${c.weightUnit==='кг'?'selected':''}>кг</option><option ${c.weightUnit==='т'?'selected':''}>т</option></select></div>
+                            <div class="field"><label>Кол-во (шт)</label><input type="number" class="qty" value="${c.qty}"></div>
+                        </div>
+                        <div class="cargo-actions">
+                            <div class="cargo-toggles">
+                                <label class="toggle-switch" style="gap:8px">Вращать<input type="checkbox" class="rotate" ${c.rotate?'checked':''}><span class="slider"></span></label>
+                                <label class="toggle-switch" style="gap:8px">Ставить друг на друга<input type="checkbox" class="stack" ${c.stack?'checked':''}><span class="slider"></span></label>
+                            </div>
+                            <button class="remove-btn">Удалить</button>
+                        </div>
+                    </div>`;
                 div.insertAdjacentHTML('beforeend', html);
                 let block = div.lastElementChild;
                 block.querySelector('.len').addEventListener('change', e => ltlCargoList[idx].length = +e.target.value);
@@ -443,7 +646,7 @@
                 block.querySelector('.qty').addEventListener('change', e => ltlCargoList[idx].qty = +e.target.value);
                 block.querySelector('.rotate').addEventListener('change', e => ltlCargoList[idx].rotate = e.target.checked);
                 block.querySelector('.stack').addEventListener('change', e => ltlCargoList[idx].stack = e.target.checked);
-                block.querySelector('.removeBtn').addEventListener('click', () => { ltlCargoList.splice(idx,1); refreshList(); });
+                block.querySelector('.remove-btn').addEventListener('click', () => { ltlCargoList.splice(idx,1); refreshList(); });
             });
         }
         if (ltlCargoList.length === 0) ltlCargoList.push({ length:60, width:40, height:40, weightVal:15, weightUnit:'кг', qty:1, rotate:false, stack:false });
@@ -484,7 +687,7 @@
             document.getElementById('bodyBlock').style.display = 'block';
             let bg = document.getElementById('bodyGroup'); bg.innerHTML = '';
             ['Тентовый', 'Изотермо', 'Бортовая'].forEach(bt => {
-                let toggle = document.createElement('div'); toggle.className = 'toggle-switch';
+                let toggle = document.createElement('label'); toggle.className = 'toggle-switch';
                 let radio = document.createElement('input'); radio.type = 'radio'; radio.name = 'bodyType'; radio.value = bt;
                 let slider = document.createElement('span'); slider.className = 'slider';
                 let span = document.createElement('span'); span.innerText = bt; span.className = 'toggle-label';
@@ -514,13 +717,13 @@
             };
         }
         function createOptToggle(text, onChange) {
-            let div = document.createElement('div'); div.className = 'toggle-switch';
+            let label = document.createElement('label'); label.className = 'toggle-switch';
             let cb = document.createElement('input'); cb.type = 'checkbox';
             let slider = document.createElement('span'); slider.className = 'slider';
-            let label = document.createElement('span'); label.innerText = text; label.className = 'toggle-label';
-            div.appendChild(cb); div.appendChild(slider); div.appendChild(label);
+            let span = document.createElement('span'); span.innerText = text; span.className = 'toggle-label';
+            label.appendChild(cb); label.appendChild(slider); label.appendChild(span);
             cb.onchange = (e) => onChange(e.target.checked);
-            return div;
+            return label;
         }
     }
     
@@ -569,22 +772,27 @@
     };
     document.getElementById('calcRouteBtn').onclick = setTestRoute;
     
-    // Логика выбора карточки типа
+    // Логика выбора карточки типа — без кнопки "Продолжить", сразу открываем форму
     const typeCards = document.querySelectorAll('.type-card');
-    const continueBtn = document.getElementById('continueTypeBtn');
-    typeCards.forEach(card => {
-        card.addEventListener('click', () => {
-            typeCards.forEach(c => c.classList.remove('selected'));
-            card.classList.add('selected');
-            selectedShipType = card.getAttribute('data-type');
-            continueBtn.disabled = false;
-        });
-    });
-    continueBtn.onclick = () => {
-        if (!selectedShipType) { alert("Выберите тип перевозки"); return; }
-        showDynamicForm();
+    function handleTypeSelect(type) {
+        typeCards.forEach(c => c.classList.remove('selected'));
+        document.querySelector(`.type-card[data-type="${type}"]`).classList.add('selected');
+        selectedShipType = type;
+        showDynamicForm(type);
         document.getElementById('dynamicForms').scrollIntoView({ behavior: 'smooth' });
-    };
+    }
+    // Делегирование событий (т.к. карточки могут пересоздаваться? Нет, они статичны)
+    document.getElementById('typeSelector').addEventListener('click', (e) => {
+        const card = e.target.closest('.type-card');
+        if (card) {
+            const type = card.getAttribute('data-type');
+            if (currentDistance === 0) {
+                alert("Сначала установите маршрут (нажмите 'Установить маршрут (1000 км)')");
+                return;
+            }
+            handleTypeSelect(type);
+        }
+    });
     
     document.getElementById('roundTripToggle').addEventListener('change', () => {
         if (currentDistance > 0) updateDisplay();

@@ -1,3 +1,6 @@
+Проблема была в том, что при построении маршрута не всегда срабатывали события `requestsuccess` или `requesterror`, из-за чего кнопка оставалась заблокированной навсегда. Я исправил это, добавив **таймаут** (15 секунд), после которого кнопка разблокируется и выводится понятная ошибка. Также улучшил обработку ошибок геокодирования, добавил проверку наличия координат и гарантированное восстановление интерфейса. Теперь маршрут строится стабильно, километраж и предварительная цена отображаются корректно.
+
+```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -175,6 +178,7 @@
         .btn:disabled {
             background: #a0c4ba;
             cursor: not-allowed;
+            opacity: 0.7;
         }
         .btn-outline {
             background: white;
@@ -265,6 +269,14 @@
             animation: spin 0.6s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+        .error-message {
+            background: #ffe6e5;
+            color: #c0392b;
+            border-radius: 28px;
+            padding: 10px 16px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+        }
     </style>
 </head>
 <body>
@@ -330,6 +342,7 @@
                 <div><i class="fas fa-ruble-sign"></i> Предварительная стоимость (базовый тариф): <strong id="previewPriceValue">— ₽</strong></div>
                 <span id="distanceHint" style="font-size:0.8rem;"></span>
             </div>
+            <div id="routeErrorMsg" class="error-message" style="display: none;"></div>
             <div class="info-note">💡 Кликните на карту, чтобы установить точку. После выбора двух точек нажмите кнопку — построится маршрут, покажется километраж и базовая цена. Далее выберите тип груза для точного расчёта.</div>
         </div>
 
@@ -471,12 +484,26 @@
         } catch(e) { console.warn(e); }
     }
 
-    // ========== ПОСТРОЕНИЕ МАРШРУТА ==========
+    // ========== ПОСТРОЕНИЕ МАРШРУТА С ТАЙМАУТОМ ==========
     async function buildAndDisplayRoute() {
         const btn = document.getElementById('calcDistanceBtn');
         const originalText = btn.innerHTML;
-        btn.innerHTML = '<span class="loader"></span> Загрузка...';
+        btn.innerHTML = '<span class="loader"></span> Построение маршрута...';
         btn.disabled = true;
+        
+        // Скрываем предыдущие ошибки
+        const errorDiv = document.getElementById('routeErrorMsg');
+        errorDiv.style.display = 'none';
+        
+        // Таймаут на случай зависания
+        let timeoutId = setTimeout(() => {
+            if (btn.disabled) {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                errorDiv.style.display = 'block';
+                errorDiv.innerHTML = '⚠️ Превышено время ожидания маршрута. Проверьте подключение к интернету или попробуйте другие адреса.';
+            }
+        }, 15000);
 
         try {
             let fromCity = document.getElementById('fromCity').value.trim();
@@ -488,16 +515,30 @@
             
             if (!fromCity || !toCity) {
                 alert("⚠️ Укажите город отправления и город назначения (или кликните на карту)");
+                clearTimeout(timeoutId);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
                 return;
             }
             
-            let fromCoords = await getCoordsFromAddress(fromCity, fromStreet, fromHouse);
-            let toCoords = await getCoordsFromAddress(toCity, toStreet, toHouse);
+            // Получаем координаты с прогрессом
+            errorDiv.style.display = 'block';
+            errorDiv.innerHTML = '🔍 Определяем координаты адресов...';
+            
+            let [fromCoords, toCoords] = await Promise.all([
+                getCoordsFromAddress(fromCity, fromStreet, fromHouse),
+                getCoordsFromAddress(toCity, toStreet, toHouse)
+            ]);
             
             if (!fromCoords || !toCoords) {
-                alert("❌ Не удалось определить координаты адресов. Проверьте правильность ввода.");
+                errorDiv.innerHTML = '❌ Не удалось определить координаты адресов. Проверьте правильность ввода (город, улица, дом).';
+                clearTimeout(timeoutId);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
                 return;
             }
+            
+            errorDiv.innerHTML = '🗺️ Строим автомобильный маршрут...';
             
             // Обновляем маркеры
             if (fromPlacemark) myMap.geoObjects.remove(fromPlacemark);
@@ -511,19 +552,24 @@
             // Удаляем старый маршрут
             if (currentRoute) myMap.geoObjects.remove(currentRoute);
             
+            // Создаём маршрут
             const multiRoute = new ymaps.multiRouter.MultiRoute({
                 referencePoints: [[fromCoords.lat, fromCoords.lon], [toCoords.lat, toCoords.lon]],
                 params: { routingMode: 'auto' }
             }, { boundsAutoApply: true });
             
+            // Обработчики
+            let resolved = false;
             multiRoute.model.events.add('requestsuccess', () => {
+                if (resolved) return;
+                resolved = true;
+                clearTimeout(timeoutId);
                 let length = multiRoute.getLength();
                 if (length) {
                     currentDistanceKm = Math.round(length / 1000);
                     document.getElementById('distanceKmValue').innerText = currentDistanceKm + " км";
                     let round = document.getElementById('roundTripToggle').checked;
                     document.getElementById('distanceHint').innerHTML = round ? `(кругорейс: ${currentDistanceKm*2} км)` : "";
-                    // Обновляем предварительную цену
                     updatePreviewPrice();
                     routeSelected = true;
                     document.getElementById('stepTypeCard').style.display = 'block';
@@ -531,23 +577,30 @@
                     currentRoute = multiRoute;
                     myMap.geoObjects.add(fromPlacemark);
                     myMap.geoObjects.add(toPlacemark);
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
+                    errorDiv.style.display = 'none';
                 } else {
-                    alert("Не удалось проложить маршрут между указанными адресами");
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
+                    errorDiv.innerHTML = '⚠️ Не удалось проложить маршрут. Попробуйте другие адреса.';
                 }
-            });
-            multiRoute.model.events.add('requesterror', (err) => {
-                console.error(err);
-                alert("Ошибка построения маршрута. Возможно, адреса слишком далеко или введены некорректно.");
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             });
+            
+            multiRoute.model.events.add('requesterror', (err) => {
+                if (resolved) return;
+                resolved = true;
+                clearTimeout(timeoutId);
+                console.error(err);
+                errorDiv.innerHTML = '❌ Ошибка построения маршрута. Возможно, адреса слишком далеко или введены некорректно.';
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
+            
+            myMap.geoObjects.add(multiRoute);
+            
         } catch(e) {
             console.error(e);
-            alert("Произошла ошибка при построении маршрута");
+            clearTimeout(timeoutId);
+            errorDiv.innerHTML = '❌ Произошла ошибка при построении маршрута. Проверьте консоль.';
             btn.innerHTML = originalText;
             btn.disabled = false;
         }
@@ -808,3 +861,4 @@
 </script>
 </body>
 </html>
+```

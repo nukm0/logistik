@@ -10,45 +10,47 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Inter', sans-serif;
-            background: #f0f7fa;
-            color: #0a2b3e;
+            background: linear-gradient(135deg, #2b1b3d 0%, #1a0f2e 100%);
+            color: #f0eef7;
+            min-height: 100vh;
         }
         .navbar {
-            background: white;
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(10px);
             padding: 1rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 1rem;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
-            border-bottom: 1px solid #e2edf2;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
         .logo {
             font-size: 1.8rem;
             font-weight: 800;
-            background: linear-gradient(135deg, #0f6b58, #1fab8a);
+            background: linear-gradient(135deg, #c084fc, #a855f7);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
         }
-        .logo i { background: none; color: #1fab8a; margin-right: 8px; }
+        .logo i { background: none; color: #c084fc; margin-right: 8px; }
         .nav-links { display: flex; gap: 2rem; }
         .nav-links a {
             text-decoration: none;
             font-weight: 600;
-            color: #2c5f7a;
+            color: #d9c6f0;
             transition: 0.2s;
         }
-        .nav-links a:hover, .nav-links a.active { color: #1fab8a; }
+        .nav-links a:hover, .nav-links a.active { color: #c084fc; }
         .container { max-width: 1400px; margin: 0 auto; padding: 2rem 1.8rem; }
         .card {
-            background: white;
+            background: rgba(255,255,255,0.07);
+            backdrop-filter: blur(4px);
             border-radius: 32px;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.05);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.2);
             padding: 2rem;
             margin-bottom: 2rem;
-            border: 1px solid #e6f0f3;
+            border: 1px solid rgba(255,255,255,0.1);
         }
         .step-title {
             font-size: 1.5rem;
@@ -57,8 +59,9 @@
             align-items: center;
             gap: 12px;
             margin-bottom: 1.5rem;
-            border-left: 5px solid #1fab8a;
+            border-left: 5px solid #c084fc;
             padding-left: 1rem;
+            color: #f0eef7;
         }
         .input-field {
             margin-bottom: 1.2rem;
@@ -69,58 +72,22 @@
             font-size: 0.85rem;
             margin-bottom: 6px;
             display: block;
-            color: #1e6b5c;
+            color: #d9c6f0;
         }
         .input-field input, .input-field select {
             width: 100%;
             padding: 12px 16px;
             border-radius: 20px;
-            border: 1px solid #cde0e8;
-            background: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.3);
+            color: #f0eef7;
             font-size: 1rem;
             font-family: inherit;
         }
         .input-field input:focus {
             outline: none;
-            border-color: #1fab8a;
-            box-shadow: 0 0 0 3px rgba(31,171,138,0.1);
-        }
-        /* Карточки выбора типа отправки (inline buttons) */
-        .type-selector {
-            display: flex;
-            gap: 1.5rem;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-bottom: 2rem;
-        }
-        .type-card {
-            flex: 1;
-            min-width: 200px;
-            background: #f8fcfb;
-            border: 2px solid #e2edf2;
-            border-radius: 28px;
-            padding: 1.5rem;
-            text-align: center;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .type-card i {
-            font-size: 2.5rem;
-            color: #1e6b5c;
-            margin-bottom: 0.8rem;
-        }
-        .type-card h3 {
-            font-size: 1.3rem;
-            margin-bottom: 0.5rem;
-        }
-        .type-card p {
-            font-size: 0.85rem;
-            color: #5f8b9a;
-        }
-        .type-card.selected {
-            border-color: #1fab8a;
-            background: #e6f7f2;
-            box-shadow: 0 8px 20px rgba(31,171,138,0.15);
+            border-color: #c084fc;
+            box-shadow: 0 0 0 3px rgba(192,132,252,0.2);
         }
         .toggle-switch {
             display: flex;
@@ -133,7 +100,7 @@
         .slider {
             width: 52px;
             height: 28px;
-            background: #cbdde6;
+            background: rgba(255,255,255,0.2);
             border-radius: 40px;
             position: relative;
             transition: 0.25s;
@@ -149,15 +116,15 @@
             left: 3px;
             transition: 0.2s;
         }
-        .toggle-switch input:checked + .slider { background: #1fab8a; }
+        .toggle-switch input:checked + .slider { background: #c084fc; }
         .toggle-switch input:checked + .slider:before { transform: translateX(22px); }
         .btn {
-            background: #1fab8a;
+            background: #c084fc;
             border: none;
             padding: 14px 28px;
             border-radius: 40px;
             font-weight: 700;
-            color: white;
+            color: #1a0f2e;
             cursor: pointer;
             transition: 0.2s;
             font-family: inherit;
@@ -165,14 +132,14 @@
             align-items: center;
             gap: 8px;
         }
-        .btn:disabled { background: #a0c4ba; cursor: not-allowed; opacity: 0.7; }
+        .btn:disabled { background: #7e5aa0; cursor: not-allowed; opacity: 0.6; }
         .btn-outline {
-            background: white;
-            border: 1px solid #1fab8a;
-            color: #1fab8a;
+            background: transparent;
+            border: 1px solid #c084fc;
+            color: #c084fc;
         }
         .distance-box {
-            background: #eef6f3;
+            background: rgba(0,0,0,0.3);
             border-radius: 28px;
             padding: 12px 18px;
             margin-top: 1rem;
@@ -183,14 +150,53 @@
             gap: 10px;
         }
         .price-badge {
-            background: #0a2b3e;
-            color: white;
+            background: #c084fc;
+            color: #1a0f2e;
             border-radius: 60px;
             padding: 8px 28px;
             font-weight: 700;
             font-size: 1.6rem;
             display: inline-block;
         }
+        /* Карточки выбора типа */
+        .type-selector {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+        .type-card {
+            flex: 1;
+            min-width: 200px;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.15);
+            border-radius: 28px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .type-card i {
+            font-size: 2.5rem;
+            color: #c084fc;
+            margin-bottom: 0.8rem;
+        }
+        .type-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+            color: #f0eef7;
+        }
+        .type-card p {
+            font-size: 0.85rem;
+            color: #b9a6d9;
+        }
+        .type-card.selected {
+            border-color: #c084fc;
+            background: rgba(192,132,252,0.15);
+            box-shadow: 0 8px 20px rgba(192,132,252,0.2);
+        }
+        /* Карточки автомобилей */
         .vehicle-grid {
             display: flex;
             flex-wrap: wrap;
@@ -199,15 +205,17 @@
         }
         .vehicle-card {
             flex: 1 1 150px;
-            background: #f8fcfb;
+            background: rgba(255,255,255,0.05);
             border-radius: 24px;
             padding: 16px 8px;
             text-align: center;
             cursor: pointer;
             border: 2px solid transparent;
+            transition: 0.2s;
         }
-        .vehicle-card.selected { border-color: #1fab8a; background: #e6f7f2; }
-        .vehicle-icon { font-size: 2.5rem; color: #1e6b5c; }
+        .vehicle-card.selected { border-color: #c084fc; background: rgba(192,132,252,0.2); }
+        .vehicle-icon { font-size: 2.5rem; color: #c084fc; }
+        .vehicle-card strong { color: #f0eef7; }
         .checkbox-group {
             display: flex;
             flex-wrap: wrap;
@@ -215,22 +223,25 @@
             margin-top: 12px;
         }
         .cargo-item {
-            background: #f8fcfb;
+            background: rgba(255,255,255,0.05);
             border-radius: 28px;
             padding: 1.2rem;
             margin-bottom: 1.2rem;
+            border: 1px solid rgba(255,255,255,0.1);
         }
         .flex-row { display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; }
         .error-message {
-            background: #ffe6e5;
-            color: #c0392b;
+            background: rgba(255,100,100,0.2);
+            color: #ffaaaa;
             border-radius: 28px;
             padding: 10px 16px;
             margin-top: 12px;
             font-size: 0.85rem;
         }
         @media (max-width: 780px) { .type-selector { flex-direction: column; } }
-        .info-note { font-size: 0.75rem; color: #5f8b9a; margin-top: 8px; }
+        .info-note { font-size: 0.75rem; color: #b9a6d9; margin-top: 8px; }
+        input, select, textarea { color-scheme: dark; }
+        textarea { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 12px; width: 100%; color: #f0eef7; }
     </style>
 </head>
 <body>
@@ -244,7 +255,7 @@
 </div>
 <div class="container" id="appContainer">
     <div id="homePage">
-        <div class="card" style="background: linear-gradient(110deg, #fff, #edf9f5);">
+        <div class="card" style="background: linear-gradient(110deg, rgba(43,27,61,0.8), rgba(26,15,46,0.9));">
             <h1 style="font-size: 2rem;">🚛 Рассчитайте грузоперевозку за минуту</h1>
             <p style="font-size: 1.2rem;">Тестовый режим: расстояние 1000 км. Выберите тип перевозки и заполните детали.</p>
             <button class="btn" id="gotoCalcHome" style="margin-top: 1.5rem;"><i class="fas fa-calculator"></i> Перейти к калькулятору</button>
@@ -460,7 +471,7 @@
         let grid = document.getElementById('vehicleGrid');
         vehicleRates.forEach(v => {
             let div = document.createElement('div'); div.className = 'vehicle-card';
-            div.innerHTML = `<i class="fas ${v.icon} vehicle-icon"></i><div><strong>${v.name}</strong></div><div>коэфф. ${v.multiplier}</div>`;
+            div.innerHTML = `<i class="fas ${v.icon} vehicle-icon"></i><div><strong>${v.name}</strong></div><div style="font-size:0.8rem; color:#b9a6d9;">коэфф. ${v.multiplier}</div>`;
             div.onclick = () => {
                 document.querySelectorAll('.vehicle-card').forEach(c => c.classList.remove('selected'));
                 div.classList.add('selected');

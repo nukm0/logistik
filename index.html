@@ -526,7 +526,6 @@
 
     // Пошаговая логика для выделенного транспорта
     function renderDedicated(container) {
-        // Шаг 1: выбор автомобиля
         let step = 1;
         let vehicleSelected = false;
         let bodySelected = false;
@@ -574,7 +573,6 @@
                     <div class="field"><label>Вес</label><input type="number" id="cargoWeight" value="${dedicatedData.cargoInfo.weight}"></div>
                     <div class="field"><label>Ед. веса</label><div id="dedicatedWeightUnit"></div></div>
                 </div></div>`;
-                // привязка данных груза
                 const lenInp = document.getElementById('cargoLen'); const widInp = document.getElementById('cargoWid');
                 const heiInp = document.getElementById('cargoHei'); const wgtInp = document.getElementById('cargoWeight');
                 const unitContainer = document.getElementById('dedicatedWeightUnit');
@@ -675,6 +673,7 @@
         renderStep();
     }
 
+    // Функция формирования текста о грузе (теперь с полными данными для выделенного транспорта)
     function generateCargoText(type) {
         if (type === 'ltl') {
             let text = "📦 ИНФОРМАЦИЯ О ГРУЗЕ (СБОРНЫЙ):\n\n";
@@ -688,9 +687,12 @@
             return text;
         } else {
             let w = dedicatedData.cargoInfo.weight * (dedicatedData.cargoInfo.weightUnit === 'т' ? 1000 : 1);
+            // Дополнительные опции (оборудование)
             let extraLabels = dedicatedData.extraOptions.map(opt => opt === 'remni' ? 'Ремни' : 'Гидроборт');
             let extraStr = extraLabels.length ? extraLabels.join(', ') : 'нет';
-            return `📦 ИНФОРМАЦИЯ О ГРУЗЕ (ВЫДЕЛЕННЫЙ ТРАНСПОРТ):\n\nГабариты: ${dedicatedData.cargoInfo.length}x${dedicatedData.cargoInfo.width}x${dedicatedData.cargoInfo.height} см\nВес: ${w} кг\nТранспорт: ${dedicatedData.vehicle?.name}\nКузов: ${dedicatedData.bodyType}\nДоп. опции: ${extraStr}`;
+            // Опции погрузки
+            let loadingStr = dedicatedData.loadingOptions.length ? dedicatedData.loadingOptions.join(', ') : 'не выбраны';
+            return `📦 ИНФОРМАЦИЯ О ГРУЗЕ (ВЫДЕЛЕННЫЙ ТРАНСПОРТ):\n\nГабариты: ${dedicatedData.cargoInfo.length}x${dedicatedData.cargoInfo.width}x${dedicatedData.cargoInfo.height} см\nВес: ${w} кг\nТранспорт: ${dedicatedData.vehicle?.name}\nКузов: ${dedicatedData.bodyType}\nПогрузка: ${loadingStr}\nДоп. оборудование: ${extraStr}`;
         }
     }
 

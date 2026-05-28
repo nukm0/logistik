@@ -592,7 +592,10 @@
             return text;
         } else {
             let w = dedicatedData.cargoInfo.weight * (dedicatedData.cargoInfo.weightUnit === 'т' ? 1000 : 1);
-            return `📦 ИНФОРМАЦИЯ О ГРУЗЕ (ВЫДЕЛЕННЫЙ ТРАНСПОРТ):\n\nГабариты: ${dedicatedData.cargoInfo.length}x${dedicatedData.cargoInfo.width}x${dedicatedData.cargoInfo.height} см\nВес: ${w} кг\nТранспорт: ${dedicatedData.vehicle?.name}\nКузов: ${dedicatedData.bodyType}\nДоп. опции: ${dedicatedData.extraOptions.join(', ') || 'нет'}`;
+            // Преобразуем ключи extraOptions в читаемые русские названия
+            let extraLabels = dedicatedData.extraOptions.map(opt => opt === 'remni' ? 'Ремни' : 'Гидроборт');
+            let extraStr = extraLabels.length ? extraLabels.join(', ') : 'нет';
+            return `📦 ИНФОРМАЦИЯ О ГРУЗЕ (ВЫДЕЛЕННЫЙ ТРАНСПОРТ):\n\nГабариты: ${dedicatedData.cargoInfo.length}x${dedicatedData.cargoInfo.width}x${dedicatedData.cargoInfo.height} см\nВес: ${w} кг\nТранспорт: ${dedicatedData.vehicle?.name}\nКузов: ${dedicatedData.bodyType}\nДоп. опции: ${extraStr}`;
         }
     }
 
@@ -621,7 +624,7 @@
             return `ЗАЯВКА ООО "ДЮНА"\n\n${cargoText}\n\nКОНТАКТНЫЕ ДАННЫЕ:\nИмя: ${name}\nТелефон: ${phone}\nEmail: ${email}\nКомментарий: ${comment}\nСтоимость: ${price} ₽`;
         }
         
-        // Кнопка ВК: копирование текста + переход в диалог
+        // Кнопка ВК: копирование текста + открытие диалога
         const vkBtn = document.getElementById('vkBtn');
         vkBtn.onclick = (e) => {
             e.preventDefault();
@@ -635,7 +638,7 @@
             });
         };
         
-        // Кнопка Telegram: предзаполненный текст
+        // Кнопка Telegram: предзаполненный текст через параметр
         const tgBtn = document.getElementById('telegramBtn');
         const updateTgLink = () => {
             let fullText = getFullText();

@@ -1,8 +1,3 @@
-Вы правы — кнопка «Кругорейс» больше не нужна. Я полностью убрал переключатель, оставив только фиксированное расстояние 1000 км. Также я переименовал кнопку «+ Добавить груз» в **«+ Новый груз»** и придал ей красивый стиль (тёмная с фиолетовой обводкой). Кнопка «Рассчитать итоговую стоимость» осталась такой же яркой. Оформление карточек грузов сохранено в прежнем красивом виде.
-
-Вот итоговый код:
-
-```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -93,8 +88,32 @@
             background: rgba(10, 5, 20, 0.7);
             box-shadow: 0 0 0 3px rgba(192, 132, 252, 0.2);
         }
-        .btn {
-            background: #c084fc;
+        /* Кнопка "Новый груз" – красивая обводка */
+        .btn-new-cargo {
+            background: transparent;
+            border: 2px solid transparent;
+            background-image: linear-gradient(#2b1b3d, #2b1b3d), linear-gradient(135deg, #c084fc, #a855f7);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+            color: #c084fc;
+            padding: 14px 28px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: 0.3s;
+        }
+        .btn-new-cargo:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 12px rgba(192, 132, 252, 0.5);
+            color: #f0eef7;
+        }
+        /* Кнопка "Рассчитать итоговую стоимость" – градиентная заливка */
+        .btn-calc {
+            background: linear-gradient(95deg, #c084fc, #a855f7);
             border: none;
             padding: 14px 28px;
             border-radius: 40px;
@@ -104,27 +123,23 @@
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            font-size: 1rem;
-            transition: 0.2s;
+            transition: 0.3s;
+            box-shadow: 0 4px 12px rgba(160, 100, 220, 0.4);
         }
-        .btn:hover { background: #a855f7; transform: translateY(-2px); }
-        .btn:disabled { background: #7e5aa0; opacity: 0.6; transform: none; }
-        .btn-outline {
-            background: transparent;
-            border: 1px solid #c084fc;
-            color: #c084fc;
+        .btn-calc:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(192, 132, 252, 0.5);
         }
-        .btn-outline:hover { background: rgba(192, 132, 252, 0.1); transform: translateY(-2px); }
         .distance-box {
             background: rgba(0, 0, 0, 0.3);
             border-radius: 28px;
             padding: 12px 18px;
             margin-top: 1rem;
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
-            flex-wrap: wrap;
             gap: 10px;
+            font-size: 1.2rem;
         }
         .price-badge {
             background: #c084fc;
@@ -295,7 +310,7 @@
         <div class="card" style="background: linear-gradient(110deg, rgba(43,27,61,0.8), rgba(26,15,46,0.9));">
             <h1 style="font-size: 2rem;">🚛 Рассчитайте грузоперевозку за минуту</h1>
             <p style="font-size: 1.2rem;">Фиксированное расстояние: 1000 км. Выберите тип перевозки и заполните детали.</p>
-            <button class="btn" id="gotoCalcHome" style="margin-top: 1.5rem;"><i class="fas fa-calculator"></i> Перейти к калькулятору</button>
+            <button class="btn-calc" id="gotoCalcHome" style="margin-top: 1.5rem;"><i class="fas fa-calculator"></i> Перейти к калькулятору</button>
         </div>
     </div>
     <!-- О компании -->
@@ -312,7 +327,7 @@
         <div class="card">
             <div class="step-title"><i class="fas fa-route"></i> 1. Расстояние (фиксированное)</div>
             <div style="text-align: center;">
-                <button class="btn" id="calcRouteBtn"><i class="fas fa-route"></i> Установить маршрут (1000 км)</button>
+                <button class="btn-calc" id="calcRouteBtn"><i class="fas fa-route"></i> Установить маршрут (1000 км)</button>
             </div>
             <div class="distance-box" id="distanceDisplay">
                 <div><i class="fas fa-road"></i> Километраж: <strong id="distanceKm">— км</strong></div>
@@ -347,7 +362,7 @@
                     <div class="input-field"><label>Телефон</label><input id="clientPhone" required></div>
                     <div class="input-field"><label>Email</label><input id="clientEmail" type="email" required></div>
                     <div class="input-field"><label>Комментарий к заказу</label><textarea id="clientComment" rows="2"></textarea></div>
-                    <button type="submit" class="btn"><i class="fas fa-paper-plane"></i> Отправить заявку</button>
+                    <button type="submit" class="btn-calc"><i class="fas fa-paper-plane"></i> Отправить заявку</button>
                 </form>
             </div>
         </div>
@@ -355,7 +370,7 @@
 </div>
 
 <script>
-    // Фиксированное расстояние 1000 км (без кругорейса)
+    // Фиксированное расстояние 1000 км
     let currentDistance = 0;
     let selectedShipType = null;
     let dedicatedData = { vehicle: null, bodyType: null, loadingOptions: [], extraOptions: [] };
@@ -427,14 +442,14 @@
         else renderDedicated(container);
     }
     
-    // КРАСИВАЯ ФОРМА СБОРНОГО ГРУЗА С КНОПКОЙ "+ НОВЫЙ ГРУЗ"
+    // Красивая форма сборного груза с кнопками "Новый груз" и "Рассчитать итоговую стоимость"
     function renderLTL(container) {
         container.innerHTML = `<div class="card">
             <div class="step-title"><i class="fas fa-pallet"></i> Параметры грузов</div>
             <div id="ltlList"></div>
             <div style="display: flex; gap: 20px; justify-content: center; margin-top: 25px;">
-                <button class="btn-outline" id="addLtlBtn"><i class="fas fa-plus"></i> Новый груз</button>
-                <button class="btn" id="calcLtlFinalBtn">Рассчитать итоговую стоимость</button>
+                <button class="btn-new-cargo" id="addLtlBtn"><i class="fas fa-plus"></i> Новый груз</button>
+                <button class="btn-calc" id="calcLtlFinalBtn">Рассчитать итоговую стоимость</button>
             </div>
             <div id="ltlErrorMsg" style="background:rgba(255,100,100,0.2); border-radius:20px; padding:10px; margin-top:15px; color:#ffaaaa; display:none;"></div>
         </div>`;
@@ -509,7 +524,7 @@
                     <div class="option-col"><strong>Доп. оборудование</strong><div class="checkbox-group" id="extraGroup"></div></div>
                 </div>
             </div>
-            <div id="extrasBlock" style="display:none; text-align:center; margin-top:1rem;"><button class="btn" id="calcDedicatedFinalBtn">Рассчитать итоговую стоимость</button></div>
+            <div id="extrasBlock" style="display:none; text-align:center; margin-top:1rem;"><button class="btn-calc" id="calcDedicatedFinalBtn">Рассчитать итоговую стоимость</button></div>
         </div>`;
         let grid = document.getElementById('vehicleGrid');
         vehicleRates.forEach(v => {
@@ -624,4 +639,3 @@
 </script>
 </body>
 </html>
-```

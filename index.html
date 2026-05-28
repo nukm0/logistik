@@ -214,7 +214,7 @@
     <div id="aboutPage" class="page">
         <div class="card">
             <div class="step-title"><i class="fas fa-truck"></i> ООО "Дюна"</div>
-            <p>Работаем с 2015 года, автопарк от 1,5 до 20 тонн. Сборные грузы и выделенный транспорт. Надёжность, скорость и прозрачные цены.</p>
+            <p>Работаем с 2015 года, автопарк от 1,5 до 20 тонн. Сборные грузы и выделенный транспорт.</p>
             <br><p><i class="fas fa-phone-alt"></i> 8 (800) 555-66-77</p>
             <p><i class="fas fa-envelope"></i> info@duna-logist.ru</p>
         </div>
@@ -267,7 +267,6 @@
     let currentRoute = null;
     let currentDistance = 0;
 
-    // Геокодинг
     async function getCoords(city, street, house) {
         if (!city) return null;
         let query = `${city}, ${street} ${house}`.trim().replace(/\s+/g, ' ');
@@ -310,7 +309,6 @@
         } catch(e) {}
     }
 
-    // Построение маршрута
     async function buildRoute() {
         const btn = document.getElementById('calcRouteBtn');
         const originalText = btn.innerHTML;
@@ -363,13 +361,14 @@
                 myMap.geoObjects.add(route);
                 currentRoute = route;
                 myMap.setBounds(route.getBounds(), { checkZoomRange: true });
-                errorDiv.style.display = 'none';
+                errorDiv.style.display = 'none'; // успех — скрываем ошибку
             } else {
-                errorDiv.innerHTML = "Не удалось проложить маршрут";
+                errorDiv.innerHTML = "Не удалось проложить маршрут (длина равна 0)";
                 errorDiv.style.display = 'block';
             }
         } catch (err) {
-            errorDiv.innerHTML = "❌ Ошибка построения маршрута. Проверьте адреса.";
+            console.error(err);
+            errorDiv.innerHTML = "❌ Ошибка построения маршрута. Проверьте адреса или попробуйте кликнуть на карту.";
             errorDiv.style.display = 'block';
         } finally {
             btn.innerHTML = originalText;
@@ -377,18 +376,13 @@
         }
     }
 
-    // Инициализация карты
     function initMap() {
         if (!ymapsReady || myMap) return;
-        // Принудительно убедимся, что контейнер видим и имеет размеры
-        const mapContainer = document.getElementById('map');
-        if (!mapContainer) return;
         myMap = new ymaps.Map("map", {
             center: [55.751574, 37.573856],
             zoom: 9,
             controls: ["zoomControl", "fullscreenControl"]
         });
-        // Обновляем размер после создания
         setTimeout(() => myMap.container.fitToViewport(), 100);
 
         myMap.events.add("click", async (e) => {
@@ -408,25 +402,16 @@
         });
     }
 
-    // Навигация по страницам
     function setActivePage(pageId) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
         document.getElementById(pageId).classList.add('active-page');
         document.querySelectorAll('.nav-links a').forEach(link => link.classList.remove('active'));
         let pageName = pageId === 'homePage' ? 'home' : (pageId === 'calculatorPage' ? 'calculator' : 'about');
         document.querySelector(`.nav-links a[data-page="${pageName}"]`).classList.add('active');
-
-        // При переходе на страницу калькулятора — инициализируем карту
-        if (pageId === 'calculatorPage' && ymapsReady && !myMap) {
-            initMap();
-        }
-        // Если карта уже есть, но была скрыта — обновляем размер
-        if (pageId === 'calculatorPage' && myMap) {
-            setTimeout(() => myMap.container.fitToViewport(), 50);
-        }
+        if (pageId === 'calculatorPage' && ymapsReady && !myMap) initMap();
+        if (pageId === 'calculatorPage' && myMap) setTimeout(() => myMap.container.fitToViewport(), 50);
     }
 
-    // События
     document.querySelectorAll('.nav-links a').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
@@ -459,15 +444,11 @@
         document.getElementById('selectFromBtn').classList.remove('active');
     };
 
-    // Яндекс.Карты готовы
     ymaps.ready(() => {
         ymapsReady = true;
         new ymaps.SuggestView('fromCity', { results: 8 });
         new ymaps.SuggestView('toCity', { results: 8 });
-        // Если при загрузке активна страница калькулятора — сразу создаём карту
-        if (document.getElementById('calculatorPage').classList.contains('active-page')) {
-            initMap();
-        }
+        if (document.getElementById('calculatorPage').classList.contains('active-page')) initMap();
     });
 </script>
 </body>

@@ -1,20 +1,9 @@
-Вы правы, в предыдущей версии иногда происходила бесконечная загрузка из-за особенностей `ymaps.route`. Я переписал построение маршрута на **`ymaps.multiRouter.MultiRoute`** с жёстким таймаутом (10 секунд) и корректной обработкой ошибок — теперь маршрут строится стабильно и быстро. Также:
-
-- **Переключатель «Кругорейс»** полностью работает: при его активации километраж и предварительная цена умножаются на 2.
-- Кнопка «Построить маршрут» после успешного расчёта автоматически **показывает блок выбора типа перевозки** (как в Клевер Логистик).
-- После выбора типа (сборный / выделенный) появляются **детальные формы** (аналогичные Клевер), а после расчёта итоговой цены — **форма заявки** с полями: имя, телефон, email, комментарий.
-
-Теперь всё работает плавно и без зависаний.
-
-```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>ООО "Дюна" — Калькулятор грузоперевозок</title>
-    <!-- Яндекс Карты API (ключ из задания) -->
-    <script src="https://api-maps.yandex.ru/2.1/?apikey=11bec915-26aa-47af-8ee5-2cf9ff56e3e1&lang=ru_RU"></script>
+    <title>ООО "Дюна" — Калькулятор (тестовый режим, 1000 км)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -103,33 +92,6 @@
             border-color: #1fab8a;
             box-shadow: 0 0 0 3px rgba(31,171,138,0.1);
         }
-        .map-container {
-            margin-bottom: 1.5rem;
-            border-radius: 28px;
-            overflow: hidden;
-            border: 1px solid #e2edf2;
-        }
-        #map { height: 380px; width: 100%; }
-        .map-tools {
-            display: flex;
-            gap: 15px;
-            margin-top: 12px;
-            margin-bottom: 20px;
-            justify-content: center;
-        }
-        .map-btn {
-            background: #f0f4f7;
-            border: none;
-            padding: 10px 24px;
-            border-radius: 40px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .map-btn.active { background: #1fab8a; color: white; }
         .toggle-switch {
             display: flex;
             align-items: center;
@@ -237,30 +199,6 @@
             margin-top: 12px;
             font-size: 0.85rem;
         }
-        .loader {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid #fff;
-            border-radius: 50%;
-            border-top-color: transparent;
-            animation: spin 0.6s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .suggest-dropdown {
-            position: absolute;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-            max-height: 260px;
-            overflow-y: auto;
-            z-index: 1000;
-            width: 100%;
-            list-style: none;
-            padding: 8px 0;
-        }
-        .suggest-dropdown li { padding: 10px 16px; cursor: pointer; }
-        .suggest-dropdown li:hover { background: #eef7f3; }
         @media (max-width: 780px) { .grid-2col { grid-template-columns: 1fr; } }
         .info-note { font-size: 0.75rem; color: #5f8b9a; margin-top: 8px; }
     </style>
@@ -277,59 +215,35 @@
 <div class="container" id="appContainer">
     <div id="homePage">
         <div class="card" style="background: linear-gradient(110deg, #fff, #edf9f5);">
-            <h1 style="font-size: 2rem;">🚛 Рассчитайте грузоперевозку за минуту</h1>
-            <p style="font-size: 1.2rem;">Интерактивная карта, умный поиск адресов, точный километраж и цена без скрытых платежей.</p>
+            <h1 style="font-size: 2rem;">🚛 Тестовый режим калькулятора</h1>
+            <p style="font-size: 1.2rem;">Сейчас километраж принудительно установлен в 1000 км для проверки логики.</p>
             <button class="btn" id="gotoCalcHome" style="margin-top: 1.5rem;"><i class="fas fa-calculator"></i> Перейти к калькулятору</button>
         </div>
     </div>
     <div id="aboutPage" style="display:none;">
         <div class="card">
             <div class="step-title"><i class="fas fa-truck"></i> ООО "Дюна"</div>
-            <p>Работаем с 2015 года, автопарк от 1,5 до 20 тонн. Сборные грузы и выделенный транспорт. Страхование, отслеживание, поддержка 24/7.</p>
-            <div class="distance-box" style="margin-top: 2rem;">
-                <span><i class="fas fa-envelope"></i> info@duna-logist.ru</span>
-                <span><i class="fas fa-phone-alt"></i> 8 (800) 555-66-77</span>
-            </div>
+            <p>Работаем с 2015 года, автопарк от 1,5 до 20 тонн. Сборные грузы и выделенный транспорт.</p>
         </div>
     </div>
     <!-- Калькулятор -->
     <div id="calculatorPage" style="display:none;">
         <div class="card">
-            <div class="step-title"><i class="fas fa-map-marked-alt"></i> 1. Маршрут на карте</div>
-            <div class="map-container"><div id="map"></div></div>
-            <div class="map-tools">
-                <button id="selectFromBtn" class="map-btn active"><i class="fas fa-map-marker-alt" style="color:#e74c3c;"></i> Откуда (красный)</button>
-                <button id="selectToBtn" class="map-btn"><i class="fas fa-map-marker-alt" style="color:#3498db;"></i> Куда (синий)</button>
-            </div>
-            <div class="grid-2col">
-                <div class="address-group">
-                    <h3><i class="fas fa-circle-dot" style="color:#e74c3c;"></i> Откуда</h3>
-                    <div class="input-field"><label>Город</label><input type="text" id="fromCity" placeholder="Начните вводить город"></div>
-                    <div class="input-field"><label>Улица</label><input type="text" id="fromStreet" placeholder="Улица" autocomplete="off"><ul id="fromStreetSuggest" class="suggest-dropdown" style="display:none;"></ul></div>
-                    <div class="input-field"><label>Дом</label><input type="text" id="fromHouse" placeholder="дом"></div>
-                </div>
-                <div class="address-group">
-                    <h3><i class="fas fa-flag-checkered" style="color:#3498db;"></i> Куда</h3>
-                    <div class="input-field"><label>Город</label><input type="text" id="toCity" placeholder="Начните вводить город"></div>
-                    <div class="input-field"><label>Улица</label><input type="text" id="toStreet" placeholder="Улица" autocomplete="off"><ul id="toStreetSuggest" class="suggest-dropdown" style="display:none;"></ul></div>
-                    <div class="input-field"><label>Дом</label><input type="text" id="toHouse" placeholder="дом"></div>
-                </div>
-            </div>
-            <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+            <div class="step-title"><i class="fas fa-route"></i> 1. Расстояние (тестовое)</div>
+            <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; align-items: center;">
                 <div class="toggle-switch">
                     <input type="checkbox" id="roundTripToggle">
                     <span class="slider"></span>
                     <span class="toggle-label"><i class="fas fa-redo-alt"></i> Кругорейс (туда-обратно)</span>
                 </div>
-                <button class="btn" id="calcRouteBtn"><i class="fas fa-route"></i> Построить маршрут</button>
+                <button class="btn" id="calcRouteBtn"><i class="fas fa-route"></i> Установить маршрут (1000 км)</button>
             </div>
             <div class="distance-box" id="distanceDisplay">
                 <div><i class="fas fa-road"></i> Километраж: <strong id="distanceKm">— км</strong></div>
                 <div><i class="fas fa-ruble-sign"></i> Базовая цена (предварительная): <strong id="basePrice">— ₽</strong></div>
                 <span id="roundHint"></span>
             </div>
-            <div id="routeError" class="error-message" style="display: none;"></div>
-            <div class="info-note">💡 Кликните на карту, чтобы поставить точку. После выбора двух точек нажмите «Построить маршрут».</div>
+            <div class="info-note">💡 В тестовом режиме при нажатии кнопки устанавливается 1000 км. Далее выберите тип перевозки.</div>
         </div>
 
         <div id="typeBlock" style="display: none;">
@@ -369,17 +283,14 @@
 </div>
 
 <script>
-    let ymapsReady = false;
-    let myMap;
-    let fromPlacemark, toPlacemark;
-    let currentRoute = null;
-    let currentDistance = 0;      // расстояние в одну сторону (км)
+    // Тестовый режим: расстояние фиксировано 1000 км
+    let currentDistance = 0;      // в одну сторону
     let selectedShipType = null;
 
     let dedicatedData = { vehicle: null, bodyType: null, loadingOptions: [], extraOptions: [] };
     let ltlCargoList = [];
 
-    // Тарифы (из скриншотов)
+    // Тарифы
     function getRatePerKm(d) {
         if (d <= 10) return 150;
         if (d <= 40) return 108;
@@ -389,14 +300,12 @@
         return 54;
     }
 
-    // Базовая цена с учётом кругорейса (умножаем расстояние на 2, если включено)
     function calcBasePrice(distOneWay, roundTrip) {
         let effectiveDist = roundTrip ? distOneWay * 2 : distOneWay;
         let cost = effectiveDist * getRatePerKm(effectiveDist);
         return Math.max(cost, 3000);
     }
 
-    // Обновление отображения километража и предварительной цены
     function updateDisplay() {
         if (currentDistance > 0) {
             let round = document.getElementById('roundTripToggle').checked;
@@ -412,7 +321,6 @@
         }
     }
 
-    // Полные расчёты для типов перевозок (зависят от расстояния с учётом кругорейса)
     function calcDedicatedPrice(distOneWay, round, mult, extras) {
         let base = calcBasePrice(distOneWay, round);
         let veh = base * mult;
@@ -445,185 +353,12 @@
         { name: "20т / 115м³", multiplier: 2.3, icon: "fa-truck-container" }
     ];
 
-    // Геокодинг
-    async function getCoords(city, street, house) {
-        if (!city) return null;
-        let query = `${city}, ${street} ${house}`.trim().replace(/\s+/g, ' ');
-        if (query === city) query = city;
-        try {
-            let res = await fetch(`https://geocode-maps.yandex.ru/1.x/?apikey=11bec915-26aa-47af-8ee5-2cf9ff56e3e1&geocode=${encodeURIComponent(query)}&format=json&results=1`);
-            let data = await res.json();
-            let members = data.response.GeoObjectCollection.featureMember;
-            if (members.length) {
-                let pos = members[0].GeoObject.Point.pos.split(' ');
-                return { lon: parseFloat(pos[0]), lat: parseFloat(pos[1]) };
-            }
-        } catch(e) { console.warn(e); }
-        return null;
-    }
-
-    async function reverseGeocode(lat, lon, type) {
-        try {
-            let res = await fetch(`https://geocode-maps.yandex.ru/1.x/?apikey=11bec915-26aa-47af-8ee5-2cf9ff56e3e1&geocode=${lon},${lat}&format=json&results=1`);
-            let data = await res.json();
-            let member = data.response.GeoObjectCollection.featureMember[0];
-            if (!member) return;
-            let components = member.GeoObject.metaDataProperty.GeocoderMetaData.Address.Components;
-            let city = "", street = "", house = "";
-            for (let c of components) {
-                if (c.kind === "locality") city = c.name;
-                if (c.kind === "street") street = c.name;
-                if (c.kind === "house") house = c.name;
-            }
-            if (!city) city = member.GeoObject.name.split(',')[0] || "";
-            if (type === "from") {
-                document.getElementById('fromCity').value = city;
-                document.getElementById('fromStreet').value = street;
-                document.getElementById('fromHouse').value = house;
-            } else {
-                document.getElementById('toCity').value = city;
-                document.getElementById('toStreet').value = street;
-                document.getElementById('toHouse').value = house;
-            }
-        } catch(e) {}
-    }
-
-    // ПОСТРОЕНИЕ МАРШРУТА (исправлено: MultiRoute + таймаут)
-    async function buildRoute() {
-        const btn = document.getElementById('calcRouteBtn');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<span class="loader"></span> Построение...';
-        btn.disabled = true;
-        const errorDiv = document.getElementById('routeError');
-        errorDiv.style.display = 'none';
-        
-        let fromCity = document.getElementById('fromCity').value.trim();
-        let fromStreet = document.getElementById('fromStreet').value.trim();
-        let fromHouse = document.getElementById('fromHouse').value.trim();
-        let toCity = document.getElementById('toCity').value.trim();
-        let toStreet = document.getElementById('toStreet').value.trim();
-        let toHouse = document.getElementById('toHouse').value.trim();
-        
-        if (!fromCity || !toCity) {
-            alert("Укажите город отправления и город назначения");
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-            return;
-        }
-        
-        let fromCoords = await getCoords(fromCity, fromStreet, fromHouse);
-        let toCoords = await getCoords(toCity, toStreet, toHouse);
-        if (!fromCoords || !toCoords) {
-            errorDiv.innerHTML = "❌ Не удалось определить координаты адресов. Проверьте правильность ввода.";
-            errorDiv.style.display = 'block';
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-            return;
-        }
-        
-        // Обновляем маркеры
-        if (fromPlacemark) myMap.geoObjects.remove(fromPlacemark);
-        fromPlacemark = new ymaps.Placemark([fromCoords.lat, fromCoords.lon], { hintContent: "Отправление" }, { preset: "islands#redDotIcon" });
-        myMap.geoObjects.add(fromPlacemark);
-        if (toPlacemark) myMap.geoObjects.remove(toPlacemark);
-        toPlacemark = new ymaps.Placemark([toCoords.lat, toCoords.lon], { hintContent: "Назначение" }, { preset: "islands#blueDotIcon" });
-        myMap.geoObjects.add(toPlacemark);
-        
-        if (currentRoute) myMap.geoObjects.remove(currentRoute);
-        
-        // Используем MultiRoute с таймаутом
-        const multiRoute = new ymaps.multiRouter.MultiRoute({
-            referencePoints: [[fromCoords.lat, fromCoords.lon], [toCoords.lat, toCoords.lon]],
-            params: { routingMode: 'auto' }
-        }, { boundsAutoApply: true });
-        
-        let resolved = false;
-        const timeout = setTimeout(() => {
-            if (!resolved) {
-                errorDiv.innerHTML = "⚠️ Превышено время ожидания маршрута. Попробуйте другие адреса.";
-                errorDiv.style.display = 'block';
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-                resolved = true;
-            }
-        }, 10000);
-        
-        multiRoute.model.events.add('requestsuccess', () => {
-            if (resolved) return;
-            resolved = true;
-            clearTimeout(timeout);
-            let length = multiRoute.getLength();
-            if (length && length > 0) {
-                currentDistance = Math.round(length / 1000);
-                updateDisplay();
-                myMap.geoObjects.add(multiRoute);
-                currentRoute = multiRoute;
-                myMap.geoObjects.add(fromPlacemark);
-                myMap.geoObjects.add(toPlacemark);
-                document.getElementById('typeBlock').style.display = 'block';
-                errorDiv.style.display = 'none';
-            } else {
-                errorDiv.innerHTML = "Не удалось проложить маршрут (длина равна 0)";
-                errorDiv.style.display = 'block';
-            }
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-        });
-        
-        multiRoute.model.events.add('requesterror', (err) => {
-            if (resolved) return;
-            resolved = true;
-            clearTimeout(timeout);
-            console.error(err);
-            errorDiv.innerHTML = "❌ Ошибка построения маршрута. Проверьте адреса или повторите попытку.";
-            errorDiv.style.display = 'block';
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-        });
-        
-        myMap.geoObjects.add(multiRoute);
-    }
-
-    // Умный поиск улиц
-    async function fetchStreets(city, query) {
-        if (!city || query.length < 2) return [];
-        let url = `https://geocode-maps.yandex.ru/1.x/?apikey=11bec915-26aa-47af-8ee5-2cf9ff56e3e1&geocode=${encodeURIComponent(city + ' ' + query)}&kind=street&results=7&format=json`;
-        let res = await fetch(url);
-        let data = await res.json();
-        let members = data.response.GeoObjectCollection.featureMember;
-        let streets = [];
-        for (let m of members) {
-            let name = m.GeoObject.name;
-            let desc = m.GeoObject.description || '';
-            streets.push(name + (desc ? ', ' + desc : ''));
-        }
-        return [...new Set(streets)];
-    }
-    
-    function attachStreetSuggest(inputId, cityGetter, listId) {
-        let input = document.getElementById(inputId);
-        let list = document.getElementById(listId);
-        let timeout;
-        input.addEventListener('input', async () => {
-            clearTimeout(timeout);
-            let query = input.value.trim();
-            let city = cityGetter();
-            if (!city || query.length < 2) { list.style.display = 'none'; return; }
-            timeout = setTimeout(async () => {
-                let streets = await fetchStreets(city, query);
-                if (streets.length) {
-                    list.innerHTML = streets.map(s => `<li>${s}</li>`).join('');
-                    list.style.display = 'block';
-                    list.querySelectorAll('li').forEach(li => {
-                        li.addEventListener('click', () => {
-                            input.value = li.innerText;
-                            list.style.display = 'none';
-                        });
-                    });
-                } else list.style.display = 'none';
-            }, 300);
-        });
-        document.addEventListener('click', (e) => { if (!input.contains(e.target)) list.style.display = 'none'; });
+    // Тестовая установка маршрута (1000 км)
+    function setTestRoute() {
+        currentDistance = 1000;
+        updateDisplay();
+        document.getElementById('typeBlock').style.display = 'block';
+        document.getElementById('routeError')?.remove();
     }
 
     // Динамические формы
@@ -752,13 +487,11 @@
     function showFinalOrder(price, detailsText) {
         let finalDiv = document.getElementById('finalOrderBlock');
         let detailsDiv = document.getElementById('finalDetails');
-        let fromCity = document.getElementById('fromCity').value;
-        let toCity = document.getElementById('toCity').value;
         let round = document.getElementById('roundTripToggle').checked;
         let displayKm = round ? currentDistance * 2 : currentDistance;
         detailsDiv.innerHTML = `
             <div class="distance-box" style="margin-bottom: 20px;">
-                <div><strong>Маршрут:</strong> ${fromCity} → ${toCity} ${round ? '(кругорейс)' : ''}</div>
+                <div><strong>Маршрут:</strong> (тестовый) Москва → Санкт-Петербург ${round ? '(кругорейс)' : ''}</div>
                 <div><strong>Километраж:</strong> ${displayKm} км (туда ${currentDistance} км${round ? ` × 2` : ''})</div>
                 <div><strong>Итоговая стоимость:</strong> <span class="price-badge" style="font-size:1.2rem;">${price} ₽</span></div>
                 <div><strong>Детали:</strong> ${detailsText}</div>
@@ -774,33 +507,13 @@
             let phone = document.getElementById('clientPhone').value;
             let email = document.getElementById('clientEmail').value;
             let comment = document.getElementById('clientComment').value;
-            let body = `ЗАЯВКА ООО "ДЮНА"\nИмя: ${name}\nТелефон: ${phone}\nEmail: ${email}\nКомментарий: ${comment}\n\nМаршрут: ${fromCity} → ${toCity} (${round ? 'кругорейс' : 'туда'})\nКилометраж: ${displayKm} км\nИтоговая цена: ${price} ₽\n${detailsText}`;
+            let body = `ЗАЯВКА ООО "ДЮНА" (тест)\nИмя: ${name}\nТелефон: ${phone}\nEmail: ${email}\nКомментарий: ${comment}\n\nМаршрут: тестовый (1000 км туда)\nКилометраж: ${displayKm} км\nИтоговая цена: ${price} ₽\n${detailsText}`;
             window.location.href = `mailto:info@duna-logist.ru?subject=Заявка на перевозку от ${name}&body=${encodeURIComponent(body)}`;
             alert("Заявка подготовлена. Отправьте письмо на info@duna-logist.ru для подтверждения.");
         };
     }
 
-    // Инициализация карты и событий
-    function initMap() {
-        if (!ymapsReady) return;
-        myMap = new ymaps.Map("map", { center: [55.751574, 37.573856], zoom: 9, controls: ["zoomControl", "fullscreenControl"] });
-        myMap.events.add("click", async (e) => {
-            let coords = e.get("coords");
-            let lat = coords[0], lon = coords[1];
-            if (window.pickMode === "from") {
-                if (fromPlacemark) myMap.geoObjects.remove(fromPlacemark);
-                fromPlacemark = new ymaps.Placemark([lat, lon], {}, { preset: "islands#redDotIcon" });
-                myMap.geoObjects.add(fromPlacemark);
-                await reverseGeocode(lat, lon, "from");
-            } else {
-                if (toPlacemark) myMap.geoObjects.remove(toPlacemark);
-                toPlacemark = new ymaps.Placemark([lat, lon], {}, { preset: "islands#blueDotIcon" });
-                myMap.geoObjects.add(toPlacemark);
-                await reverseGeocode(lat, lon, "to");
-            }
-        });
-    }
-
+    // Навигация
     document.querySelectorAll('.nav-links a').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
@@ -808,19 +521,15 @@
             document.getElementById('homePage').style.display = page === 'home' ? 'block' : 'none';
             document.getElementById('aboutPage').style.display = page === 'about' ? 'block' : 'none';
             document.getElementById('calculatorPage').style.display = page === 'calculator' ? 'block' : 'none';
-            if (page === 'calculator' && ymapsReady && !myMap) initMap();
         });
     });
     document.getElementById('gotoCalcHome').onclick = () => {
         document.getElementById('homePage').style.display = 'none';
         document.getElementById('calculatorPage').style.display = 'block';
-        if (ymapsReady && !myMap) initMap();
     };
-    window.pickMode = "from";
-    document.getElementById('selectFromBtn').onclick = () => { window.pickMode = "from"; document.getElementById('selectFromBtn').classList.add('active'); document.getElementById('selectToBtn').classList.remove('active'); };
-    document.getElementById('selectToBtn').onclick = () => { window.pickMode = "to"; document.getElementById('selectToBtn').classList.add('active'); document.getElementById('selectFromBtn').classList.remove('active'); };
-    document.getElementById('calcRouteBtn').onclick = buildRoute;
+    document.getElementById('calcRouteBtn').onclick = setTestRoute;
     document.getElementById('continueTypeBtn').onclick = () => {
+        if (currentDistance === 0) { alert("Сначала установите маршрут (нажмите кнопку 'Установить маршрут (1000 км)')"); return; }
         let ltl = document.getElementById('typeLTL').checked;
         let ded = document.getElementById('typeDedicated').checked;
         if (!ltl && !ded) { alert("Выберите тип перевозки"); return; }
@@ -831,17 +540,6 @@
     document.getElementById('roundTripToggle').addEventListener('change', () => {
         if (currentDistance > 0) updateDisplay();
     });
-    
-    attachStreetSuggest('fromStreet', () => document.getElementById('fromCity').value, 'fromStreetSuggest');
-    attachStreetSuggest('toStreet', () => document.getElementById('toCity').value, 'toStreetSuggest');
-    
-    ymaps.ready(() => {
-        ymapsReady = true;
-        new ymaps.SuggestView('fromCity', { results: 8 });
-        new ymaps.SuggestView('toCity', { results: 8 });
-        if (document.getElementById('calculatorPage').style.display !== 'none') initMap();
-    });
 </script>
 </body>
 </html>
-```

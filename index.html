@@ -178,7 +178,7 @@
             color: #e2d4f5;
         }
 
-        /* Кнопки — единый стиль */
+        /* Кнопки */
         .btn {
             background: #c084fc;
             border: none;
@@ -244,7 +244,7 @@
             display: inline-block;
         }
 
-        /* Карточки выбора типа (кликабельные) */
+        /* Карточки выбора типа */
         .type-selector {
             display: flex;
             gap: 1.5rem;
@@ -294,7 +294,7 @@
             box-shadow: 0 8px 20px rgba(192, 132, 252, 0.3);
         }
 
-        /* Карточки автомобилей (только тонны и кубы, без коэффициента) */
+        /* Карточки автомобилей */
         .vehicle-grid {
             display: flex;
             flex-wrap: wrap;
@@ -334,12 +334,34 @@
             color: #f0eef7;
         }
 
-        /* Чекбокс-группы для опций */
-        .checkbox-group {
+        /* Горизонтальное расположение опций (3 колонки) */
+        .options-row {
             display: flex;
             flex-wrap: wrap;
-            gap: 24px;
-            margin-top: 12px;
+            gap: 2rem;
+            margin: 1.5rem 0;
+        }
+        .option-col {
+            flex: 1;
+            min-width: 180px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 24px;
+            padding: 1.2rem;
+        }
+        .option-col strong {
+            display: block;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            color: #c084fc;
+        }
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        /* Для чекбоксов в колонках */
+        .checkbox-group .toggle-switch {
+            justify-content: space-between;
         }
 
         /* Карточки грузов (сборный) */
@@ -436,7 +458,6 @@
             background: rgba(255, 80, 80, 0.4);
         }
 
-        /* Контейнер для двух кнопок в сборном грузе */
         .ltl-buttons {
             display: flex;
             gap: 20px;
@@ -469,6 +490,9 @@
                 grid-template-columns: 1fr 1fr;
             }
             .ltl-buttons {
+                flex-direction: column;
+            }
+            .options-row {
                 flex-direction: column;
             }
         }
@@ -620,7 +644,7 @@
         { name: "5т / 36м³", multiplier: 1.3, icon: "fa-truck-moving" },
         { name: "10т / 45м³", multiplier: 1.6, icon: "fa-truck-ramp-box" },
         { name: "20т / 92м³", multiplier: 2.0, icon: "fa-trailer" },
-        { name: "20т / 115м³", multiplier: 2.3, icon: "fa-truck-container" }
+        { name: "20т / 115м³", multiplier: 2.3, icon: "fa-truck" }   // изменено с fa-truck-container на fa-truck
     ];
 
     // Установка тестового маршрута (1000 км)
@@ -725,15 +749,32 @@
         container.innerHTML = `<div class="card">
             <div class="step-title"><i class="fas fa-truck"></i> Выберите автомобиль</div>
             <div class="vehicle-grid" id="vehicleGrid"></div>
-            <div id="bodyBlock" style="display:none;"><div class="option-group"><strong>Тип кузова</strong><div class="checkbox-group" id="bodyGroup"></div></div></div>
-            <div id="extrasBlock" style="display:none;"><div class="option-group"><strong>Погрузка (можно несколько)</strong><div class="checkbox-group" id="loadingGroup"></div></div>
-            <div class="option-group"><strong>Доп. оборудование</strong><div class="checkbox-group" id="extraGroup"></div></div>
-            <button class="btn btn-primary" id="calcDedicatedFinalBtn">Рассчитать итоговую стоимость</button></div>
+            
+            <div id="bodyBlock" style="display:none;">
+                <div class="options-row">
+                    <div class="option-col">
+                        <strong>Тип кузова</strong>
+                        <div class="checkbox-group" id="bodyGroup"></div>
+                    </div>
+                    <div class="option-col">
+                        <strong>Погрузка (можно несколько)</strong>
+                        <div class="checkbox-group" id="loadingGroup"></div>
+                    </div>
+                    <div class="option-col">
+                        <strong>Доп. оборудование</strong>
+                        <div class="checkbox-group" id="extraGroup"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="extrasBlock" style="display:none; text-align: center; margin-top: 1rem;">
+                <button class="btn btn-primary" id="calcDedicatedFinalBtn">Рассчитать итоговую стоимость</button>
+            </div>
         </div>`;
+        
         let grid = document.getElementById('vehicleGrid');
         vehicleRates.forEach(v => {
             let div = document.createElement('div'); div.className = 'vehicle-card';
-            // Показываем только название (тонны/кубы), без коэффициента
             div.innerHTML = `<i class="fas ${v.icon} vehicle-icon"></i><div><strong>${v.name}</strong></div>`;
             div.onclick = () => {
                 document.querySelectorAll('.vehicle-card').forEach(c => c.classList.remove('selected'));
@@ -743,6 +784,7 @@
             };
             grid.appendChild(div);
         });
+        
         function showBodyOptions() {
             document.getElementById('bodyBlock').style.display = 'block';
             let bg = document.getElementById('bodyGroup'); bg.innerHTML = '';
@@ -756,17 +798,24 @@
                 bg.appendChild(toggle);
             });
         }
+        
         function showExtras() {
             document.getElementById('extrasBlock').style.display = 'block';
             let loadDiv = document.getElementById('loadingGroup'); let extraDiv = document.getElementById('extraGroup');
             loadDiv.innerHTML = ''; extraDiv.innerHTML = '';
             ['Зад','Бок','Верх'].forEach(opt => {
-                let t = createOptToggle(opt, (ch) => { if(ch) dedicatedData.loadingOptions.push(opt); else dedicatedData.loadingOptions = dedicatedData.loadingOptions.filter(o=>o!==opt); });
+                let t = createOptToggle(opt, (ch) => { 
+                    if(ch) dedicatedData.loadingOptions.push(opt); 
+                    else dedicatedData.loadingOptions = dedicatedData.loadingOptions.filter(o=>o!==opt); 
+                });
                 loadDiv.appendChild(t);
             });
             ['Ремни','Гидроборт'].forEach(opt => {
                 let key = opt === 'Ремни' ? 'remni' : 'gidrobort';
-                let t = createOptToggle(opt, (ch) => { if(ch) dedicatedData.extraOptions.push(key); else dedicatedData.extraOptions = dedicatedData.extraOptions.filter(o=>o!==key); });
+                let t = createOptToggle(opt, (ch) => { 
+                    if(ch) dedicatedData.extraOptions.push(key); 
+                    else dedicatedData.extraOptions = dedicatedData.extraOptions.filter(o=>o!==key); 
+                });
                 extraDiv.appendChild(t);
             });
             document.getElementById('calcDedicatedFinalBtn').onclick = () => {
@@ -776,6 +825,7 @@
                 showFinalOrder(price, `${dedicatedData.vehicle.name}, кузов ${dedicatedData.bodyType}, доп: ${dedicatedData.extraOptions.join(', ') || 'нет'}`);
             };
         }
+        
         function createOptToggle(text, onChange) {
             let label = document.createElement('label'); label.className = 'toggle-switch';
             let cb = document.createElement('input'); cb.type = 'checkbox';

@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -88,7 +89,6 @@
         }
         input[type=number] { -moz-appearance: textfield; appearance: textfield; }
         
-        /* Кнопки */
         .btn-new-cargo, .btn-calc {
             display: inline-flex;
             align-items: center;
@@ -160,7 +160,6 @@
         }
         .vehicle-card.selected { border-color: #c084fc; background: rgba(192, 132, 252, 0.2); }
         .vehicle-icon { font-size: 2rem; color: #c084fc; display: block; margin-bottom: 6px; }
-        /* Стили для груза */
         .cargo-item {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 24px;
@@ -183,7 +182,6 @@
             color: white;
             font-size: 0.9rem;
         }
-        /* Переключатель единиц веса */
         .weight-unit-toggle {
             display: flex;
             gap: 8px;
@@ -205,7 +203,6 @@
             background: #c084fc;
             color: #1a0f2e;
         }
-        /* Слайдеры без галочек */
         .toggle-switch {
             display: inline-flex;
             align-items: center;
@@ -234,7 +231,6 @@
         }
         .toggle-switch input:checked + .slider { background: #c084fc; }
         .toggle-switch input:checked + .slider:before { transform: translateX(20px); }
-        /* Доп опции */
         .segmented-control {
             display: flex;
             gap: 8px;
@@ -255,7 +251,6 @@
         .option-col { background: rgba(255, 255, 255, 0.03); border-radius: 24px; padding: 1rem; }
         .checkbox-group { display: flex; flex-direction: column; gap: 12px; }
         .action-buttons { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin: 20px 0 10px; }
-        /* Блок финальной заявки */
         .info-box {
             background: rgba(0, 0, 0, 0.25);
             border-radius: 28px;
@@ -289,7 +284,7 @@
             text-decoration: none;
             transition: 0.2s;
         }
-        .social-btn.whatsapp { background: #25D366; color: #1a0f2e; }
+        .social-btn.vk { background: #4C75A3; color: white; }
         .social-btn.telegram { background: #0088cc; color: white; }
         .social-btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
         .page { display: none; }
@@ -303,6 +298,24 @@
             .btn-new-cargo, .btn-calc { width: 100%; }
             .vehicle-grid { grid-template-columns: 1fr 1fr; }
             .social-buttons { flex-direction: column; }
+        }
+        .toast-msg {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #c084fc;
+            color: #1a0f2e;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-weight: 600;
+            z-index: 1000;
+            animation: fadeOut 2s forwards;
+        }
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            70% { opacity: 1; }
+            100% { opacity: 0; visibility: hidden; }
         }
     </style>
 </head>
@@ -358,7 +371,7 @@
                     <div class="input-field"><label>Комментарий</label><textarea id="clientComment" rows="2" placeholder="Дополнительные пожелания..."></textarea></div>
                 </div>
                 <div class="social-buttons">
-                    <a href="#" id="whatsappBtn" class="social-btn whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                    <a href="#" id="vkBtn" class="social-btn vk"><i class="fab fa-vk"></i> ВКонтакте</a>
                     <a href="#" id="telegramBtn" class="social-btn telegram"><i class="fab fa-telegram-plane"></i> Telegram</a>
                 </div>
             </div>
@@ -371,7 +384,6 @@
     let dedicatedData = { vehicle: null, bodyType: null, loadingOptions: [], extraOptions: [], cargoInfo: { length: 120, width: 80, height: 80, weight: 500, weightUnit: 'кг' } };
     let ltlCargoList = [];
 
-    // Тарифы и расчеты
     function getRatePerKm(d) {
         if (d <= 10) return 150;
         if (d <= 40) return 108;
@@ -421,7 +433,6 @@
         else renderDedicated(container);
     }
 
-    // Вспомогательная функция для красивого переключателя кг/т
     function createWeightUnitToggle(currentUnit, onChange) {
         const div = document.createElement('div');
         div.className = 'weight-unit-toggle';
@@ -585,6 +596,14 @@
         }
     }
 
+    function showToast(message) {
+        let toast = document.createElement('div');
+        toast.className = 'toast-msg';
+        toast.innerText = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2000);
+    }
+
     function showFinalOrder(price, cargoType) {
         let cargoText = generateCargoText(cargoType);
         let finalDiv = document.getElementById('finalOrderBlock');
@@ -594,25 +613,40 @@
         finalDiv.style.display = 'block';
         finalDiv.scrollIntoView({ behavior: 'smooth' });
         
-        // Обновление ссылок для соцсетей
-        function updateSocialLinks() {
+        function getFullText() {
             let name = document.getElementById('clientName').value;
             let phone = document.getElementById('clientPhone').value;
             let email = document.getElementById('clientEmail').value;
             let comment = document.getElementById('clientComment').value;
-            let fullText = `ЗАЯВКА ООО "ДЮНА"\n\n${cargoText}\n\nКОНТАКТНЫЕ ДАННЫЕ:\nИмя: ${name}\nТелефон: ${phone}\nEmail: ${email}\nКомментарий: ${comment}\nСтоимость: ${price} ₽`;
-            let encoded = encodeURIComponent(fullText);
-            // WhatsApp: ссылка на номер (можно заменить на реальный номер +7XXXXXXXXXX)
-            let whatsappNumber = "79991234567"; // замените на реальный номер в формате без +
-            document.getElementById('whatsappBtn').href = `https://wa.me/${whatsappNumber}?text=${encoded}`;
-            // Telegram: ссылка на @nukm0
-            document.getElementById('telegramBtn').href = `https://t.me/nukm0?text=${encoded}`;
+            return `ЗАЯВКА ООО "ДЮНА"\n\n${cargoText}\n\nКОНТАКТНЫЕ ДАННЫЕ:\nИмя: ${name}\nТелефон: ${phone}\nEmail: ${email}\nКомментарий: ${comment}\nСтоимость: ${price} ₽`;
         }
-        document.getElementById('clientName').addEventListener('input', updateSocialLinks);
-        document.getElementById('clientPhone').addEventListener('input', updateSocialLinks);
-        document.getElementById('clientEmail').addEventListener('input', updateSocialLinks);
-        document.getElementById('clientComment').addEventListener('input', updateSocialLinks);
-        updateSocialLinks();
+        
+        // Кнопка ВК: копирование текста + переход в диалог
+        const vkBtn = document.getElementById('vkBtn');
+        vkBtn.onclick = (e) => {
+            e.preventDefault();
+            let text = getFullText();
+            navigator.clipboard.writeText(text).then(() => {
+                showToast("✅ Текст заявки скопирован, вставьте в сообщение");
+                window.open('https://vk.me/nukm0', '_blank');
+            }).catch(() => {
+                alert("Не удалось скопировать текст, скопируйте вручную");
+                window.open('https://vk.me/nukm0', '_blank');
+            });
+        };
+        
+        // Кнопка Telegram: предзаполненный текст
+        const tgBtn = document.getElementById('telegramBtn');
+        const updateTgLink = () => {
+            let fullText = getFullText();
+            let encoded = encodeURIComponent(fullText);
+            tgBtn.href = `https://t.me/nukm0?text=${encoded}`;
+        };
+        document.getElementById('clientName').addEventListener('input', updateTgLink);
+        document.getElementById('clientPhone').addEventListener('input', updateTgLink);
+        document.getElementById('clientEmail').addEventListener('input', updateTgLink);
+        document.getElementById('clientComment').addEventListener('input', updateTgLink);
+        updateTgLink();
     }
 
     // Навигация

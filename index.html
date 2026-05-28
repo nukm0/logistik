@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -89,7 +88,7 @@
         }
         input[type=number] { -moz-appearance: textfield; appearance: textfield; }
         
-        .btn-new-cargo, .btn-calc {
+        .btn-new-cargo, .btn-calc, .btn-next {
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -107,11 +106,16 @@
             color: #c084fc;
         }
         .btn-new-cargo:hover { background: rgba(192, 132, 252, 0.2); transform: translateY(-2px); }
-        .btn-calc {
+        .btn-calc, .btn-next {
             background: linear-gradient(95deg, #c084fc, #a855f7);
             border: none;
             color: #1a0f2e;
             box-shadow: 0 4px 12px rgba(160, 100, 220, 0.4);
+        }
+        .btn-next:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
         }
         .distance-box {
             background: rgba(0, 0, 0, 0.3);
@@ -238,6 +242,7 @@
             border-radius: 40px;
             padding: 4px;
             width: fit-content;
+            flex-wrap: wrap;
         }
         .segmented-btn {
             padding: 6px 18px;
@@ -289,13 +294,29 @@
         .social-btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
         .page { display: none; }
         .page.active-page { display: block; }
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .step-badge {
+            background: rgba(255,255,255,0.1);
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+        }
+        .step-badge.active {
+            background: #c084fc;
+            color: #1a0f2e;
+        }
         @media (min-width: 640px) {
             .type-selector { flex-direction: row; }
             .cargo-fields { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
             .options-row { flex-direction: row; }
         }
         @media (max-width: 480px) {
-            .btn-new-cargo, .btn-calc { width: 100%; }
+            .btn-new-cargo, .btn-calc, .btn-next { width: 100%; }
             .vehicle-grid { grid-template-columns: 1fr 1fr; }
             .social-buttons { flex-direction: column; }
         }
@@ -503,80 +524,155 @@
         };
     }
 
+    // Пошаговая логика для выделенного транспорта
     function renderDedicated(container) {
-        container.innerHTML = `<div class="card"><div class="step-title"><i class="fas fa-truck"></i> Выберите автомобиль</div><div class="vehicle-grid" id="vehicleGrid"></div>
-        <div class="card" style="margin-top: 1rem;"><div class="step-title"><i class="fas fa-cube"></i> Данные груза</div>
-        <div class="cargo-fields" style="display: grid; grid-template-columns: 1fr 1fr; gap:12px;">
-            <div class="field"><label>Длина (см)</label><input type="number" id="cargoLen" value="120"></div>
-            <div class="field"><label>Ширина (см)</label><input type="number" id="cargoWid" value="80"></div>
-            <div class="field"><label>Высота (см)</label><input type="number" id="cargoHei" value="80"></div>
-            <div class="field"><label>Вес</label><input type="number" id="cargoWeight" value="500"></div>
-            <div class="field"><label>Ед. веса</label><div id="dedicatedWeightUnit"></div></div>
-        </div></div>
-        <div id="bodyBlock" style="display:none;"><div class="options-row"><div class="option-col"><strong>Тип кузова</strong><div id="bodyGroup" class="segmented-control"></div></div>
-        <div class="option-col"><strong>Погрузка</strong><div id="loadingGroup" class="checkbox-group"></div></div>
-        <div class="option-col"><strong>Доп. оборудование</strong><div id="extraGroup" class="checkbox-group"></div></div></div></div>
-        <div id="extrasBlock" style="display:none; text-align:center; margin-top:1rem;"><button class="btn-calc" id="calcDedicatedFinalBtn">Рассчитать итоговую стоимость</button></div>`;
+        // Шаг 1: выбор автомобиля
+        let step = 1;
+        let vehicleSelected = false;
+        let bodySelected = false;
         
-        const dedUnitContainer = document.getElementById('dedicatedWeightUnit');
-        const unitToggle = createWeightUnitToggle(dedicatedData.cargoInfo.weightUnit, (newUnit) => { dedicatedData.cargoInfo.weightUnit = newUnit; });
-        dedUnitContainer.appendChild(unitToggle);
-        const lenInp = document.getElementById('cargoLen'); const widInp = document.getElementById('cargoWid'); const heiInp = document.getElementById('cargoHei'); const wgtInp = document.getElementById('cargoWeight');
-        lenInp.onchange = () => dedicatedData.cargoInfo.length = +lenInp.value;
-        widInp.onchange = () => dedicatedData.cargoInfo.width = +widInp.value;
-        heiInp.onchange = () => dedicatedData.cargoInfo.height = +heiInp.value;
-        wgtInp.onchange = () => dedicatedData.cargoInfo.weight = +wgtInp.value;
-        dedicatedData.cargoInfo = { length: 120, width: 80, height: 80, weight: 500, weightUnit: 'кг' };
+        const mainDiv = document.createElement('div');
+        mainDiv.className = 'card';
+        mainDiv.innerHTML = `<div class="step-indicator" id="dedicatedSteps">
+            <span class="step-badge" data-step="1">1. Автомобиль</span>
+            <span class="step-badge" data-step="2">2. Кузов</span>
+            <span class="step-badge" data-step="3">3. Опции</span>
+        </div>
+        <div id="dedicatedStepContent"></div>
+        <div class="action-buttons" id="dedicatedNavButtons" style="justify-content: space-between;">
+            <button id="dedicatedBackBtn" class="btn-next" style="background:#3a2a4a; color:white;" disabled>← Назад</button>
+            <button id="dedicatedNextBtn" class="btn-next" disabled>Далее →</button>
+        </div>`;
+        container.appendChild(mainDiv);
         
-        let grid = document.getElementById('vehicleGrid');
-        vehicleRates.forEach(v => {
-            let div = document.createElement('div'); div.className = 'vehicle-card';
-            div.innerHTML = `<i class="fas ${v.icon} vehicle-icon"></i><div><strong>${v.name}</strong></div>`;
-            div.onclick = () => { document.querySelectorAll('.vehicle-card').forEach(c => c.classList.remove('selected')); div.classList.add('selected'); dedicatedData.vehicle = v; showBodyOptions(); };
-            grid.appendChild(div);
-        });
-        function showBodyOptions() {
-            document.getElementById('bodyBlock').style.display = 'block';
-            let bg = document.getElementById('bodyGroup'); bg.innerHTML = '';
-            ['Тентовый','Изотермо','Бортовая'].forEach(bt => {
-                let btn = document.createElement('div'); btn.innerText = bt; btn.className = 'segmented-btn';
-                if (dedicatedData.bodyType === bt) btn.classList.add('active');
-                btn.onclick = () => {
-                    document.querySelectorAll('#bodyGroup .segmented-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    dedicatedData.bodyType = bt;
-                    showExtras();
-                };
-                bg.appendChild(btn);
+        const stepContent = document.getElementById('dedicatedStepContent');
+        const nextBtn = document.getElementById('dedicatedNextBtn');
+        const backBtn = document.getElementById('dedicatedBackBtn');
+        
+        function updateSteps() {
+            document.querySelectorAll('#dedicatedSteps .step-badge').forEach((badge, idx) => {
+                if (idx+1 === step) badge.classList.add('active');
+                else badge.classList.remove('active');
             });
+            backBtn.disabled = (step === 1);
+            if (step === 1) nextBtn.disabled = !vehicleSelected;
+            else if (step === 2) nextBtn.disabled = !bodySelected;
+            else nextBtn.disabled = false;
+            if (step === 3) nextBtn.innerText = 'Рассчитать';
+            else nextBtn.innerText = 'Далее →';
         }
-        function showExtras() {
-            document.getElementById('extrasBlock').style.display = 'block';
-            let loadDiv = document.getElementById('loadingGroup'); let extraDiv = document.getElementById('extraGroup');
-            loadDiv.innerHTML = ''; extraDiv.innerHTML = '';
-            ['Зад','Бок','Верх'].forEach(opt => {
-                let lbl = document.createElement('label'); lbl.className = 'toggle-switch';
-                let cb = document.createElement('input'); cb.type = 'checkbox';
-                let sp = document.createElement('span'); sp.className = 'slider';
-                lbl.appendChild(cb); lbl.appendChild(sp); lbl.appendChild(document.createTextNode(opt));
-                cb.onchange = e => { if(e.target.checked) dedicatedData.loadingOptions.push(opt); else dedicatedData.loadingOptions = dedicatedData.loadingOptions.filter(o=>o!==opt); };
-                loadDiv.appendChild(lbl);
-            });
-            ['Ремни','Гидроборт'].forEach(opt => {
-                let key = opt === 'Ремни' ? 'remni' : 'gidrobort';
-                let lbl = document.createElement('label'); lbl.className = 'toggle-switch';
-                let cb = document.createElement('input'); cb.type = 'checkbox';
-                let sp = document.createElement('span'); sp.className = 'slider';
-                lbl.appendChild(cb); lbl.appendChild(sp); lbl.appendChild(document.createTextNode(opt));
-                cb.onchange = e => { if(e.target.checked) dedicatedData.extraOptions.push(key); else dedicatedData.extraOptions = dedicatedData.extraOptions.filter(o=>o!==key); };
-                extraDiv.appendChild(lbl);
-            });
-            document.getElementById('calcDedicatedFinalBtn').onclick = () => {
-                if (!dedicatedData.vehicle || !dedicatedData.bodyType) { alert("Выберите машину и кузов"); return; }
+        
+        function renderStep() {
+            if (step === 1) {
+                stepContent.innerHTML = `<div class="step-title"><i class="fas fa-truck"></i> Выберите автомобиль</div>
+                <div class="vehicle-grid" id="vehicleGridDed"></div>
+                <div class="card" style="margin-top: 1rem;"><div class="step-title"><i class="fas fa-cube"></i> Данные груза</div>
+                <div class="cargo-fields" style="display: grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                    <div class="field"><label>Длина (см)</label><input type="number" id="cargoLen" value="${dedicatedData.cargoInfo.length}"></div>
+                    <div class="field"><label>Ширина (см)</label><input type="number" id="cargoWid" value="${dedicatedData.cargoInfo.width}"></div>
+                    <div class="field"><label>Высота (см)</label><input type="number" id="cargoHei" value="${dedicatedData.cargoInfo.height}"></div>
+                    <div class="field"><label>Вес</label><input type="number" id="cargoWeight" value="${dedicatedData.cargoInfo.weight}"></div>
+                    <div class="field"><label>Ед. веса</label><div id="dedicatedWeightUnit"></div></div>
+                </div></div>`;
+                // привязка данных груза
+                const lenInp = document.getElementById('cargoLen'); const widInp = document.getElementById('cargoWid');
+                const heiInp = document.getElementById('cargoHei'); const wgtInp = document.getElementById('cargoWeight');
+                const unitContainer = document.getElementById('dedicatedWeightUnit');
+                const unitToggle = createWeightUnitToggle(dedicatedData.cargoInfo.weightUnit, (newUnit) => { dedicatedData.cargoInfo.weightUnit = newUnit; });
+                unitContainer.appendChild(unitToggle);
+                lenInp.onchange = () => dedicatedData.cargoInfo.length = +lenInp.value;
+                widInp.onchange = () => dedicatedData.cargoInfo.width = +widInp.value;
+                heiInp.onchange = () => dedicatedData.cargoInfo.height = +heiInp.value;
+                wgtInp.onchange = () => dedicatedData.cargoInfo.weight = +wgtInp.value;
+                
+                const grid = document.getElementById('vehicleGridDed');
+                grid.innerHTML = '';
+                vehicleRates.forEach(v => {
+                    let div = document.createElement('div'); div.className = 'vehicle-card';
+                    if (dedicatedData.vehicle && dedicatedData.vehicle.name === v.name) div.classList.add('selected');
+                    div.innerHTML = `<i class="fas ${v.icon} vehicle-icon"></i><div><strong>${v.name}</strong></div>`;
+                    div.onclick = () => {
+                        document.querySelectorAll('#vehicleGridDed .vehicle-card').forEach(c => c.classList.remove('selected'));
+                        div.classList.add('selected');
+                        dedicatedData.vehicle = v;
+                        vehicleSelected = true;
+                        updateSteps();
+                    };
+                    grid.appendChild(div);
+                });
+                vehicleSelected = !!dedicatedData.vehicle;
+                updateSteps();
+            } 
+            else if (step === 2) {
+                stepContent.innerHTML = `<div class="step-title"><i class="fas fa-box"></i> Выберите тип кузова</div>
+                <div class="segmented-control" id="bodyGroupDed"></div>`;
+                const bg = document.getElementById('bodyGroupDed');
+                bg.innerHTML = '';
+                ['Тентовый','Изотермо','Бортовая'].forEach(bt => {
+                    let btn = document.createElement('div'); btn.innerText = bt; btn.className = 'segmented-btn';
+                    if (dedicatedData.bodyType === bt) btn.classList.add('active');
+                    btn.onclick = () => {
+                        document.querySelectorAll('#bodyGroupDed .segmented-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        dedicatedData.bodyType = bt;
+                        bodySelected = true;
+                        updateSteps();
+                    };
+                    bg.appendChild(btn);
+                });
+                bodySelected = !!dedicatedData.bodyType;
+                updateSteps();
+            } 
+            else if (step === 3) {
+                stepContent.innerHTML = `<div class="step-title"><i class="fas fa-cogs"></i> Дополнительные опции</div>
+                <div class="options-row">
+                    <div class="option-col"><strong>Погрузка (можно несколько)</strong><div id="loadingGroupDed" class="checkbox-group"></div></div>
+                    <div class="option-col"><strong>Доп. оборудование</strong><div id="extraGroupDed" class="checkbox-group"></div></div>
+                </div>`;
+                const loadDiv = document.getElementById('loadingGroupDed');
+                const extraDiv = document.getElementById('extraGroupDed');
+                ['Зад','Бок','Верх'].forEach(opt => {
+                    let lbl = document.createElement('label'); lbl.className = 'toggle-switch';
+                    let cb = document.createElement('input'); cb.type = 'checkbox';
+                    if (dedicatedData.loadingOptions.includes(opt)) cb.checked = true;
+                    let sp = document.createElement('span'); sp.className = 'slider';
+                    lbl.appendChild(cb); lbl.appendChild(sp); lbl.appendChild(document.createTextNode(opt));
+                    cb.onchange = e => { if(e.target.checked) dedicatedData.loadingOptions.push(opt); else dedicatedData.loadingOptions = dedicatedData.loadingOptions.filter(o=>o!==opt); };
+                    loadDiv.appendChild(lbl);
+                });
+                ['Ремни','Гидроборт'].forEach(opt => {
+                    let key = opt === 'Ремни' ? 'remni' : 'gidrobort';
+                    let lbl = document.createElement('label'); lbl.className = 'toggle-switch';
+                    let cb = document.createElement('input'); cb.type = 'checkbox';
+                    if (dedicatedData.extraOptions.includes(key)) cb.checked = true;
+                    let sp = document.createElement('span'); sp.className = 'slider';
+                    lbl.appendChild(cb); lbl.appendChild(sp); lbl.appendChild(document.createTextNode(opt));
+                    cb.onchange = e => { if(e.target.checked) dedicatedData.extraOptions.push(key); else dedicatedData.extraOptions = dedicatedData.extraOptions.filter(o=>o!==key); };
+                    extraDiv.appendChild(lbl);
+                });
+                updateSteps();
+            }
+        }
+        
+        nextBtn.onclick = () => {
+            if (step === 1 && !vehicleSelected) return;
+            if (step === 2 && !bodySelected) return;
+            if (step === 3) {
+                if (!dedicatedData.vehicle || !dedicatedData.bodyType) return;
                 let price = calcDedicatedPrice(currentDistance, dedicatedData.vehicle.multiplier, dedicatedData.extraOptions);
                 showFinalOrder(price, 'dedicated');
-            };
-        }
+            } else {
+                step++;
+                renderStep();
+            }
+        };
+        backBtn.onclick = () => {
+            if (step > 1) {
+                step--;
+                renderStep();
+            }
+        };
+        renderStep();
     }
 
     function generateCargoText(type) {
@@ -592,7 +688,6 @@
             return text;
         } else {
             let w = dedicatedData.cargoInfo.weight * (dedicatedData.cargoInfo.weightUnit === 'т' ? 1000 : 1);
-            // Преобразуем ключи extraOptions в читаемые русские названия
             let extraLabels = dedicatedData.extraOptions.map(opt => opt === 'remni' ? 'Ремни' : 'Гидроборт');
             let extraStr = extraLabels.length ? extraLabels.join(', ') : 'нет';
             return `📦 ИНФОРМАЦИЯ О ГРУЗЕ (ВЫДЕЛЕННЫЙ ТРАНСПОРТ):\n\nГабариты: ${dedicatedData.cargoInfo.length}x${dedicatedData.cargoInfo.width}x${dedicatedData.cargoInfo.height} см\nВес: ${w} кг\nТранспорт: ${dedicatedData.vehicle?.name}\nКузов: ${dedicatedData.bodyType}\nДоп. опции: ${extraStr}`;
@@ -624,7 +719,6 @@
             return `ЗАЯВКА ООО "ДЮНА"\n\n${cargoText}\n\nКОНТАКТНЫЕ ДАННЫЕ:\nИмя: ${name}\nТелефон: ${phone}\nEmail: ${email}\nКомментарий: ${comment}\nСтоимость: ${price} ₽`;
         }
         
-        // Кнопка ВК: копирование текста + открытие диалога
         const vkBtn = document.getElementById('vkBtn');
         vkBtn.onclick = (e) => {
             e.preventDefault();
@@ -638,7 +732,6 @@
             });
         };
         
-        // Кнопка Telegram: предзаполненный текст через параметр
         const tgBtn = document.getElementById('telegramBtn');
         const updateTgLink = () => {
             let fullText = getFullText();

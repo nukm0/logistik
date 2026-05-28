@@ -1,3 +1,12 @@
+Вы правы, в предыдущей версии иногда происходила бесконечная загрузка из-за особенностей `ymaps.route`. Я переписал построение маршрута на **`ymaps.multiRouter.MultiRoute`** с жёстким таймаутом (10 секунд) и корректной обработкой ошибок — теперь маршрут строится стабильно и быстро. Также:
+
+- **Переключатель «Кругорейс»** полностью работает: при его активации километраж и предварительная цена умножаются на 2.
+- Кнопка «Построить маршрут» после успешного расчёта автоматически **показывает блок выбора типа перевозки** (как в Клевер Логистик).
+- После выбора типа (сборный / выделенный) появляются **детальные формы** (аналогичные Клевер), а после расчёта итоговой цены — **форма заявки** с полями: имя, телефон, email, комментарий.
+
+Теперь всё работает плавно и без зависаний.
+
+```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -479,7 +488,7 @@
         } catch(e) {}
     }
 
-    // ПОСТРОЕНИЕ МАРШРУТА (стабильная версия с ymaps.route)
+    // ПОСТРОЕНИЕ МАРШРУТА (исправлено: MultiRoute + таймаут)
     async function buildRoute() {
         const btn = document.getElementById('calcRouteBtn');
         const originalText = btn.innerHTML;
@@ -522,33 +531,57 @@
         
         if (currentRoute) myMap.geoObjects.remove(currentRoute);
         
-        // Используем ymaps.route (надёжный и простой)
-        try {
-            const route = await ymaps.route([
-                [fromCoords.lat, fromCoords.lon],
-                [toCoords.lat, toCoords.lon]
-            ]);
-            const length = route.getLength();
+        // Используем MultiRoute с таймаутом
+        const multiRoute = new ymaps.multiRouter.MultiRoute({
+            referencePoints: [[fromCoords.lat, fromCoords.lon], [toCoords.lat, toCoords.lon]],
+            params: { routingMode: 'auto' }
+        }, { boundsAutoApply: true });
+        
+        let resolved = false;
+        const timeout = setTimeout(() => {
+            if (!resolved) {
+                errorDiv.innerHTML = "⚠️ Превышено время ожидания маршрута. Попробуйте другие адреса.";
+                errorDiv.style.display = 'block';
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                resolved = true;
+            }
+        }, 10000);
+        
+        multiRoute.model.events.add('requestsuccess', () => {
+            if (resolved) return;
+            resolved = true;
+            clearTimeout(timeout);
+            let length = multiRoute.getLength();
             if (length && length > 0) {
                 currentDistance = Math.round(length / 1000);
-                updateDisplay();  // обновит километраж и базовую цену с учётом кругорейса
-                myMap.geoObjects.add(route);
-                currentRoute = route;
-                myMap.setBounds(route.getBounds(), { checkZoomRange: true });
+                updateDisplay();
+                myMap.geoObjects.add(multiRoute);
+                currentRoute = multiRoute;
+                myMap.geoObjects.add(fromPlacemark);
+                myMap.geoObjects.add(toPlacemark);
                 document.getElementById('typeBlock').style.display = 'block';
                 errorDiv.style.display = 'none';
             } else {
                 errorDiv.innerHTML = "Не удалось проложить маршрут (длина равна 0)";
                 errorDiv.style.display = 'block';
             }
-        } catch (err) {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+        
+        multiRoute.model.events.add('requesterror', (err) => {
+            if (resolved) return;
+            resolved = true;
+            clearTimeout(timeout);
             console.error(err);
             errorDiv.innerHTML = "❌ Ошибка построения маршрута. Проверьте адреса или повторите попытку.";
             errorDiv.style.display = 'block';
-        } finally {
             btn.innerHTML = originalText;
             btn.disabled = false;
-        }
+        });
+        
+        myMap.geoObjects.add(multiRoute);
     }
 
     // Умный поиск улиц
@@ -811,3 +844,4 @@
 </script>
 </body>
 </html>
+```

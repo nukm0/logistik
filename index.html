@@ -1,3 +1,8 @@
+Вы правы — кнопка «Кругорейс» больше не нужна. Я полностью убрал переключатель, оставив только фиксированное расстояние 1000 км. Также я переименовал кнопку «+ Добавить груз» в **«+ Новый груз»** и придал ей красивый стиль (тёмная с фиолетовой обводкой). Кнопка «Рассчитать итоговую стоимость» осталась такой же яркой. Оформление карточек грузов сохранено в прежнем красивом виде.
+
+Вот итоговый код:
+
+```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -109,7 +114,7 @@
             border: 1px solid #c084fc;
             color: #c084fc;
         }
-        .btn-outline:hover { background: rgba(192, 132, 252, 0.1); }
+        .btn-outline:hover { background: rgba(192, 132, 252, 0.1); transform: translateY(-2px); }
         .distance-box {
             background: rgba(0, 0, 0, 0.3);
             border-radius: 28px;
@@ -153,7 +158,6 @@
         .type-card p { font-size: 0.85rem; color: #b9a6d9; }
         .type-card:hover { transform: translateY(-3px); background: rgba(255, 255, 255, 0.1); border-color: rgba(192, 132, 252, 0.5); }
         .type-card.selected { border-color: #c084fc; background: rgba(192, 132, 252, 0.15); box-shadow: 0 8px 20px rgba(192, 132, 252, 0.3); }
-        /* Карточки автомобилей */
         .vehicle-grid { display: flex; flex-wrap: wrap; gap: 20px; margin: 20px 0; }
         .vehicle-card {
             flex: 1 1 160px;
@@ -168,7 +172,6 @@
         .vehicle-card:hover { background: rgba(255, 255, 255, 0.1); transform: translateY(-2px); }
         .vehicle-card.selected { border-color: #c084fc; background: rgba(192, 132, 252, 0.2); }
         .vehicle-icon { font-size: 2.8rem; color: #c084fc; }
-        /* Карточки грузов (красивые) */
         .cargo-item {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 28px;
@@ -270,7 +273,11 @@
         .page { display: none; }
         .page.active-page { display: block; }
         .info-note { font-size: 0.75rem; color: #b9a6d9; margin-top: 8px; text-align: center; }
-        @media (max-width: 780px) { .type-selector { flex-direction: column; } .options-row { flex-direction: column; } .cargo-fields { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 780px) { 
+            .type-selector { flex-direction: column; } 
+            .options-row { flex-direction: column; } 
+            .cargo-fields { grid-template-columns: 1fr 1fr; }
+        }
     </style>
 </head>
 <body>
@@ -287,7 +294,7 @@
     <div id="homePage" class="page active-page">
         <div class="card" style="background: linear-gradient(110deg, rgba(43,27,61,0.8), rgba(26,15,46,0.9));">
             <h1 style="font-size: 2rem;">🚛 Рассчитайте грузоперевозку за минуту</h1>
-            <p style="font-size: 1.2rem;">Фиксированное расстояние: 1000 км (кругорейс ×2). Выберите тип перевозки и заполните детали.</p>
+            <p style="font-size: 1.2rem;">Фиксированное расстояние: 1000 км. Выберите тип перевозки и заполните детали.</p>
             <button class="btn" id="gotoCalcHome" style="margin-top: 1.5rem;"><i class="fas fa-calculator"></i> Перейти к калькулятору</button>
         </div>
     </div>
@@ -304,12 +311,7 @@
     <div id="calculatorPage" class="page">
         <div class="card">
             <div class="step-title"><i class="fas fa-route"></i> 1. Расстояние (фиксированное)</div>
-            <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; align-items: center;">
-                <div class="toggle-switch">
-                    <input type="checkbox" id="roundTripToggle">
-                    <span class="slider"></span>
-                    <span class="toggle-label"><i class="fas fa-redo-alt"></i> Кругорейс (туда-обратно, ×2)</span>
-                </div>
+            <div style="text-align: center;">
                 <button class="btn" id="calcRouteBtn"><i class="fas fa-route"></i> Установить маршрут (1000 км)</button>
             </div>
             <div class="distance-box" id="distanceDisplay">
@@ -353,8 +355,7 @@
 </div>
 
 <script>
-    // Фиксированное базовое расстояние 1000 км, кругорейс удваивает
-    let baseDistance = 0;
+    // Фиксированное расстояние 1000 км (без кругорейса)
     let currentDistance = 0;
     let selectedShipType = null;
     let dedicatedData = { vehicle: null, bodyType: null, loadingOptions: [], extraOptions: [] };
@@ -403,21 +404,10 @@
         { name: "20т / 115м³", multiplier: 2.3, icon: "fa-truck" }
     ];
 
-    // Обновление отображаемого километража (с учётом кругорейса)
-    function updateDistanceDisplay() {
-        if (baseDistance > 0) {
-            let round = document.getElementById('roundTripToggle').checked;
-            currentDistance = round ? baseDistance * 2 : baseDistance;
-            document.getElementById('distanceKm').innerText = currentDistance + " км";
-        } else {
-            document.getElementById('distanceKm').innerText = "— км";
-        }
-    }
-
     // Установка фиксированного маршрута
     function setFixedRoute() {
-        baseDistance = 1000;
-        updateDistanceDisplay();
+        currentDistance = 1000;
+        document.getElementById('distanceKm').innerText = currentDistance + " км";
         document.getElementById('typeSelectorBlock').style.display = 'block';
         document.getElementById('typeSelectorBlock').scrollIntoView({ behavior: 'smooth' });
     }
@@ -437,13 +427,13 @@
         else renderDedicated(container);
     }
     
-    // КРАСИВОЕ ОФОРМЛЕНИЕ СБОРНОГО ГРУЗА (восстановлено)
+    // КРАСИВАЯ ФОРМА СБОРНОГО ГРУЗА С КНОПКОЙ "+ НОВЫЙ ГРУЗ"
     function renderLTL(container) {
         container.innerHTML = `<div class="card">
             <div class="step-title"><i class="fas fa-pallet"></i> Параметры грузов</div>
             <div id="ltlList"></div>
             <div style="display: flex; gap: 20px; justify-content: center; margin-top: 25px;">
-                <button class="btn-outline" id="addLtlBtn"><i class="fas fa-plus"></i> Добавить груз</button>
+                <button class="btn-outline" id="addLtlBtn"><i class="fas fa-plus"></i> Новый груз</button>
                 <button class="btn" id="calcLtlFinalBtn">Рассчитать итоговую стоимость</button>
             </div>
             <div id="ltlErrorMsg" style="background:rgba(255,100,100,0.2); border-radius:20px; padding:10px; margin-top:15px; color:#ffaaaa; display:none;"></div>
@@ -579,11 +569,9 @@
     function showFinalOrder(price, detailsText) {
         let finalDiv = document.getElementById('finalOrderBlock');
         let detailsDiv = document.getElementById('finalDetails');
-        let round = document.getElementById('roundTripToggle').checked;
-        let displayKm = currentDistance;
         detailsDiv.innerHTML = `<div class="distance-box" style="margin-bottom:20px;">
-            <div><strong>Маршрут:</strong> Фиксированный (${baseDistance} км${round ? ' ×2 = ' + displayKm + ' км' : ''})</div>
-            <div><strong>Километраж:</strong> ${displayKm} км</div>
+            <div><strong>Маршрут:</strong> Фиксированный (1000 км)</div>
+            <div><strong>Километраж:</strong> ${currentDistance} км</div>
             <div><strong>Итоговая стоимость:</strong> <span class="price-badge" style="font-size:1.2rem;">${price} ₽</span></div>
             <div><strong>Детали:</strong> ${detailsText}</div>
         </div>`;
@@ -595,7 +583,7 @@
             let phone = document.getElementById('clientPhone').value;
             let email = document.getElementById('clientEmail').value;
             let comment = document.getElementById('clientComment').value;
-            let body = `ЗАЯВКА ООО "ДЮНА"\nИмя: ${name}\nТелефон: ${phone}\nEmail: ${email}\nКомментарий: ${comment}\n\nМаршрут: фиксированный (${baseDistance} км, кругорейс ${round ? 'включён' : 'выключен'})\nКилометраж: ${displayKm} км\nИтоговая цена: ${price} ₽\n${detailsText}`;
+            let body = `ЗАЯВКА ООО "ДЮНА"\nИмя: ${name}\nТелефон: ${phone}\nEmail: ${email}\nКомментарий: ${comment}\n\nМаршрут: фиксированный (1000 км)\nКилометраж: ${currentDistance} км\nИтоговая цена: ${price} ₽\n${detailsText}`;
             window.location.href = `mailto:info@duna-logist.ru?subject=Заявка на перевозку от ${name}&body=${encodeURIComponent(body)}`;
             alert("Заявка подготовлена. Отправьте письмо на info@duna-logist.ru.");
         };
@@ -620,9 +608,6 @@
     });
     document.getElementById('gotoCalcHome').addEventListener('click', () => setActivePage('calculatorPage'));
     document.getElementById('calcRouteBtn').onclick = setFixedRoute;
-    document.getElementById('roundTripToggle').addEventListener('change', () => {
-        if (baseDistance > 0) updateDistanceDisplay();
-    });
 
     // Выбор типа груза по клику на карточку
     document.querySelector('.type-selector')?.addEventListener('click', (e) => {
@@ -639,3 +624,4 @@
 </script>
 </body>
 </html>
+```

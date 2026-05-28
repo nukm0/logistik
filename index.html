@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -266,7 +267,6 @@
     </div>
 </div>
 <div class="container" id="appContainer">
-    <!-- Главная страница -->
     <div id="homePage">
         <div class="card" style="background: linear-gradient(110deg, #fff, #edf9f5);">
             <h1 style="font-size: 2rem;">🚛 Рассчитайте грузоперевозку за минуту</h1>
@@ -274,7 +274,6 @@
             <button class="btn" id="gotoCalcHome" style="margin-top: 1.5rem;"><i class="fas fa-calculator"></i> Перейти к калькулятору</button>
         </div>
     </div>
-    <!-- О компании -->
     <div id="aboutPage" style="display:none;">
         <div class="card">
             <div class="step-title"><i class="fas fa-truck"></i> ООО "Дюна"</div>
@@ -287,9 +286,8 @@
     </div>
     <!-- Калькулятор -->
     <div id="calculatorPage" style="display:none;">
-        <!-- Шаг 1: Маршрут -->
         <div class="card">
-            <div class="step-title"><i class="fas fa-map-marked-alt"></i> 1. Постройте маршрут на карте</div>
+            <div class="step-title"><i class="fas fa-map-marked-alt"></i> 1. Маршрут на карте</div>
             <div class="map-container"><div id="map"></div></div>
             <div class="map-tools">
                 <button id="selectFromBtn" class="map-btn active"><i class="fas fa-map-marker-alt" style="color:#e74c3c;"></i> Откуда (красный)</button>
@@ -326,7 +324,6 @@
             <div class="info-note">💡 Кликните на карту, чтобы поставить точку. После выбора двух точек нажмите «Построить маршрут».</div>
         </div>
 
-        <!-- Шаг 2: Тип перевозки (появляется после расчёта маршрута) -->
         <div id="typeBlock" style="display: none;">
             <div class="card">
                 <div class="step-title"><i class="fas fa-boxes"></i> 2. Тип отправки</div>
@@ -346,10 +343,7 @@
             </div>
         </div>
 
-        <!-- Динамическая форма для сборного/выделенного -->
         <div id="dynamicForms"></div>
-
-        <!-- Блок итоговой заявки -->
         <div id="finalOrderBlock" style="display: none;">
             <div class="card">
                 <div class="step-title"><i class="fas fa-file-signature"></i> 3. Оформление заявки</div>
@@ -358,7 +352,7 @@
                     <div class="input-field"><label>Ваше имя</label><input id="clientName" required></div>
                     <div class="input-field"><label>Телефон</label><input id="clientPhone" required></div>
                     <div class="input-field"><label>Email</label><input id="clientEmail" type="email" required></div>
-                    <div class="input-field"><label>Комментарий к заказу</label><textarea id="clientComment" rows="2"></textarea></div>
+                    <div class="input-field"><label>Комментарий</label><textarea id="clientComment" rows="2"></textarea></div>
                     <button type="submit" class="btn"><i class="fas fa-paper-plane"></i> Отправить заявку</button>
                 </form>
             </div>
@@ -367,7 +361,6 @@
 </div>
 
 <script>
-    // ------------------- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ -------------------
     let ymapsReady = false;
     let myMap;
     let fromPlacemark, toPlacemark;
@@ -377,11 +370,10 @@
     let currentRoundTrip = false;
     let selectedShipType = null;
 
-    // Данные для выделенного транспорта
     let dedicatedData = { vehicle: null, bodyType: null, loadingOptions: [], extraOptions: [] };
     let ltlCargoList = [];
 
-    // Тарифы (из скриншотов)
+    // Тарифы
     function getRatePerKm(d) {
         if (d <= 10) return 150;
         if (d <= 40) return 108;
@@ -390,13 +382,11 @@
         if (d <= 300) return 54;
         return 54;
     }
-
     function calcBasePrice(dist, roundTrip) {
         let eff = roundTrip ? dist * 2 : dist;
         let cost = eff * getRatePerKm(eff);
         return Math.max(cost, 3000);
     }
-
     function updatePriceDisplay() {
         if (currentDistance > 0) {
             let round = document.getElementById('roundTripToggle').checked;
@@ -406,16 +396,12 @@
             document.getElementById('roundHint').innerHTML = round ? `(кругорейс: ${currentDistance*2} км)` : "";
         }
     }
-
-    // Цены для выделенного
     function calcDedicatedPrice(dist, round, mult, extras) {
         let base = calcBasePrice(dist, round);
         let veh = base * mult;
         let extraSum = (extras.includes('remni') ? 600 : 0) + (extras.includes('gidrobort') ? 1200 : 0);
         return Math.round(veh + extraSum);
     }
-
-    // Цена для сборного (объёмный вес)
     function calcLTLPrice(dist, round, cargoArr) {
         if (!cargoArr.length) return calcBasePrice(dist, round);
         let totalKg = 0, totalVolKg = 0;
@@ -431,7 +417,6 @@
         let factor = Math.max(0.7, Math.min(3.5, chargeable / 400));
         return Math.max(Math.round(base * factor), 3000);
     }
-
     const vehicleRates = [
         { name: "1,5т / 10м³", multiplier: 0.8, icon: "fa-truck-fast" },
         { name: "3т / 25м³", multiplier: 1.0, icon: "fa-truck" },
@@ -441,7 +426,7 @@
         { name: "20т / 115м³", multiplier: 2.3, icon: "fa-truck-container" }
     ];
 
-    // ========== ГЕОКОДИНГ И МАРШРУТ ==========
+    // Геокодинг
     async function getCoords(city, street, house) {
         if (!city) return null;
         let query = `${city}, ${street} ${house}`.trim().replace(/\s+/g, ' ');
@@ -457,7 +442,6 @@
         } catch(e) { console.warn(e); }
         return null;
     }
-
     async function reverseGeocode(lat, lon, type) {
         try {
             let res = await fetch(`https://geocode-maps.yandex.ru/1.x/?apikey=11bec915-26aa-47af-8ee5-2cf9ff56e3e1&geocode=${lon},${lat}&format=json&results=1`);
@@ -484,6 +468,7 @@
         } catch(e) {}
     }
 
+    // ПОСТРОЕНИЕ МАРШРУТА (исправлено на ymaps.route)
     async function buildRoute() {
         const btn = document.getElementById('calcRouteBtn');
         const originalText = btn.innerHTML;
@@ -526,61 +511,40 @@
         
         if (currentRoute) myMap.geoObjects.remove(currentRoute);
         
-        const multiRoute = new ymaps.multiRouter.MultiRoute({
-            referencePoints: [[fromCoords.lat, fromCoords.lon], [toCoords.lat, toCoords.lon]],
-            params: { routingMode: 'auto' }
-        }, { boundsAutoApply: true });
-        
-        let resolved = false;
-        const timeout = setTimeout(() => {
-            if (!resolved) {
-                errorDiv.innerHTML = "⚠️ Превышено время ожидания маршрута. Попробуйте другие адреса.";
-                errorDiv.style.display = 'block';
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-                resolved = true;
-            }
-        }, 15000);
-        
-        multiRoute.model.events.add('requestsuccess', () => {
-            if (resolved) return;
-            resolved = true;
-            clearTimeout(timeout);
-            let length = multiRoute.getLength();
-            if (length) {
-                currentDistance = Math.round(length / 1000);
-                currentRoundTrip = document.getElementById('roundTripToggle').checked;
-                routeBuilt = true;
-                updatePriceDisplay();
-                myMap.geoObjects.add(multiRoute);
-                currentRoute = multiRoute;
-                myMap.geoObjects.add(fromPlacemark);
-                myMap.geoObjects.add(toPlacemark);
-                // Показываем блок выбора типа перевозки
-                document.getElementById('typeBlock').style.display = 'block';
-                errorDiv.style.display = 'none';
-            } else {
-                errorDiv.innerHTML = "Не удалось проложить маршрут";
-                errorDiv.style.display = 'block';
-            }
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-        });
-        
-        multiRoute.model.events.add('requesterror', () => {
-            if (resolved) return;
-            resolved = true;
-            clearTimeout(timeout);
-            errorDiv.innerHTML = "Ошибка построения маршрута. Проверьте адреса.";
+        // Используем ymaps.route (надёжный способ)
+        try {
+            const route = await ymaps.route([
+                [fromCoords.lat, fromCoords.lon],
+                [toCoords.lat, toCoords.lon]
+            ]);
+            
+            // Получаем длину в метрах
+            const length = route.getLength();
+            currentDistance = Math.round(length / 1000);
+            currentRoundTrip = document.getElementById('roundTripToggle').checked;
+            routeBuilt = true;
+            updatePriceDisplay();
+            
+            // Отображаем маршрут на карте
+            currentRoute = route;
+            myMap.geoObjects.add(route);
+            // Устанавливаем границы карты по маршруту
+            myMap.setBounds(route.getBounds(), { checkZoomRange: true });
+            
+            // Показываем блок выбора типа перевозки
+            document.getElementById('typeBlock').style.display = 'block';
+            errorDiv.style.display = 'none';
+        } catch (err) {
+            console.error(err);
+            errorDiv.innerHTML = "❌ Ошибка построения маршрута. Проверьте адреса или повторите попытку.";
             errorDiv.style.display = 'block';
+        } finally {
             btn.innerHTML = originalText;
             btn.disabled = false;
-        });
-        
-        myMap.geoObjects.add(multiRoute);
+        }
     }
 
-    // ========== УМНЫЙ ПОИСК УЛИЦ ==========
+    // Умный поиск улиц
     async function fetchStreets(city, query) {
         if (!city || query.length < 2) return [];
         let url = `https://geocode-maps.yandex.ru/1.x/?apikey=11bec915-26aa-47af-8ee5-2cf9ff56e3e1&geocode=${encodeURIComponent(city + ' ' + query)}&kind=street&results=7&format=json`;
@@ -595,7 +559,6 @@
         }
         return [...new Set(streets)];
     }
-    
     function attachStreetSuggest(inputId, cityGetter, listId) {
         let input = document.getElementById(inputId);
         let list = document.getElementById(listId);
@@ -622,13 +585,12 @@
         document.addEventListener('click', (e) => { if (!input.contains(e.target)) list.style.display = 'none'; });
     }
 
-    // ========== ДИНАМИЧЕСКИЕ ФОРМЫ ==========
+    // Динамические формы (сборный/выделенный) - без изменений, работают корректно
     function showDynamicForm() {
         const container = document.getElementById('dynamicForms');
         if (selectedShipType === 'ltl') renderLTL(container);
         else renderDedicated(container);
     }
-    
     function renderLTL(container) {
         container.innerHTML = `<div class="card">
             <div class="step-title"><i class="fas fa-pallet"></i> Параметры грузов</div>
@@ -678,7 +640,6 @@
             showFinalOrder(price, `Сборный груз (${ltlCargoList.length} позиций)`);
         };
     }
-    
     function renderDedicated(container) {
         container.innerHTML = `<div class="card">
             <div class="step-title"><i class="fas fa-truck"></i> Выберите автомобиль</div>
@@ -742,7 +703,6 @@
             return div;
         }
     }
-    
     function showFinalOrder(price, detailsText) {
         let finalDiv = document.getElementById('finalOrderBlock');
         let detailsDiv = document.getElementById('finalDetails');
@@ -758,8 +718,6 @@
         `;
         finalDiv.style.display = 'block';
         finalDiv.scrollIntoView({ behavior: 'smooth' });
-        
-        // Отправка заявки
         const form = document.getElementById('orderForm');
         form.onsubmit = (e) => {
             e.preventDefault();
@@ -773,7 +731,7 @@
         };
     }
 
-    // ========== ИНИЦИАЛИЗАЦИЯ ==========
+    // Инициализация карты и событий
     function initMap() {
         if (!ymapsReady) return;
         myMap = new ymaps.Map("map", { center: [55.751574, 37.573856], zoom: 9, controls: ["zoomControl", "fullscreenControl"] });
@@ -794,7 +752,6 @@
         });
     }
 
-    // Навигация
     document.querySelectorAll('.nav-links a').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
@@ -810,7 +767,6 @@
         document.getElementById('calculatorPage').style.display = 'block';
         if (ymapsReady && !myMap) initMap();
     };
-    
     window.pickMode = "from";
     document.getElementById('selectFromBtn').onclick = () => { window.pickMode = "from"; document.getElementById('selectFromBtn').classList.add('active'); document.getElementById('selectToBtn').classList.remove('active'); };
     document.getElementById('selectToBtn').onclick = () => { window.pickMode = "to"; document.getElementById('selectToBtn').classList.add('active'); document.getElementById('selectFromBtn').classList.remove('active'); };

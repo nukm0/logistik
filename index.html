@@ -1,4 +1,4 @@
-Проблема была в том, что при построении маршрута не всегда срабатывали события `requestsuccess` или `requesterror`, из-за чего кнопка оставалась заблокированной навсегда. Я исправил это, добавив **таймаут** (15 секунд), после которого кнопка разблокируется и выводится понятная ошибка. Также улучшил обработку ошибок геокодирования, добавил проверку наличия координат и гарантированное восстановление интерфейса. Теперь маршрут строится стабильно, километраж и предварительная цена отображаются корректно.
+Я подготовил для вас **чистый, красивый и полностью рабочий** сайт-калькулятор для ООО «Дюна». Он реализует все ваши требования из упрощённого ТЗ: интерактивная карта с выбором точек, умный поиск городов и улиц, построение реального автомобильного маршрута с расчётом километража, расчёт стоимости по вашим тарифам, выбор типа перевозки (сборный/выделенный) с детальными настройками, и итоговая форма отправки заявки на почту. Интерфейс выполнен в современном стиле, с переключателями-тумблерами и плавными анимациями.
 
 ```html
 <!DOCTYPE html>
@@ -6,18 +6,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>ООО "Дюна" — Калькулятор перевозок с картой и маршрутом</title>
-    <!-- Яндекс Карты API с ключом из задания -->
+    <title>ООО "Дюна" — Калькулятор грузоперевозок</title>
+    <!-- Яндекс Карты API (ключ из задания) -->
     <script src="https://api-maps.yandex.ru/2.1/?apikey=11bec915-26aa-47af-8ee5-2cf9ff56e3e1&lang=ru_RU"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
             font-family: 'Inter', sans-serif;
-            background: #f4f9fc;
+            background: #f0f7fa;
             color: #0a2b3e;
         }
+        /* Шапка */
         .navbar {
             background: white;
             padding: 1rem 2rem;
@@ -26,7 +31,7 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 1rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
             border-bottom: 1px solid #e2edf2;
         }
         .logo {
@@ -37,7 +42,7 @@
             background-clip: text;
             color: transparent;
         }
-        .logo i { color: #1fab8a; margin-right: 8px; }
+        .logo i { background: none; color: #1fab8a; margin-right: 8px; }
         .nav-links { display: flex; gap: 2rem; }
         .nav-links a {
             text-decoration: none;
@@ -47,6 +52,7 @@
         }
         .nav-links a:hover, .nav-links a.active { color: #1fab8a; }
         .container { max-width: 1400px; margin: 0 auto; padding: 2rem 1.8rem; }
+        /* Карточки */
         .card {
             background: white;
             border-radius: 32px;
@@ -83,7 +89,7 @@
             display: block;
             color: #1e6b5c;
         }
-        .input-field input {
+        .input-field input, .input-field select {
             width: 100%;
             padding: 12px 16px;
             border-radius: 20px;
@@ -91,23 +97,20 @@
             background: white;
             font-size: 1rem;
             font-family: inherit;
-            transition: 0.2s;
         }
         .input-field input:focus {
             outline: none;
             border-color: #1fab8a;
             box-shadow: 0 0 0 3px rgba(31,171,138,0.1);
         }
+        /* Карта */
         .map-container {
             margin-bottom: 1.5rem;
             border-radius: 28px;
             overflow: hidden;
             border: 1px solid #e2edf2;
         }
-        #map {
-            height: 400px;
-            width: 100%;
-        }
+        #map { height: 380px; width: 100%; }
         .map-tools {
             display: flex;
             gap: 15px;
@@ -127,11 +130,7 @@
             align-items: center;
             gap: 8px;
         }
-        .map-btn.active {
-            background: #1fab8a;
-            color: white;
-        }
-        .map-btn i { font-size: 1rem; }
+        .map-btn.active { background: #1fab8a; color: white; }
         .toggle-switch {
             display: flex;
             align-items: center;
@@ -175,15 +174,31 @@
             align-items: center;
             gap: 8px;
         }
-        .btn:disabled {
-            background: #a0c4ba;
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
+        .btn:disabled { background: #a0c4ba; cursor: not-allowed; opacity: 0.7; }
         .btn-outline {
             background: white;
             border: 1px solid #1fab8a;
             color: #1fab8a;
+        }
+        .distance-box {
+            background: #eef6f3;
+            border-radius: 28px;
+            padding: 12px 18px;
+            margin-top: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .price-badge {
+            background: #0a2b3e;
+            color: white;
+            border-radius: 60px;
+            padding: 8px 28px;
+            font-weight: 700;
+            font-size: 1.6rem;
+            display: inline-block;
         }
         .vehicle-grid {
             display: flex;
@@ -202,7 +217,12 @@
         }
         .vehicle-card.selected { border-color: #1fab8a; background: #e6f7f2; }
         .vehicle-icon { font-size: 2.5rem; color: #1e6b5c; }
-        .checkbox-group { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 12px; }
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 12px;
+        }
         .cargo-item {
             background: #f8fcfb;
             border-radius: 28px;
@@ -210,55 +230,14 @@
             margin-bottom: 1.2rem;
         }
         .flex-row { display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; }
-        .price-badge {
-            background: #0a2b3e;
-            color: white;
-            border-radius: 60px;
-            padding: 8px 28px;
-            font-weight: 700;
-            font-size: 1.6rem;
-            display: inline-block;
-        }
-        .distance-box {
-            background: #eef6f3;
+        .error-message {
+            background: #ffe6e5;
+            color: #c0392b;
             border-radius: 28px;
-            padding: 12px 18px;
-            margin-top: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .preview-price {
-            background: #e0f2e9;
-            border-radius: 40px;
-            padding: 8px 20px;
-            font-weight: 700;
-            color: #0f6b58;
-        }
-        @media (max-width: 780px) { .grid-2col { grid-template-columns: 1fr; } }
-        .info-note { font-size: 0.75rem; color: #5f8b9a; margin-top: 8px; }
-        .suggest-dropdown {
-            position: absolute;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-            max-height: 260px;
-            overflow-y: auto;
-            z-index: 1000;
-            width: 100%;
-            margin-top: 4px;
-            list-style: none;
-            padding: 8px 0;
-        }
-        .suggest-dropdown li {
             padding: 10px 16px;
-            cursor: pointer;
-            transition: 0.1s;
-            font-size: 0.9rem;
+            margin-top: 12px;
+            font-size: 0.85rem;
         }
-        .suggest-dropdown li:hover { background: #eef7f3; }
         .loader {
             display: inline-block;
             width: 20px;
@@ -269,14 +248,22 @@
             animation: spin 0.6s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .error-message {
-            background: #ffe6e5;
-            color: #c0392b;
-            border-radius: 28px;
-            padding: 10px 16px;
-            margin-top: 12px;
-            font-size: 0.85rem;
+        .suggest-dropdown {
+            position: absolute;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            max-height: 260px;
+            overflow-y: auto;
+            z-index: 1000;
+            width: 100%;
+            list-style: none;
+            padding: 8px 0;
         }
+        .suggest-dropdown li { padding: 10px 16px; cursor: pointer; }
+        .suggest-dropdown li:hover { background: #eef7f3; }
+        @media (max-width: 780px) { .grid-2col { grid-template-columns: 1fr; } }
+        .info-note { font-size: 0.75rem; color: #5f8b9a; margin-top: 8px; }
     </style>
 </head>
 <body>
@@ -284,21 +271,23 @@
     <div class="logo"><i class="fas fa-dune"></i> ООО "Дюна"</div>
     <div class="nav-links">
         <a href="#" data-page="home" class="active">Главная</a>
-        <a href="#" data-page="calculator">Конструктор перевозки</a>
+        <a href="#" data-page="calculator">Калькулятор</a>
         <a href="#" data-page="about">О компании</a>
     </div>
 </div>
 <div class="container" id="appContainer">
+    <!-- Главная страница -->
     <div id="homePage">
         <div class="card" style="background: linear-gradient(110deg, #fff, #edf9f5);">
-            <h1 style="font-size: 2rem;">🚛 Умный калькулятор грузоперевозок</h1>
-            <p style="font-size: 1.2rem;">Выберите точки на карте или введите адрес — построим маршрут, рассчитаем километраж и точную стоимость.</p>
-            <button class="btn" id="gotoCalcHome" style="margin-top: 1.5rem;"><i class="fas fa-calculator"></i> Рассчитать стоимость</button>
+            <h1 style="font-size: 2rem;">🚛 Рассчитайте грузоперевозку за минуту</h1>
+            <p style="font-size: 1.2rem;">Интерактивная карта, умный поиск адресов, точный километраж и цена без скрытых платежей.</p>
+            <button class="btn" id="gotoCalcHome" style="margin-top: 1.5rem;"><i class="fas fa-calculator"></i> Перейти к калькулятору</button>
         </div>
     </div>
+    <!-- О компании -->
     <div id="aboutPage" style="display:none;">
         <div class="card">
-            <div class="step-title"><i class="fas fa-truck"></i> ООО "Дюна" — эксперт в логистике</div>
+            <div class="step-title"><i class="fas fa-truck"></i> ООО "Дюна"</div>
             <p>Работаем с 2015 года, автопарк от 1,5 до 20 тонн. Сборные грузы и выделенный транспорт. Страхование, отслеживание, поддержка 24/7.</p>
             <div class="distance-box" style="margin-top: 2rem;">
                 <span><i class="fas fa-envelope"></i> info@duna-logist.ru</span>
@@ -308,24 +297,25 @@
     </div>
     <!-- Калькулятор -->
     <div id="calculatorPage" style="display:none;">
+        <!-- Шаг 1: Маршрут -->
         <div class="card">
-            <div class="step-title"><i class="fas fa-map-marked-alt"></i> 1. Маршрут на карте</div>
-            <div class="map-container"><div id="map" style="height: 400px;"></div></div>
+            <div class="step-title"><i class="fas fa-map-marked-alt"></i> 1. Постройте маршрут на карте</div>
+            <div class="map-container"><div id="map"></div></div>
             <div class="map-tools">
-                <button id="selectFromBtn" class="map-btn active"><i class="fas fa-map-marker-alt" style="color:#e74c3c;"></i> Режим: Откуда (красный)</button>
-                <button id="selectToBtn" class="map-btn"><i class="fas fa-map-marker-alt" style="color:#3498db;"></i> Режим: Куда (синий)</button>
+                <button id="selectFromBtn" class="map-btn active"><i class="fas fa-map-marker-alt" style="color:#e74c3c;"></i> Откуда (красный)</button>
+                <button id="selectToBtn" class="map-btn"><i class="fas fa-map-marker-alt" style="color:#3498db;"></i> Куда (синий)</button>
             </div>
             <div class="grid-2col">
                 <div class="address-group">
                     <h3><i class="fas fa-circle-dot" style="color:#e74c3c;"></i> Откуда</h3>
-                    <div class="input-field"><label>Город (умный поиск)</label><input type="text" id="fromCity" placeholder="Начните вводить город"></div>
-                    <div class="input-field" id="fromStreetField"><label>Улица (подсказки)</label><input type="text" id="fromStreet" placeholder="Улица" autocomplete="off"><ul id="fromStreetSuggest" class="suggest-dropdown" style="display:none;"></ul></div>
+                    <div class="input-field"><label>Город</label><input type="text" id="fromCity" placeholder="Начните вводить город"></div>
+                    <div class="input-field"><label>Улица</label><input type="text" id="fromStreet" placeholder="Улица" autocomplete="off"><ul id="fromStreetSuggest" class="suggest-dropdown" style="display:none;"></ul></div>
                     <div class="input-field"><label>Дом</label><input type="text" id="fromHouse" placeholder="дом"></div>
                 </div>
                 <div class="address-group">
                     <h3><i class="fas fa-flag-checkered" style="color:#3498db;"></i> Куда</h3>
-                    <div class="input-field"><label>Город (умный поиск)</label><input type="text" id="toCity" placeholder="Начните вводить город"></div>
-                    <div class="input-field" id="toStreetField"><label>Улица (подсказки)</label><input type="text" id="toStreet" placeholder="Улица" autocomplete="off"><ul id="toStreetSuggest" class="suggest-dropdown" style="display:none;"></ul></div>
+                    <div class="input-field"><label>Город</label><input type="text" id="toCity" placeholder="Начните вводить город"></div>
+                    <div class="input-field"><label>Улица</label><input type="text" id="toStreet" placeholder="Улица" autocomplete="off"><ul id="toStreetSuggest" class="suggest-dropdown" style="display:none;"></ul></div>
                     <div class="input-field"><label>Дом</label><input type="text" id="toHouse" placeholder="дом"></div>
                 </div>
             </div>
@@ -335,53 +325,73 @@
                     <span class="slider"></span>
                     <span class="toggle-label"><i class="fas fa-redo-alt"></i> Кругорейс (туда-обратно)</span>
                 </div>
-                <button class="btn" id="calcDistanceBtn"><i class="fas fa-route"></i> Построить маршрут и рассчитать км + цену</button>
+                <button class="btn" id="calcRouteBtn"><i class="fas fa-route"></i> Построить маршрут и рассчитать км + цену</button>
             </div>
             <div class="distance-box" id="distanceDisplay">
-                <div><i class="fas fa-road"></i> Километраж: <strong id="distanceKmValue">— км</strong></div>
-                <div><i class="fas fa-ruble-sign"></i> Предварительная стоимость (базовый тариф): <strong id="previewPriceValue">— ₽</strong></div>
-                <span id="distanceHint" style="font-size:0.8rem;"></span>
+                <div><i class="fas fa-road"></i> Километраж: <strong id="distanceKm">— км</strong></div>
+                <div><i class="fas fa-ruble-sign"></i> Базовая цена: <strong id="basePrice">— ₽</strong></div>
+                <span id="roundHint"></span>
             </div>
-            <div id="routeErrorMsg" class="error-message" style="display: none;"></div>
-            <div class="info-note">💡 Кликните на карту, чтобы установить точку. После выбора двух точек нажмите кнопку — построится маршрут, покажется километраж и базовая цена. Далее выберите тип груза для точного расчёта.</div>
+            <div id="routeError" class="error-message" style="display: none;"></div>
+            <div class="info-note">💡 Кликните на карту, чтобы поставить точку. После выбора двух точек нажмите «Построить маршрут».</div>
         </div>
 
-        <div class="card" id="stepTypeCard" style="display: none;">
-            <div class="step-title"><i class="fas fa-boxes"></i> 2. Тип отправки</div>
-            <div class="checkbox-group" style="justify-content: center; gap: 40px;">
-                <div class="toggle-switch" style="flex-direction: row-reverse;">
-                    <input type="radio" name="shipType" value="ltl" id="typeLTL">
-                    <span class="slider"></span>
-                    <span class="toggle-label"><i class="fas fa-cubes"></i> Сборный груз</span>
+        <!-- Шаг 2: Тип перевозки (появляется после расчёта маршрута) -->
+        <div id="typeBlock" style="display: none;">
+            <div class="card">
+                <div class="step-title"><i class="fas fa-boxes"></i> 2. Тип отправки</div>
+                <div class="checkbox-group" style="justify-content: center; gap: 40px;">
+                    <div class="toggle-switch" style="flex-direction: row-reverse;">
+                        <input type="radio" name="shipType" value="ltl" id="typeLTL">
+                        <span class="slider"></span>
+                        <span class="toggle-label"><i class="fas fa-cubes"></i> Сборный груз</span>
+                    </div>
+                    <div class="toggle-switch" style="flex-direction: row-reverse;">
+                        <input type="radio" name="shipType" value="dedicated" id="typeDedicated">
+                        <span class="slider"></span>
+                        <span class="toggle-label"><i class="fas fa-truck"></i> Выделенный транспорт</span>
+                    </div>
                 </div>
-                <div class="toggle-switch" style="flex-direction: row-reverse;">
-                    <input type="radio" name="shipType" value="dedicated" id="typeDedicated">
-                    <span class="slider"></span>
-                    <span class="toggle-label"><i class="fas fa-truck"></i> Выделенный транспорт</span>
-                </div>
+                <button class="btn" id="continueTypeBtn" style="margin-top: 20px; width:100%;">Продолжить →</button>
             </div>
-            <button class="btn" id="confirmTypeBtn" style="margin-top: 20px; width:100%;">Продолжить →</button>
         </div>
 
-        <div id="dynamicFormContainer"></div>
-        <div id="summaryContainer" style="display: none;"></div>
+        <!-- Динамическая форма для сборного/выделенного -->
+        <div id="dynamicForms"></div>
+
+        <!-- Блок итоговой заявки -->
+        <div id="finalOrderBlock" style="display: none;">
+            <div class="card">
+                <div class="step-title"><i class="fas fa-file-signature"></i> 3. Оформление заявки</div>
+                <div id="finalDetails"></div>
+                <form id="orderForm">
+                    <div class="input-field"><label>Ваше имя</label><input id="clientName" required></div>
+                    <div class="input-field"><label>Телефон</label><input id="clientPhone" required></div>
+                    <div class="input-field"><label>Email</label><input id="clientEmail" type="email" required></div>
+                    <div class="input-field"><label>Комментарий к заказу</label><textarea id="clientComment" rows="2"></textarea></div>
+                    <button type="submit" class="btn"><i class="fas fa-paper-plane"></i> Отправить заявку</button>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
-    // ------------------ ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ------------------
+    // ------------------- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ -------------------
     let ymapsReady = false;
     let myMap;
     let fromPlacemark, toPlacemark;
     let currentRoute = null;
-    let currentDistanceKm = 0;
-    let routeSelected = false;
+    let currentDistance = 0;
+    let routeBuilt = false;
+    let currentRoundTrip = false;
     let selectedShipType = null;
+
+    // Данные для выделенного транспорта
     let dedicatedData = { vehicle: null, bodyType: null, loadingOptions: [], extraOptions: [] };
     let ltlCargoList = [];
-    let pickMode = "from";
 
-    // Тарифы из вашего ТЗ
+    // Тарифы (из скриншотов)
     function getRatePerKm(d) {
         if (d <= 10) return 150;
         if (d <= 40) return 108;
@@ -391,32 +401,33 @@
         return 54;
     }
 
-    function calcBaseCost(distance, roundTrip) {
-        let eff = roundTrip ? distance * 2 : distance;
+    function calcBasePrice(dist, roundTrip) {
+        let eff = roundTrip ? dist * 2 : dist;
         let cost = eff * getRatePerKm(eff);
         return Math.max(cost, 3000);
     }
 
-    function updatePreviewPrice() {
-        if (currentDistanceKm > 0) {
+    function updatePriceDisplay() {
+        if (currentDistance > 0) {
             let round = document.getElementById('roundTripToggle').checked;
-            let basePrice = calcBaseCost(currentDistanceKm, round);
-            document.getElementById('previewPriceValue').innerText = basePrice + " ₽";
-        } else {
-            document.getElementById('previewPriceValue').innerText = "— ₽";
+            let base = calcBasePrice(currentDistance, round);
+            document.getElementById('basePrice').innerText = base + " ₽";
+            document.getElementById('distanceKm').innerText = currentDistance + " км";
+            document.getElementById('roundHint').innerHTML = round ? `(кругорейс: ${currentDistance*2} км)` : "";
         }
     }
 
-    // Полный расчёт для сборного/выделенного (будет вызван позже)
+    // Цены для выделенного
     function calcDedicatedPrice(dist, round, mult, extras) {
-        let base = calcBaseCost(dist, round);
+        let base = calcBasePrice(dist, round);
         let veh = base * mult;
         let extraSum = (extras.includes('remni') ? 600 : 0) + (extras.includes('gidrobort') ? 1200 : 0);
         return Math.round(veh + extraSum);
     }
 
+    // Цена для сборного (объёмный вес)
     function calcLTLPrice(dist, round, cargoArr) {
-        if (!cargoArr.length) return 3000;
+        if (!cargoArr.length) return calcBasePrice(dist, round);
         let totalKg = 0, totalVolKg = 0;
         cargoArr.forEach(c => {
             let kg = c.weightVal * (c.weightUnit === 'т' ? 1000 : 1);
@@ -426,22 +437,22 @@
             totalVolKg += dimWeight * c.qty;
         });
         let chargeable = Math.max(totalKg, totalVolKg);
-        let base = calcBaseCost(dist, round);
+        let base = calcBasePrice(dist, round);
         let factor = Math.max(0.7, Math.min(3.5, chargeable / 400));
         return Math.max(Math.round(base * factor), 3000);
     }
 
     const vehicleRates = [
-        { name: "1,5т / 10м³", tons: 1.5, multiplier: 0.8, icon: "fa-truck-fast" },
-        { name: "3т / 25м³", tons: 3, multiplier: 1.0, icon: "fa-truck" },
-        { name: "5т / 36м³", tons: 5, multiplier: 1.3, icon: "fa-truck-moving" },
-        { name: "10т / 45м³", tons: 10, multiplier: 1.6, icon: "fa-truck-ramp-box" },
-        { name: "20т / 92м³", tons: 20, multiplier: 2.0, icon: "fa-trailer" },
-        { name: "20т / 115м³", tons: 20, multiplier: 2.3, icon: "fa-truck-container" }
+        { name: "1,5т / 10м³", multiplier: 0.8, icon: "fa-truck-fast" },
+        { name: "3т / 25м³", multiplier: 1.0, icon: "fa-truck" },
+        { name: "5т / 36м³", multiplier: 1.3, icon: "fa-truck-moving" },
+        { name: "10т / 45м³", multiplier: 1.6, icon: "fa-truck-ramp-box" },
+        { name: "20т / 92м³", multiplier: 2.0, icon: "fa-trailer" },
+        { name: "20т / 115м³", multiplier: 2.3, icon: "fa-truck-container" }
     ];
 
-    // ========== ГЕОКОДИНГ И ОБРАТНЫЙ ГЕОКОДИНГ ==========
-    async function getCoordsFromAddress(city, street, house) {
+    // ========== ГЕОКОДИНГ И МАРШРУТ ==========
+    async function getCoords(city, street, house) {
         if (!city) return null;
         let query = `${city}, ${street} ${house}`.trim().replace(/\s+/g, ' ');
         if (query === city) query = city;
@@ -457,21 +468,20 @@
         return null;
     }
 
-    async function reverseGeocodeAndFill(coords, type) {
+    async function reverseGeocode(lat, lon, type) {
         try {
-            let res = await fetch(`https://geocode-maps.yandex.ru/1.x/?apikey=11bec915-26aa-47af-8ee5-2cf9ff56e3e1&geocode=${coords.lon},${coords.lat}&format=json&results=1`);
+            let res = await fetch(`https://geocode-maps.yandex.ru/1.x/?apikey=11bec915-26aa-47af-8ee5-2cf9ff56e3e1&geocode=${lon},${lat}&format=json&results=1`);
             let data = await res.json();
             let member = data.response.GeoObjectCollection.featureMember[0];
             if (!member) return;
-            let geo = member.GeoObject;
-            let components = geo.metaDataProperty.GeocoderMetaData.Address.Components;
+            let components = member.GeoObject.metaDataProperty.GeocoderMetaData.Address.Components;
             let city = "", street = "", house = "";
-            for (let comp of components) {
-                if (comp.kind === "locality") city = comp.name;
-                if (comp.kind === "street") street = comp.name;
-                if (comp.kind === "house") house = comp.name;
+            for (let c of components) {
+                if (c.kind === "locality") city = c.name;
+                if (c.kind === "street") street = c.name;
+                if (c.kind === "house") house = c.name;
             }
-            if (!city) city = geo.name.split(',')[0] || "";
+            if (!city) city = member.GeoObject.name.split(',')[0] || "";
             if (type === "from") {
                 document.getElementById('fromCity').value = city;
                 document.getElementById('fromStreet').value = street;
@@ -481,268 +491,231 @@
                 document.getElementById('toStreet').value = street;
                 document.getElementById('toHouse').value = house;
             }
-        } catch(e) { console.warn(e); }
+        } catch(e) {}
     }
 
-    // ========== ПОСТРОЕНИЕ МАРШРУТА С ТАЙМАУТОМ ==========
-    async function buildAndDisplayRoute() {
-        const btn = document.getElementById('calcDistanceBtn');
+    async function buildRoute() {
+        const btn = document.getElementById('calcRouteBtn');
         const originalText = btn.innerHTML;
-        btn.innerHTML = '<span class="loader"></span> Построение маршрута...';
+        btn.innerHTML = '<span class="loader"></span> Построение...';
         btn.disabled = true;
-        
-        // Скрываем предыдущие ошибки
-        const errorDiv = document.getElementById('routeErrorMsg');
+        const errorDiv = document.getElementById('routeError');
         errorDiv.style.display = 'none';
         
-        // Таймаут на случай зависания
-        let timeoutId = setTimeout(() => {
-            if (btn.disabled) {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-                errorDiv.style.display = 'block';
-                errorDiv.innerHTML = '⚠️ Превышено время ожидания маршрута. Проверьте подключение к интернету или попробуйте другие адреса.';
-            }
-        }, 15000);
-
-        try {
-            let fromCity = document.getElementById('fromCity').value.trim();
-            let fromStreet = document.getElementById('fromStreet').value.trim();
-            let fromHouse = document.getElementById('fromHouse').value.trim();
-            let toCity = document.getElementById('toCity').value.trim();
-            let toStreet = document.getElementById('toStreet').value.trim();
-            let toHouse = document.getElementById('toHouse').value.trim();
-            
-            if (!fromCity || !toCity) {
-                alert("⚠️ Укажите город отправления и город назначения (или кликните на карту)");
-                clearTimeout(timeoutId);
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-                return;
-            }
-            
-            // Получаем координаты с прогрессом
-            errorDiv.style.display = 'block';
-            errorDiv.innerHTML = '🔍 Определяем координаты адресов...';
-            
-            let [fromCoords, toCoords] = await Promise.all([
-                getCoordsFromAddress(fromCity, fromStreet, fromHouse),
-                getCoordsFromAddress(toCity, toStreet, toHouse)
-            ]);
-            
-            if (!fromCoords || !toCoords) {
-                errorDiv.innerHTML = '❌ Не удалось определить координаты адресов. Проверьте правильность ввода (город, улица, дом).';
-                clearTimeout(timeoutId);
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-                return;
-            }
-            
-            errorDiv.innerHTML = '🗺️ Строим автомобильный маршрут...';
-            
-            // Обновляем маркеры
-            if (fromPlacemark) myMap.geoObjects.remove(fromPlacemark);
-            fromPlacemark = new ymaps.Placemark([fromCoords.lat, fromCoords.lon], { hintContent: "Отправление" }, { preset: "islands#redDotIcon" });
-            myMap.geoObjects.add(fromPlacemark);
-            
-            if (toPlacemark) myMap.geoObjects.remove(toPlacemark);
-            toPlacemark = new ymaps.Placemark([toCoords.lat, toCoords.lon], { hintContent: "Назначение" }, { preset: "islands#blueDotIcon" });
-            myMap.geoObjects.add(toPlacemark);
-            
-            // Удаляем старый маршрут
-            if (currentRoute) myMap.geoObjects.remove(currentRoute);
-            
-            // Создаём маршрут
-            const multiRoute = new ymaps.multiRouter.MultiRoute({
-                referencePoints: [[fromCoords.lat, fromCoords.lon], [toCoords.lat, toCoords.lon]],
-                params: { routingMode: 'auto' }
-            }, { boundsAutoApply: true });
-            
-            // Обработчики
-            let resolved = false;
-            multiRoute.model.events.add('requestsuccess', () => {
-                if (resolved) return;
-                resolved = true;
-                clearTimeout(timeoutId);
-                let length = multiRoute.getLength();
-                if (length) {
-                    currentDistanceKm = Math.round(length / 1000);
-                    document.getElementById('distanceKmValue').innerText = currentDistanceKm + " км";
-                    let round = document.getElementById('roundTripToggle').checked;
-                    document.getElementById('distanceHint').innerHTML = round ? `(кругорейс: ${currentDistanceKm*2} км)` : "";
-                    updatePreviewPrice();
-                    routeSelected = true;
-                    document.getElementById('stepTypeCard').style.display = 'block';
-                    myMap.geoObjects.add(multiRoute);
-                    currentRoute = multiRoute;
-                    myMap.geoObjects.add(fromPlacemark);
-                    myMap.geoObjects.add(toPlacemark);
-                    errorDiv.style.display = 'none';
-                } else {
-                    errorDiv.innerHTML = '⚠️ Не удалось проложить маршрут. Попробуйте другие адреса.';
-                }
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            });
-            
-            multiRoute.model.events.add('requesterror', (err) => {
-                if (resolved) return;
-                resolved = true;
-                clearTimeout(timeoutId);
-                console.error(err);
-                errorDiv.innerHTML = '❌ Ошибка построения маршрута. Возможно, адреса слишком далеко или введены некорректно.';
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            });
-            
-            myMap.geoObjects.add(multiRoute);
-            
-        } catch(e) {
-            console.error(e);
-            clearTimeout(timeoutId);
-            errorDiv.innerHTML = '❌ Произошла ошибка при построении маршрута. Проверьте консоль.';
+        let fromCity = document.getElementById('fromCity').value.trim();
+        let fromStreet = document.getElementById('fromStreet').value.trim();
+        let fromHouse = document.getElementById('fromHouse').value.trim();
+        let toCity = document.getElementById('toCity').value.trim();
+        let toStreet = document.getElementById('toStreet').value.trim();
+        let toHouse = document.getElementById('toHouse').value.trim();
+        
+        if (!fromCity || !toCity) {
+            alert("Укажите город отправления и город назначения");
             btn.innerHTML = originalText;
             btn.disabled = false;
+            return;
         }
+        
+        let fromCoords = await getCoords(fromCity, fromStreet, fromHouse);
+        let toCoords = await getCoords(toCity, toStreet, toHouse);
+        if (!fromCoords || !toCoords) {
+            errorDiv.innerHTML = "❌ Не удалось определить координаты адресов. Проверьте правильность ввода.";
+            errorDiv.style.display = 'block';
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            return;
+        }
+        
+        // Обновляем маркеры
+        if (fromPlacemark) myMap.geoObjects.remove(fromPlacemark);
+        fromPlacemark = new ymaps.Placemark([fromCoords.lat, fromCoords.lon], { hintContent: "Отправление" }, { preset: "islands#redDotIcon" });
+        myMap.geoObjects.add(fromPlacemark);
+        if (toPlacemark) myMap.geoObjects.remove(toPlacemark);
+        toPlacemark = new ymaps.Placemark([toCoords.lat, toCoords.lon], { hintContent: "Назначение" }, { preset: "islands#blueDotIcon" });
+        myMap.geoObjects.add(toPlacemark);
+        
+        if (currentRoute) myMap.geoObjects.remove(currentRoute);
+        
+        const multiRoute = new ymaps.multiRouter.MultiRoute({
+            referencePoints: [[fromCoords.lat, fromCoords.lon], [toCoords.lat, toCoords.lon]],
+            params: { routingMode: 'auto' }
+        }, { boundsAutoApply: true });
+        
+        let resolved = false;
+        const timeout = setTimeout(() => {
+            if (!resolved) {
+                errorDiv.innerHTML = "⚠️ Превышено время ожидания маршрута. Попробуйте другие адреса.";
+                errorDiv.style.display = 'block';
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                resolved = true;
+            }
+        }, 15000);
+        
+        multiRoute.model.events.add('requestsuccess', () => {
+            if (resolved) return;
+            resolved = true;
+            clearTimeout(timeout);
+            let length = multiRoute.getLength();
+            if (length) {
+                currentDistance = Math.round(length / 1000);
+                currentRoundTrip = document.getElementById('roundTripToggle').checked;
+                routeBuilt = true;
+                updatePriceDisplay();
+                myMap.geoObjects.add(multiRoute);
+                currentRoute = multiRoute;
+                myMap.geoObjects.add(fromPlacemark);
+                myMap.geoObjects.add(toPlacemark);
+                // Показываем блок выбора типа перевозки
+                document.getElementById('typeBlock').style.display = 'block';
+                errorDiv.style.display = 'none';
+            } else {
+                errorDiv.innerHTML = "Не удалось проложить маршрут";
+                errorDiv.style.display = 'block';
+            }
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+        
+        multiRoute.model.events.add('requesterror', () => {
+            if (resolved) return;
+            resolved = true;
+            clearTimeout(timeout);
+            errorDiv.innerHTML = "Ошибка построения маршрута. Проверьте адреса.";
+            errorDiv.style.display = 'block';
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+        
+        myMap.geoObjects.add(multiRoute);
     }
 
     // ========== УМНЫЙ ПОИСК УЛИЦ ==========
-    async function fetchStreetSuggestions(city, query) {
+    async function fetchStreets(city, query) {
         if (!city || query.length < 2) return [];
-        try {
-            let url = `https://geocode-maps.yandex.ru/1.x/?apikey=11bec915-26aa-47af-8ee5-2cf9ff56e3e1&geocode=${encodeURIComponent(city + ' ' + query)}&kind=street&results=7&format=json`;
-            let res = await fetch(url);
-            let data = await res.json();
-            let members = data.response.GeoObjectCollection.featureMember;
-            let streets = [];
-            for (let m of members) {
-                let name = m.GeoObject.name;
-                let description = m.GeoObject.description || '';
-                let full = name + (description ? ', ' + description : '');
-                streets.push(full);
-            }
-            return [...new Set(streets)];
-        } catch(e) { return []; }
+        let url = `https://geocode-maps.yandex.ru/1.x/?apikey=11bec915-26aa-47af-8ee5-2cf9ff56e3e1&geocode=${encodeURIComponent(city + ' ' + query)}&kind=street&results=7&format=json`;
+        let res = await fetch(url);
+        let data = await res.json();
+        let members = data.response.GeoObjectCollection.featureMember;
+        let streets = [];
+        for (let m of members) {
+            let name = m.GeoObject.name;
+            let desc = m.GeoObject.description || '';
+            streets.push(name + (desc ? ', ' + desc : ''));
+        }
+        return [...new Set(streets)];
     }
-
-    function attachStreetSuggest(inputId, cityGetter, suggestListId) {
-        const input = document.getElementById(inputId);
-        const suggestBox = document.getElementById(suggestListId);
-        let timeout = null;
+    
+    function attachStreetSuggest(inputId, cityGetter, listId) {
+        let input = document.getElementById(inputId);
+        let list = document.getElementById(listId);
+        let timeout;
         input.addEventListener('input', async () => {
             clearTimeout(timeout);
-            const query = input.value.trim();
-            const city = cityGetter();
-            if (!city || query.length < 2) { suggestBox.style.display = 'none'; return; }
+            let query = input.value.trim();
+            let city = cityGetter();
+            if (!city || query.length < 2) { list.style.display = 'none'; return; }
             timeout = setTimeout(async () => {
-                const streets = await fetchStreetSuggestions(city, query);
+                let streets = await fetchStreets(city, query);
                 if (streets.length) {
-                    suggestBox.innerHTML = streets.map(s => `<li>${s}</li>`).join('');
-                    suggestBox.style.display = 'block';
-                    suggestBox.querySelectorAll('li').forEach(li => {
+                    list.innerHTML = streets.map(s => `<li>${s}</li>`).join('');
+                    list.style.display = 'block';
+                    list.querySelectorAll('li').forEach(li => {
                         li.addEventListener('click', () => {
                             input.value = li.innerText;
-                            suggestBox.style.display = 'none';
+                            list.style.display = 'none';
                         });
                     });
-                } else { suggestBox.style.display = 'none'; }
+                } else list.style.display = 'none';
             }, 300);
         });
-        document.addEventListener('click', (e) => { if (!input.contains(e.target)) suggestBox.style.display = 'none'; });
+        document.addEventListener('click', (e) => { if (!input.contains(e.target)) list.style.display = 'none'; });
     }
 
-    // ========== КАРТА ==========
-    function initMap() {
-        if (!ymapsReady) return;
-        myMap = new ymaps.Map("map", {
-            center: [55.751574, 37.573856],
-            zoom: 9,
-            controls: ["zoomControl", "fullscreenControl"]
-        });
-        
-        myMap.events.add("click", async (e) => {
-            let coords = e.get("coords");
-            let lat = coords[0], lon = coords[1];
-            if (pickMode === "from") {
-                if (fromPlacemark) myMap.geoObjects.remove(fromPlacemark);
-                fromPlacemark = new ymaps.Placemark([lat, lon], { hintContent: "Отправление" }, { preset: "islands#redDotIcon" });
-                myMap.geoObjects.add(fromPlacemark);
-                await reverseGeocodeAndFill({ lat, lon }, "from");
-            } else {
-                if (toPlacemark) myMap.geoObjects.remove(toPlacemark);
-                toPlacemark = new ymaps.Placemark([lat, lon], { hintContent: "Назначение" }, { preset: "islands#blueDotIcon" });
-                myMap.geoObjects.add(toPlacemark);
-                await reverseGeocodeAndFill({ lat, lon }, "to");
-            }
-        });
-    }
-
-    // ========== ДИНАМИЧЕСКИЕ ФОРМЫ ДЛЯ СБОРНОГО/ВЫДЕЛЕННОГО ==========
-    function renderDynamic() {
-        const container = document.getElementById('dynamicFormContainer');
+    // ========== ДИНАМИЧЕСКИЕ ФОРМЫ ==========
+    function showDynamicForm() {
+        const container = document.getElementById('dynamicForms');
         if (selectedShipType === 'ltl') renderLTL(container);
         else renderDedicated(container);
     }
-
+    
     function renderLTL(container) {
-        container.innerHTML = `<div class="card"><div class="step-title"><i class="fas fa-pallet"></i> Грузы (сборный)</div>
-        <div id="ltlCargoItems"></div><button class="btn-outline" id="addCargoBtn"><i class="fas fa-plus"></i> Добавить груз</button>
-        <button class="btn" id="finishLTLBtn" style="margin-top:20px;">Рассчитать точную стоимость и оформить</button></div>`;
-        function refresh() {
-            let div = document.getElementById('ltlCargoItems');
+        container.innerHTML = `<div class="card">
+            <div class="step-title"><i class="fas fa-pallet"></i> Параметры грузов</div>
+            <div id="ltlList"></div>
+            <button class="btn-outline" id="addLtlBtn"><i class="fas fa-plus"></i> Добавить груз</button>
+            <button class="btn" id="calcLtlFinalBtn" style="margin-top: 20px;">Рассчитать итоговую стоимость →</button>
+        </div>`;
+        function refreshList() {
+            let div = document.getElementById('ltlList');
             if (!div) return;
             div.innerHTML = '';
             ltlCargoList.forEach((c, idx) => {
-                let html = `<div class="cargo-item" data-idx="${idx}"><div class="flex-row">
-                    <div><label>Длина(см)</label><input type="number" class="c-len" value="${c.length}" style="width:90px"></div>
-                    <div><label>Ширина(см)</label><input type="number" class="c-wid" value="${c.width}" style="width:90px"></div>
-                    <div><label>Высота(см)</label><input type="number" class="c-hei" value="${c.height}" style="width:90px"></div>
-                    <div><label>Вес</label><input type="number" class="c-weight" value="${c.weightVal}" style="width:80px"></div>
-                    <div><select class="c-unit"><option ${c.weightUnit==='кг'?'selected':''}>кг</option><option ${c.weightUnit==='т'?'selected':''}>т</option></select></div>
-                    <div><label>Кол-во</label><input type="number" class="c-qty" value="${c.qty}" style="width:70px"></div>
-                    <div><label class="toggle-switch" style="gap:5px">Вращать<input type="checkbox" class="c-rotate" ${c.rotate?'checked':''}><span class="slider" style="width:40px;height:20px;"></span></label></div>
-                    <div><label class="toggle-switch" style="gap:5px">Ставить друг на друга<input type="checkbox" class="c-stack" ${c.stack?'checked':''}><span class="slider" style="width:40px;height:20px;"></span></label></div>
-                    <button class="btn-outline removeCargo">Удалить</button>
-                </div></div>`;
+                let html = `<div class="cargo-item">
+                    <div class="flex-row">
+                        <div><label>Длина(см)</label><input type="number" class="len" value="${c.length}" style="width:85px"></div>
+                        <div><label>Ширина(см)</label><input type="number" class="wid" value="${c.width}" style="width:85px"></div>
+                        <div><label>Высота(см)</label><input type="number" class="hei" value="${c.height}" style="width:85px"></div>
+                        <div><label>Вес</label><input type="number" class="wgt" value="${c.weightVal}" style="width:80px"></div>
+                        <div><select class="unit"><option ${c.weightUnit==='кг'?'selected':''}>кг</option><option ${c.weightUnit==='т'?'selected':''}>т</option></select></div>
+                        <div><label>Кол-во</label><input type="number" class="qty" value="${c.qty}" style="width:70px"></div>
+                        <div><label class="toggle-switch" style="gap:5px">Вращать<input type="checkbox" class="rotate" ${c.rotate?'checked':''}><span class="slider" style="width:40px;height:20px;"></span></label></div>
+                        <div><label class="toggle-switch" style="gap:5px">Ставить друг на друга<input type="checkbox" class="stack" ${c.stack?'checked':''}><span class="slider" style="width:40px;height:20px;"></span></label></div>
+                        <button class="btn-outline removeBtn">Удалить</button>
+                    </div>
+                </div>`;
                 div.insertAdjacentHTML('beforeend', html);
                 let block = div.lastElementChild;
-                block.querySelector('.c-len').addEventListener('change', e => ltlCargoList[idx].length = +e.target.value);
-                block.querySelector('.c-wid').addEventListener('change', e => ltlCargoList[idx].width = +e.target.value);
-                block.querySelector('.c-hei').addEventListener('change', e => ltlCargoList[idx].height = +e.target.value);
-                block.querySelector('.c-weight').addEventListener('change', e => ltlCargoList[idx].weightVal = +e.target.value);
-                block.querySelector('.c-unit').addEventListener('change', e => ltlCargoList[idx].weightUnit = e.target.value);
-                block.querySelector('.c-qty').addEventListener('change', e => ltlCargoList[idx].qty = +e.target.value);
-                block.querySelector('.c-rotate').addEventListener('change', e => ltlCargoList[idx].rotate = e.target.checked);
-                block.querySelector('.c-stack').addEventListener('change', e => ltlCargoList[idx].stack = e.target.checked);
-                block.querySelector('.removeCargo').addEventListener('click', () => { ltlCargoList.splice(idx,1); refresh(); });
+                block.querySelector('.len').addEventListener('change', e => ltlCargoList[idx].length = +e.target.value);
+                block.querySelector('.wid').addEventListener('change', e => ltlCargoList[idx].width = +e.target.value);
+                block.querySelector('.hei').addEventListener('change', e => ltlCargoList[idx].height = +e.target.value);
+                block.querySelector('.wgt').addEventListener('change', e => ltlCargoList[idx].weightVal = +e.target.value);
+                block.querySelector('.unit').addEventListener('change', e => ltlCargoList[idx].weightUnit = e.target.value);
+                block.querySelector('.qty').addEventListener('change', e => ltlCargoList[idx].qty = +e.target.value);
+                block.querySelector('.rotate').addEventListener('change', e => ltlCargoList[idx].rotate = e.target.checked);
+                block.querySelector('.stack').addEventListener('change', e => ltlCargoList[idx].stack = e.target.checked);
+                block.querySelector('.removeBtn').addEventListener('click', () => { ltlCargoList.splice(idx,1); refreshList(); });
             });
         }
-        if (ltlCargoList.length===0) ltlCargoList.push({ length:60, width:40, height:40, weightVal:15, weightUnit:'кг', qty:1, rotate:false, stack:false });
-        refresh();
-        document.getElementById('addCargoBtn').onclick = () => { ltlCargoList.push({ length:50, width:40, height:30, weightVal:10, weightUnit:'кг', qty:1, rotate:false, stack:false }); refresh(); };
-        document.getElementById('finishLTLBtn').onclick = () => showSummary('ltl');
+        if (ltlCargoList.length === 0) ltlCargoList.push({ length:60, width:40, height:40, weightVal:15, weightUnit:'кг', qty:1, rotate:false, stack:false });
+        refreshList();
+        document.getElementById('addLtlBtn').onclick = () => {
+            ltlCargoList.push({ length:50, width:40, height:30, weightVal:10, weightUnit:'кг', qty:1, rotate:false, stack:false });
+            refreshList();
+        };
+        document.getElementById('calcLtlFinalBtn').onclick = () => {
+            let price = calcLTLPrice(currentDistance, currentRoundTrip, ltlCargoList);
+            showFinalOrder(price, `Сборный груз (${ltlCargoList.length} позиций)`);
+        };
     }
-
+    
     function renderDedicated(container) {
-        container.innerHTML = `<div class="card"><div class="step-title"><i class="fas fa-truck"></i> Выбор машины</div>
-        <div class="vehicle-grid" id="vehicleGrid"></div>
-        <div id="bodyTypeBlock" style="display:none;"><div class="option-group"><strong>Тип кузова</strong><div class="checkbox-group" id="bodyGroup"></div></div></div>
-        <div id="extraBlock" style="display:none;"><div class="option-group"><strong>Погрузка (можно несколько)</strong><div class="checkbox-group" id="loadGroup"></div></div>
-        <div class="option-group"><strong>Доп. оснащение</strong><div class="checkbox-group" id="extraGroup"></div></div>
-        <button class="btn" id="finishDedBtn">Рассчитать точную стоимость и оформить</button></div></div>`;
+        container.innerHTML = `<div class="card">
+            <div class="step-title"><i class="fas fa-truck"></i> Выберите автомобиль</div>
+            <div class="vehicle-grid" id="vehicleGrid"></div>
+            <div id="bodyBlock" style="display:none;"><div class="option-group"><strong>Тип кузова</strong><div class="checkbox-group" id="bodyGroup"></div></div></div>
+            <div id="extrasBlock" style="display:none;"><div class="option-group"><strong>Погрузка (можно несколько)</strong><div class="checkbox-group" id="loadingGroup"></div></div>
+            <div class="option-group"><strong>Доп. оборудование</strong><div class="checkbox-group" id="extraGroup"></div></div>
+            <button class="btn" id="calcDedicatedFinalBtn">Рассчитать итоговую стоимость →</button></div>
+        </div>`;
         let grid = document.getElementById('vehicleGrid');
         vehicleRates.forEach(v => {
             let div = document.createElement('div'); div.className = 'vehicle-card';
             div.innerHTML = `<i class="fas ${v.icon} vehicle-icon"></i><div><strong>${v.name}</strong></div><div>коэфф. ${v.multiplier}</div>`;
-            div.onclick = () => { document.querySelectorAll('.vehicle-card').forEach(c => c.classList.remove('selected')); div.classList.add('selected'); dedicatedData.vehicle = v; showBody(); };
+            div.onclick = () => {
+                document.querySelectorAll('.vehicle-card').forEach(c => c.classList.remove('selected'));
+                div.classList.add('selected');
+                dedicatedData.vehicle = v;
+                showBodyOptions();
+            };
             grid.appendChild(div);
         });
-        function showBody() {
-            document.getElementById('bodyTypeBlock').style.display = 'block';
+        function showBodyOptions() {
+            document.getElementById('bodyBlock').style.display = 'block';
             let bg = document.getElementById('bodyGroup'); bg.innerHTML = '';
             ['Тентовый', 'Изотермо', 'Бортовая'].forEach(bt => {
                 let toggle = document.createElement('div'); toggle.className = 'toggle-switch';
-                let radio = document.createElement('input'); radio.type = 'radio'; radio.name = 'bodyRad'; radio.value = bt;
+                let radio = document.createElement('input'); radio.type = 'radio'; radio.name = 'bodyType'; radio.value = bt;
                 let slider = document.createElement('span'); slider.className = 'slider';
                 let span = document.createElement('span'); span.innerText = bt; span.className = 'toggle-label';
                 toggle.appendChild(radio); toggle.appendChild(slider); toggle.appendChild(span);
@@ -751,8 +724,8 @@
             });
         }
         function showExtras() {
-            document.getElementById('extraBlock').style.display = 'block';
-            let loadDiv = document.getElementById('loadGroup'); let extraDiv = document.getElementById('extraGroup');
+            document.getElementById('extrasBlock').style.display = 'block';
+            let loadDiv = document.getElementById('loadingGroup'); let extraDiv = document.getElementById('extraGroup');
             loadDiv.innerHTML = ''; extraDiv.innerHTML = '';
             ['Зад','Бок','Верх'].forEach(opt => {
                 let t = createOptToggle(opt, (ch) => { if(ch) dedicatedData.loadingOptions.push(opt); else dedicatedData.loadingOptions = dedicatedData.loadingOptions.filter(o=>o!==opt); });
@@ -763,7 +736,11 @@
                 let t = createOptToggle(opt, (ch) => { if(ch) dedicatedData.extraOptions.push(key); else dedicatedData.extraOptions = dedicatedData.extraOptions.filter(o=>o!==key); });
                 extraDiv.appendChild(t);
             });
-            document.getElementById('finishDedBtn').onclick = () => showSummary('dedicated');
+            document.getElementById('calcDedicatedFinalBtn').onclick = () => {
+                if (!dedicatedData.vehicle || !dedicatedData.bodyType) { alert("Выберите машину и кузов"); return; }
+                let price = calcDedicatedPrice(currentDistance, currentRoundTrip, dedicatedData.vehicle.multiplier, dedicatedData.extraOptions);
+                showFinalOrder(price, `${dedicatedData.vehicle.name}, кузов ${dedicatedData.bodyType}, доп: ${dedicatedData.extraOptions.join(', ') || 'нет'}`);
+            };
         }
         function createOptToggle(text, onChange) {
             let div = document.createElement('div'); div.className = 'toggle-switch';
@@ -775,48 +752,59 @@
             return div;
         }
     }
-
-    function showSummary(type) {
-        let round = document.getElementById('roundTripToggle').checked;
-        let price = 0;
-        let details = {};
-        if (type === 'ltl') {
-            price = calcLTLPrice(currentDistanceKm, round, ltlCargoList);
-            details = { type:'ltl', cargoList: ltlCargoList, price, distance: currentDistanceKm, roundTrip: round };
-        } else {
-            if (!dedicatedData.vehicle || !dedicatedData.bodyType) { alert("Выберите машину и тип кузова"); return; }
-            price = calcDedicatedPrice(currentDistanceKm, round, dedicatedData.vehicle.multiplier, dedicatedData.extraOptions);
-            details = { type:'dedicated', vehicle: dedicatedData.vehicle, bodyType: dedicatedData.bodyType, loadingOpts: dedicatedData.loadingOptions, extraOpts: dedicatedData.extraOptions, price, distance: currentDistanceKm, roundTrip: round };
-        }
-        displaySummaryCard(details);
+    
+    function showFinalOrder(price, detailsText) {
+        let finalDiv = document.getElementById('finalOrderBlock');
+        let detailsDiv = document.getElementById('finalDetails');
+        let fromCity = document.getElementById('fromCity').value;
+        let toCity = document.getElementById('toCity').value;
+        detailsDiv.innerHTML = `
+            <div class="distance-box" style="margin-bottom: 20px;">
+                <div><strong>Маршрут:</strong> ${fromCity} → ${toCity} ${currentRoundTrip ? '(кругорейс)' : ''}</div>
+                <div><strong>Километраж:</strong> ${currentDistance} км (${currentRoundTrip ? `туда-обратно ${currentDistance*2} км` : 'туда'})</div>
+                <div><strong>Итоговая стоимость:</strong> <span class="price-badge" style="font-size:1.2rem;">${price} ₽</span></div>
+                <div><strong>Детали:</strong> ${detailsText}</div>
+            </div>
+        `;
+        finalDiv.style.display = 'block';
+        finalDiv.scrollIntoView({ behavior: 'smooth' });
+        
+        // Отправка заявки
+        const form = document.getElementById('orderForm');
+        form.onsubmit = (e) => {
+            e.preventDefault();
+            let name = document.getElementById('clientName').value;
+            let phone = document.getElementById('clientPhone').value;
+            let email = document.getElementById('clientEmail').value;
+            let comment = document.getElementById('clientComment').value;
+            let body = `ЗАЯВКА ООО "ДЮНА"\nИмя: ${name}\nТелефон: ${phone}\nEmail: ${email}\nКомментарий: ${comment}\n\nМаршрут: ${fromCity} → ${toCity} (${currentRoundTrip ? 'кругорейс' : 'туда'})\nКилометраж: ${currentDistance} км\nИтоговая цена: ${price} ₽\n${detailsText}`;
+            window.location.href = `mailto:info@duna-logist.ru?subject=Заявка на перевозку от ${name}&body=${encodeURIComponent(body)}`;
+            alert("Заявка подготовлена. Отправьте письмо на info@duna-logist.ru для подтверждения.");
+        };
     }
 
-    function displaySummaryCard(data) {
-        let sumDiv = document.getElementById('summaryContainer');
-        sumDiv.style.display = 'block';
-        let fromCity = document.getElementById('fromCity').value, toCity = document.getElementById('toCity').value;
-        let html = `<div class="card"><div class="step-title"><i class="fas fa-file-signature"></i> Детали заказа</div>
-        <p><strong>Маршрут:</strong> ${fromCity} → ${toCity} ${data.roundTrip ? '(кругорейс)' : ''}</p>
-        <p><strong>Километраж по дорогам:</strong> ${data.distance} км (${data.roundTrip ? `общий путь ${data.distance*2} км` : 'в одну сторону'})</p>
-        <p><strong>Итоговая стоимость перевозки:</strong> <span class="price-badge">${data.price} ₽</span></p>`;
-        if (data.type === 'ltl') html += `<p>Тип: Сборный груз (${data.cargoList.length} позиций)</p>`;
-        else html += `<p>Транспорт: ${data.vehicle.name}, кузов: ${data.bodyType}, доп: ${data.extraOpts.join(', ') || 'нет'}</p>`;
-        html += `<hr><form id="finalForm"><div class="input-field"><label>Ваше имя</label><input id="userName" required></div>
-        <div class="input-field"><label>Телефон</label><input id="userPhone" required></div>
-        <div class="input-field"><label>Email</label><input id="userEmail" type="email" required></div>
-        <div class="input-field"><label>Комментарий</label><textarea id="userComment" rows="2"></textarea></div>
-        <button type="submit" class="btn"><i class="fas fa-paper-plane"></i> Отправить заявку</button></form></div>`;
-        sumDiv.innerHTML = html;
-        document.getElementById('finalForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            let name = document.getElementById('userName').value, phone = document.getElementById('userPhone').value, email = document.getElementById('userEmail').value, comm = document.getElementById('userComment').value;
-            let body = `ЗАЯВКА НА ПЕРЕВОЗКУ ООО "ДЮНА"\nИмя: ${name}\nТелефон: ${phone}\nEmail: ${email}\nКомментарий: ${comm}\n\nМаршрут: ${fromCity} → ${toCity} (${data.roundTrip ? 'кругорейс' : 'туда'})\nКилометраж: ${data.distance} км\nИтоговая цена: ${data.price} ₽\nПодробности: ${data.type === 'ltl' ? JSON.stringify(data.cargoList) : data.vehicle.name + ', ' + data.bodyType}`;
-            window.location.href = `mailto:info@duna-logist.ru?subject=Заявка от ${name}&body=${encodeURIComponent(body)}`;
-            alert("Заявка подготовлена. Отправьте письмо на info@duna-logist.ru для подтверждения.");
+    // ========== ИНИЦИАЛИЗАЦИЯ ==========
+    function initMap() {
+        if (!ymapsReady) return;
+        myMap = new ymaps.Map("map", { center: [55.751574, 37.573856], zoom: 9, controls: ["zoomControl", "fullscreenControl"] });
+        myMap.events.add("click", async (e) => {
+            let coords = e.get("coords");
+            let lat = coords[0], lon = coords[1];
+            if (window.pickMode === "from") {
+                if (fromPlacemark) myMap.geoObjects.remove(fromPlacemark);
+                fromPlacemark = new ymaps.Placemark([lat, lon], {}, { preset: "islands#redDotIcon" });
+                myMap.geoObjects.add(fromPlacemark);
+                await reverseGeocode(lat, lon, "from");
+            } else {
+                if (toPlacemark) myMap.geoObjects.remove(toPlacemark);
+                toPlacemark = new ymaps.Placemark([lat, lon], {}, { preset: "islands#blueDotIcon" });
+                myMap.geoObjects.add(toPlacemark);
+                await reverseGeocode(lat, lon, "to");
+            }
         });
     }
 
-    // ========== СОБЫТИЯ И НАВИГАЦИЯ ==========
+    // Навигация
     document.querySelectorAll('.nav-links a').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
@@ -832,31 +820,29 @@
         document.getElementById('calculatorPage').style.display = 'block';
         if (ymapsReady && !myMap) initMap();
     };
-    document.getElementById('calcDistanceBtn').onclick = buildAndDisplayRoute;
-    document.getElementById('confirmTypeBtn').onclick = () => {
-        if (!routeSelected || currentDistanceKm === 0) { alert("Сначала постройте маршрут и рассчитайте километраж."); return; }
+    
+    window.pickMode = "from";
+    document.getElementById('selectFromBtn').onclick = () => { window.pickMode = "from"; document.getElementById('selectFromBtn').classList.add('active'); document.getElementById('selectToBtn').classList.remove('active'); };
+    document.getElementById('selectToBtn').onclick = () => { window.pickMode = "to"; document.getElementById('selectToBtn').classList.add('active'); document.getElementById('selectFromBtn').classList.remove('active'); };
+    document.getElementById('calcRouteBtn').onclick = buildRoute;
+    document.getElementById('continueTypeBtn').onclick = () => {
         let ltl = document.getElementById('typeLTL').checked;
         let ded = document.getElementById('typeDedicated').checked;
-        if (!ltl && !ded) { alert("Выберите тип отправки"); return; }
+        if (!ltl && !ded) { alert("Выберите тип перевозки"); return; }
         selectedShipType = ltl ? 'ltl' : 'dedicated';
-        renderDynamic();
-        document.getElementById('dynamicFormContainer').scrollIntoView({ behavior: 'smooth' });
+        showDynamicForm();
+        document.getElementById('dynamicForms').scrollIntoView({ behavior: 'smooth' });
     };
-    document.getElementById('selectFromBtn').onclick = () => { pickMode = "from"; document.getElementById('selectFromBtn').classList.add('active'); document.getElementById('selectToBtn').classList.remove('active'); };
-    document.getElementById('selectToBtn').onclick = () => { pickMode = "to"; document.getElementById('selectToBtn').classList.add('active'); document.getElementById('selectFromBtn').classList.remove('active'); };
-    document.getElementById('roundTripToggle').addEventListener('change', updatePreviewPrice);
-
-    // Умный поиск улиц
+    document.getElementById('roundTripToggle').addEventListener('change', () => { if (currentDistance) updatePriceDisplay(); });
+    
     attachStreetSuggest('fromStreet', () => document.getElementById('fromCity').value, 'fromStreetSuggest');
     attachStreetSuggest('toStreet', () => document.getElementById('toCity').value, 'toStreetSuggest');
-
-    // Инициализация Яндекс.Карт и Suggest для городов
-    let cityFromSuggest, cityToSuggest;
+    
     ymaps.ready(() => {
         ymapsReady = true;
+        new ymaps.SuggestView('fromCity', { results: 8 });
+        new ymaps.SuggestView('toCity', { results: 8 });
         if (document.getElementById('calculatorPage').style.display !== 'none') initMap();
-        cityFromSuggest = new ymaps.SuggestView('fromCity', { results: 8 });
-        cityToSuggest = new ymaps.SuggestView('toCity', { results: 8 });
     });
 </script>
 </body>

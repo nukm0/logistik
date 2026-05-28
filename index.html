@@ -8,11 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #2b1b3d 0%, #1a0f2e 100%);
@@ -269,6 +265,29 @@
             animation: spin 0.6s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+        .type-selector {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+        .type-card {
+            flex: 1;
+            min-width: 200px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 28px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .type-card i { font-size: 2.5rem; color: #c084fc; margin-bottom: 0.8rem; }
+        .type-card h3 { font-size: 1.3rem; margin-bottom: 0.5rem; }
+        .type-card p { font-size: 0.85rem; color: #b9a6d9; }
+        .type-card:hover { transform: translateY(-3px); background: rgba(255,255,255,0.1); }
+        .type-card.selected { border-color: #c084fc; background: rgba(192,132,252,0.2); }
         @media (max-width: 780px) { .grid-2col { grid-template-columns: 1fr; } .options-row { flex-direction: column; } }
     </style>
 </head>
@@ -335,26 +354,23 @@
                 <div><i class="fas fa-road"></i> Километраж: <strong id="distanceKm">— км</strong></div>
                 <span id="roundHint"></span>
             </div>
-            <div id="nextStepBlock" style="display: none; margin-top: 20px; text-align: center;">
-                <button class="btn" id="goToNextStep"><i class="fas fa-arrow-right"></i> Далее →</button>
-            </div>
             <div class="info-note">💡 Кликните на карту, чтобы поставить точку. Нажмите «Рассчитать маршрут».</div>
         </div>
 
-        <!-- Шаг 2: выбор типа перевозки (появится после нажатия "Далее") -->
+        <!-- Шаг 2: выбор типа перевозки (появляется автоматически после расчёта маршрута) -->
         <div id="typeSelectorBlock" style="display: none;">
             <div class="card">
                 <div class="step-title"><i class="fas fa-boxes"></i> 2. Тип отправки</div>
-                <div class="type-selector" style="display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap;">
-                    <div class="type-card" data-type="ltl" style="flex:1; min-width:200px; background:rgba(255,255,255,0.05); border-radius:28px; padding:1.5rem; text-align:center; cursor:pointer; border:2px solid transparent;">
-                        <i class="fas fa-cubes" style="font-size:2.5rem; color:#c084fc;"></i>
+                <div class="type-selector">
+                    <div class="type-card" data-type="ltl">
+                        <i class="fas fa-cubes"></i>
                         <h3>Сборный груз</h3>
-                        <p style="font-size:0.85rem;">Для небольших грузов, коробок, паллет</p>
+                        <p>Для небольших грузов, коробок, паллет</p>
                     </div>
-                    <div class="type-card" data-type="dedicated" style="flex:1; min-width:200px; background:rgba(255,255,255,0.05); border-radius:28px; padding:1.5rem; text-align:center; cursor:pointer; border:2px solid transparent;">
-                        <i class="fas fa-truck" style="font-size:2.5rem; color:#c084fc;"></i>
+                    <div class="type-card" data-type="dedicated">
+                        <i class="fas fa-truck"></i>
                         <h3>Выделенный транспорт</h3>
-                        <p style="font-size:0.85rem;">Для крупногабаритных грузов</p>
+                        <p>Для крупногабаритных грузов</p>
                     </div>
                 </div>
             </div>
@@ -390,7 +406,7 @@
     let dedicatedData = { vehicle: null, bodyType: null, loadingOptions: [], extraOptions: [] };
     let ltlCargoList = [];
 
-    // Тарифы (базовые, для демонстрации)
+    // Тарифы (для демонстрации расчёта цены)
     function getRatePerKm(d) {
         if (d <= 10) return 150;
         if (d <= 40) return 108;
@@ -482,11 +498,9 @@
             let displayKm = round ? currentDistance * 2 : currentDistance;
             document.getElementById('distanceKm').innerText = displayKm + " км";
             document.getElementById('roundHint').innerHTML = round ? `(кругорейс: ${currentDistance} км × 2 = ${displayKm} км)` : "";
-            document.getElementById('nextStepBlock').style.display = 'block';
         } else {
             document.getElementById('distanceKm').innerText = "— км";
             document.getElementById('roundHint').innerHTML = "";
-            document.getElementById('nextStepBlock').style.display = 'none';
         }
     }
 
@@ -537,6 +551,9 @@
                 myMap.geoObjects.add(route);
                 currentRoute = route;
                 myMap.setBounds(route.getBounds(), { checkZoomRange: true });
+                // После успешного расчёта показываем выбор типа перевозки
+                document.getElementById('typeSelectorBlock').style.display = 'block';
+                document.getElementById('typeSelectorBlock').scrollIntoView({ behavior: 'smooth' });
             } else {
                 alert("Не удалось проложить маршрут (нулевая длина)");
             }
@@ -571,7 +588,7 @@
         });
     }
 
-    // ---------- Формы для сборного и выделенного груза (сокращённо, но рабочие) ----------
+    // ---------- Формы для сборного и выделенного груза ----------
     function showDynamicForm(type) {
         const container = document.getElementById('dynamicForms');
         if (type === 'ltl') renderLTL(container);
@@ -752,23 +769,20 @@
     document.getElementById('gotoCalcHome').addEventListener('click', () => setActivePage('calculatorPage'));
     document.getElementById('calcRouteBtn').onclick = buildRoute;
     document.getElementById('roundTripToggle').addEventListener('change', updateDistanceDisplay);
-    document.getElementById('goToNextStep').addEventListener('click', () => {
-        if (currentDistance === 0) { alert("Сначала рассчитайте маршрут."); return; }
-        document.getElementById('typeSelectorBlock').style.display = 'block';
-        document.getElementById('typeSelectorBlock').scrollIntoView({ behavior: 'smooth' });
-        // Навешиваем выбор типа карточки
-        document.querySelectorAll('.type-card').forEach(card => {
-            card.style.cursor = 'pointer';
-            card.addEventListener('click', (e) => {
-                const type = card.getAttribute('data-type');
-                document.querySelectorAll('.type-card').forEach(c => c.style.borderColor = 'transparent');
-                card.style.borderColor = '#c084fc';
-                selectedShipType = type;
-                showDynamicForm(type);
-                document.getElementById('dynamicForms').scrollIntoView({ behavior: 'smooth' });
-            });
-        });
+
+    // Выбор типа перевозки по клику на карточку
+    document.addEventListener('click', (e) => {
+        const card = e.target.closest('.type-card');
+        if (card && document.getElementById('typeSelectorBlock').style.display === 'block') {
+            const type = card.getAttribute('data-type');
+            document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            selectedShipType = type;
+            showDynamicForm(type);
+            document.getElementById('dynamicForms').scrollIntoView({ behavior: 'smooth' });
+        }
     });
+
     window.pickMode = "from";
     document.getElementById('selectFromBtn').onclick = () => { window.pickMode = "from"; document.getElementById('selectFromBtn').classList.add('active'); document.getElementById('selectToBtn').classList.remove('active'); };
     document.getElementById('selectToBtn').onclick = () => { window.pickMode = "to"; document.getElementById('selectToBtn').classList.add('active'); document.getElementById('selectFromBtn').classList.remove('active'); };

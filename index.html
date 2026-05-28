@@ -244,7 +244,7 @@
             display: inline-block;
         }
 
-        /* Карточки выбора типа (кликабельные, без кнопки продолжения) */
+        /* Карточки выбора типа (кликабельные) */
         .type-selector {
             display: flex;
             gap: 1.5rem;
@@ -294,7 +294,7 @@
             box-shadow: 0 8px 20px rgba(192, 132, 252, 0.3);
         }
 
-        /* Карточки автомобилей */
+        /* Карточки автомобилей (только тонны и кубы, без коэффициента) */
         .vehicle-grid {
             display: flex;
             flex-wrap: wrap;
@@ -342,7 +342,7 @@
             margin-top: 12px;
         }
 
-        /* Карточки грузов (сборный) — красивые */
+        /* Карточки грузов (сборный) */
         .cargo-item {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 28px;
@@ -733,7 +733,8 @@
         let grid = document.getElementById('vehicleGrid');
         vehicleRates.forEach(v => {
             let div = document.createElement('div'); div.className = 'vehicle-card';
-            div.innerHTML = `<i class="fas ${v.icon} vehicle-icon"></i><div><strong>${v.name}</strong></div><div style="font-size:0.8rem; color:#b9a6d9;">коэфф. ${v.multiplier}</div>`;
+            // Показываем только название (тонны/кубы), без коэффициента
+            div.innerHTML = `<i class="fas ${v.icon} vehicle-icon"></i><div><strong>${v.name}</strong></div>`;
             div.onclick = () => {
                 document.querySelectorAll('.vehicle-card').forEach(c => c.classList.remove('selected'));
                 div.classList.add('selected');
@@ -842,7 +843,6 @@
                     alert("Сначала установите маршрут (нажмите 'Установить маршрут (1000 км)')");
                     return;
                 }
-                // Убираем выделение со всех и выделяем выбранную
                 document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
                 card.classList.add('selected');
                 selectedShipType = type;

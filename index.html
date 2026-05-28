@@ -3,16 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>ООО "Дюна" — Расчёт километража и заявка</title>
-    <script src="https://api-maps.yandex.ru/2.1/?apikey=11bec915-26aa-47af-8ee5-2cf9ff56e3e1&lang=ru_RU"></script>
+    <title>ООО "Дюна" — Калькулятор перевозок</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #2b1b3d 0%, #1a0f2e 100%);
@@ -93,32 +88,6 @@
             background: rgba(10, 5, 20, 0.7);
             box-shadow: 0 0 0 3px rgba(192, 132, 252, 0.2);
         }
-        .map-container {
-            margin-bottom: 1.5rem;
-            border-radius: 28px;
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        #map { height: 380px; width: 100%; }
-        .map-tools {
-            display: flex;
-            gap: 15px;
-            margin: 12px 0 20px;
-            justify-content: center;
-        }
-        .map-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            padding: 10px 24px;
-            border-radius: 40px;
-            font-weight: 600;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            color: #d9c6f0;
-        }
-        .map-btn.active { background: #c084fc; color: #1a0f2e; }
         .btn {
             background: #c084fc;
             border: none;
@@ -156,6 +125,48 @@
             font-weight: 700;
             font-size: 1.6rem;
             display: inline-block;
+        }
+        .type-selector {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 0rem;
+        }
+        .type-card {
+            flex: 1;
+            min-width: 220px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 28px;
+            padding: 1.8rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        .type-card i {
+            font-size: 2.8rem;
+            color: #c084fc;
+            margin-bottom: 0.8rem;
+        }
+        .type-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 0.5rem;
+            color: #f0eef7;
+        }
+        .type-card p {
+            font-size: 0.85rem;
+            color: #b9a6d9;
+        }
+        .type-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(192, 132, 252, 0.5);
+        }
+        .type-card.selected {
+            border-color: #c084fc;
+            background: rgba(192, 132, 252, 0.15);
+            box-shadow: 0 8px 20px rgba(192, 132, 252, 0.3);
         }
         .vehicle-grid {
             display: flex;
@@ -212,7 +223,6 @@
             color: #ffaaaa;
             cursor: pointer;
         }
-        .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
         .options-row {
             display: flex;
             flex-wrap: wrap;
@@ -228,42 +238,38 @@
         }
         .option-col strong { display: block; margin-bottom: 1rem; color: #c084fc; }
         .checkbox-group { display: flex; flex-direction: column; gap: 15px; }
-        .type-selector {
-            display: flex;
-            gap: 1.5rem;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin: 1rem 0;
-        }
-        .type-card {
-            flex: 1;
-            min-width: 220px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid rgba(255, 255, 255, 0.15);
-            border-radius: 28px;
-            padding: 1.5rem;
-            text-align: center;
+        .toggle-switch {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
             cursor: pointer;
-            transition: all 0.2s;
         }
-        .type-card i { font-size: 2.5rem; color: #c084fc; margin-bottom: 0.8rem; }
-        .type-card h3 { font-size: 1.3rem; margin-bottom: 0.5rem; }
-        .type-card:hover { transform: translateY(-3px); background: rgba(255,255,255,0.1); }
-        .type-card.selected { border-color: #c084fc; background: rgba(192,132,252,0.15); }
+        .toggle-switch input { display: none; }
+        .slider {
+            width: 54px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 30px;
+            position: relative;
+            transition: 0.25s;
+        }
+        .slider:before {
+            content: "";
+            position: absolute;
+            width: 26px;
+            height: 26px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: 0.25s;
+        }
+        .toggle-switch input:checked + .slider { background: #c084fc; }
+        .toggle-switch input:checked + .slider:before { transform: translateX(24px); }
         .page { display: none; }
         .page.active-page { display: block; }
-        .info-note { font-size: 0.75rem; color: #b9a6d9; margin-top: 8px; }
-        .loader {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid #fff;
-            border-radius: 50%;
-            border-top-color: transparent;
-            animation: spin 0.6s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @media (max-width: 780px) { .grid-2col { grid-template-columns: 1fr; } .options-row { flex-direction: column; } }
+        .info-note { font-size: 0.75rem; color: #b9a6d9; margin-top: 8px; text-align: center; }
+        @media (max-width: 780px) { .type-selector { flex-direction: column; } .options-row { flex-direction: column; } }
     </style>
 </head>
 <body>
@@ -279,8 +285,8 @@
     <!-- Главная -->
     <div id="homePage" class="page active-page">
         <div class="card" style="background: linear-gradient(110deg, rgba(43,27,61,0.8), rgba(26,15,46,0.9));">
-            <h1 style="font-size: 2rem;">🚛 Расчёт километража и заявка</h1>
-            <p style="font-size: 1.2rem;">Выберите точки на карте, получите точное расстояние и оформите заявку.</p>
+            <h1 style="font-size: 2rem;">🚛 Рассчитайте грузоперевозку за минуту</h1>
+            <p style="font-size: 1.2rem;">Фиксированное расстояние: 1000 км. Выберите тип перевозки и заполните детали.</p>
             <button class="btn" id="gotoCalcHome" style="margin-top: 1.5rem;"><i class="fas fa-calculator"></i> Перейти к калькулятору</button>
         </div>
     </div>
@@ -293,38 +299,18 @@
             <p><i class="fas fa-envelope"></i> info@duna-logist.ru</p>
         </div>
     </div>
-    <!-- Калькулятор + формы -->
+    <!-- Калькулятор -->
     <div id="calculatorPage" class="page">
-        <!-- Шаг 1: Маршрут -->
         <div class="card">
-            <div class="step-title"><i class="fas fa-map-marked-alt"></i> 1. Маршрут на карте</div>
-            <div class="map-container"><div id="map"></div></div>
-            <div class="map-tools">
-                <button id="selectFromBtn" class="map-btn active"><i class="fas fa-map-marker-alt" style="color:#e74c3c;"></i> Откуда (красный)</button>
-                <button id="selectToBtn" class="map-btn"><i class="fas fa-map-marker-alt" style="color:#3498db;"></i> Куда (синий)</button>
+            <div class="step-title"><i class="fas fa-route"></i> 1. Расстояние (фиксированное)</div>
+            <div style="text-align: center; margin-bottom: 1rem;">
+                <button class="btn" id="calcRouteBtn"><i class="fas fa-route"></i> Установить маршрут (1000 км)</button>
             </div>
-            <div class="grid-2col">
-                <div class="address-group">
-                    <h3><i class="fas fa-circle-dot" style="color:#e74c3c;"></i> Откуда</h3>
-                    <div class="input-field"><label>Город</label><input type="text" id="fromCity" placeholder="Начните вводить город"></div>
-                    <div class="input-field"><label>Улица</label><input type="text" id="fromStreet" placeholder="Улица"></div>
-                    <div class="input-field"><label>Дом</label><input type="text" id="fromHouse" placeholder="дом"></div>
-                </div>
-                <div class="address-group">
-                    <h3><i class="fas fa-flag-checkered" style="color:#3498db;"></i> Куда</h3>
-                    <div class="input-field"><label>Город</label><input type="text" id="toCity" placeholder="Начните вводить город"></div>
-                    <div class="input-field"><label>Улица</label><input type="text" id="toStreet" placeholder="Улица"></div>
-                    <div class="input-field"><label>Дом</label><input type="text" id="toHouse" placeholder="дом"></div>
-                </div>
-            </div>
-            <button class="btn" id="calcRouteBtn" style="width:100%; margin: 10px 0;"><i class="fas fa-route"></i> Рассчитать маршрут</button>
             <div class="distance-box" id="distanceDisplay">
                 <div><i class="fas fa-road"></i> Километраж: <strong id="distanceKm">— км</strong></div>
             </div>
-            <div class="info-note">💡 Кликните на карту, чтобы поставить точку. Нажмите «Рассчитать маршрут» для построения.</div>
         </div>
 
-        <!-- Шаг 2: выбор типа перевозки (появляется после расчёта маршрута) -->
         <div id="typeSelectorBlock" style="display: none;">
             <div class="card">
                 <div class="step-title"><i class="fas fa-boxes"></i> 2. Тип отправки</div>
@@ -343,10 +329,7 @@
             </div>
         </div>
 
-        <!-- Динамические формы (сборный/выделенный) -->
         <div id="dynamicForms"></div>
-
-        <!-- Блок итоговой заявки -->
         <div id="finalOrderBlock" style="display: none;">
             <div class="card">
                 <div class="step-title"><i class="fas fa-file-signature"></i> 3. Оформление заявки</div>
@@ -364,16 +347,13 @@
 </div>
 
 <script>
-    let ymapsReady = false;
-    let myMap = null;
-    let fromPlacemark, toPlacemark;
-    let currentRoute = null;
-    let currentDistance = 0;          // расстояние в одну сторону (км)
+    // Фиксированное расстояние 1000 км (без кругорейса)
+    let currentDistance = 0;
     let selectedShipType = null;
     let dedicatedData = { vehicle: null, bodyType: null, loadingOptions: [], extraOptions: [] };
     let ltlCargoList = [];
 
-    // Тарифы (базовые, для демонстрации)
+    // Тарифы (базовые)
     function getRatePerKm(d) {
         if (d <= 10) return 150;
         if (d <= 40) return 108;
@@ -382,18 +362,18 @@
         if (d <= 300) return 54;
         return 54;
     }
-    function calcBasePrice(distOneWay) {
-        let cost = distOneWay * getRatePerKm(distOneWay);
+    function calcBasePrice(dist) {
+        let cost = dist * getRatePerKm(dist);
         return Math.max(cost, 3000);
     }
-    function calcDedicatedPrice(distOneWay, mult, extras) {
-        let base = calcBasePrice(distOneWay);
+    function calcDedicatedPrice(dist, mult, extras) {
+        let base = calcBasePrice(dist);
         let veh = base * mult;
         let extraSum = (extras.includes('remni') ? 600 : 0) + (extras.includes('gidrobort') ? 1200 : 0);
         return Math.round(veh + extraSum);
     }
-    function calcLTLPrice(distOneWay, cargoArr) {
-        if (!cargoArr.length) return calcBasePrice(distOneWay);
+    function calcLTLPrice(dist, cargoArr) {
+        if (!cargoArr.length) return calcBasePrice(dist);
         let totalKg = 0, totalVolKg = 0;
         cargoArr.forEach(c => {
             let kg = c.weightVal * (c.weightUnit === 'т' ? 1000 : 1);
@@ -403,7 +383,7 @@
             totalVolKg += dimWeight * c.qty;
         });
         let chargeable = Math.max(totalKg, totalVolKg);
-        let base = calcBasePrice(distOneWay);
+        let base = calcBasePrice(dist);
         let factor = Math.max(0.7, Math.min(3.5, chargeable / 400));
         return Math.max(Math.round(base * factor), 3000);
     }
@@ -416,145 +396,30 @@
         { name: "20т / 115м³", multiplier: 2.3, icon: "fa-truck" }
     ];
 
-    // Геокодинг
-    async function getCoords(city, street, house) {
-        if (!city) return null;
-        let query = `${city}, ${street} ${house}`.trim().replace(/\s+/g, ' ');
-        try {
-            let res = await fetch(`https://geocode-maps.yandex.ru/1.x/?apikey=11bec915-26aa-47af-8ee5-2cf9ff56e3e1&geocode=${encodeURIComponent(query)}&format=json&results=1`);
-            let data = await res.json();
-            let members = data.response.GeoObjectCollection.featureMember;
-            if (members.length) {
-                let pos = members[0].GeoObject.Point.pos.split(' ');
-                return { lon: parseFloat(pos[0]), lat: parseFloat(pos[1]) };
-            }
-        } catch(e) { console.warn(e); }
-        return null;
-    }
-    async function reverseGeocode(lat, lon, type) {
-        try {
-            let res = await fetch(`https://geocode-maps.yandex.ru/1.x/?apikey=11bec915-26aa-47af-8ee5-2cf9ff56e3e1&geocode=${lon},${lat}&format=json&results=1`);
-            let data = await res.json();
-            let member = data.response.GeoObjectCollection.featureMember[0];
-            if (!member) return;
-            let components = member.GeoObject.metaDataProperty.GeocoderMetaData.Address.Components;
-            let city = "", street = "", house = "";
-            for (let c of components) {
-                if (c.kind === "locality") city = c.name;
-                if (c.kind === "street") street = c.name;
-                if (c.kind === "house") house = c.name;
-            }
-            if (!city) city = member.GeoObject.name.split(',')[0] || "";
-            if (type === "from") {
-                document.getElementById('fromCity').value = city;
-                document.getElementById('fromStreet').value = street;
-                document.getElementById('fromHouse').value = house;
-            } else {
-                document.getElementById('toCity').value = city;
-                document.getElementById('toStreet').value = street;
-                document.getElementById('toHouse').value = house;
-            }
-        } catch(e) {}
+    // Установка фиксированного маршрута
+    function setFixedRoute() {
+        currentDistance = 1000;
+        document.getElementById('distanceKm').innerText = currentDistance + " км";
+        document.getElementById('typeSelectorBlock').style.display = 'block';
+        // Прокрутка к выбору типа
+        document.getElementById('typeSelectorBlock').scrollIntoView({ behavior: 'smooth' });
     }
 
-    // Отображение километража (без кругорейса)
-    function updateDistanceDisplay() {
-        if (currentDistance > 0) {
-            document.getElementById('distanceKm').innerText = currentDistance + " км";
-        } else {
-            document.getElementById('distanceKm').innerText = "— км";
+    // Валидация грузов для сборного
+    function validateLtlCargos() {
+        for (let c of ltlCargoList) {
+            if (c.length <= 0 || c.width <= 0 || c.height <= 0 || c.weightVal <= 0 || c.qty <= 0) return false;
         }
+        return ltlCargoList.length > 0;
     }
 
-    // Построение маршрута
-    async function buildRoute() {
-        const btn = document.getElementById('calcRouteBtn');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<span class="loader"></span> Построение...';
-        btn.disabled = true;
-
-        let fromCity = document.getElementById('fromCity').value.trim();
-        let fromStreet = document.getElementById('fromStreet').value.trim();
-        let fromHouse = document.getElementById('fromHouse').value.trim();
-        let toCity = document.getElementById('toCity').value.trim();
-        let toStreet = document.getElementById('toStreet').value.trim();
-        let toHouse = document.getElementById('toHouse').value.trim();
-
-        if (!fromCity || !toCity) {
-            alert("Укажите город отправления и город назначения");
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-            return;
-        }
-
-        let fromCoords = await getCoords(fromCity, fromStreet, fromHouse);
-        let toCoords = await getCoords(toCity, toStreet, toHouse);
-        if (!fromCoords || !toCoords) {
-            alert("❌ Не удалось определить координаты. Проверьте адреса или кликните на карту.");
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-            return;
-        }
-
-        if (fromPlacemark) myMap.geoObjects.remove(fromPlacemark);
-        fromPlacemark = new ymaps.Placemark([fromCoords.lat, fromCoords.lon], { hintContent: "Отправление" }, { preset: "islands#redDotIcon" });
-        myMap.geoObjects.add(fromPlacemark);
-        if (toPlacemark) myMap.geoObjects.remove(toPlacemark);
-        toPlacemark = new ymaps.Placemark([toCoords.lat, toCoords.lon], { hintContent: "Назначение" }, { preset: "islands#blueDotIcon" });
-        myMap.geoObjects.add(toPlacemark);
-        if (currentRoute) myMap.geoObjects.remove(currentRoute);
-
-        try {
-            const route = await ymaps.route([[fromCoords.lat, fromCoords.lon], [toCoords.lat, toCoords.lon]]);
-            const length = route.getLength();
-            if (length && length > 0) {
-                currentDistance = Math.round(length / 1000);
-                updateDistanceDisplay();
-                myMap.geoObjects.add(route);
-                currentRoute = route;
-                myMap.setBounds(route.getBounds(), { checkZoomRange: true });
-                // Показываем выбор типа перевозки
-                document.getElementById('typeSelectorBlock').style.display = 'block';
-            } else {
-                alert("Не удалось проложить маршрут (нулевая длина)");
-            }
-        } catch (err) {
-            console.error(err);
-            alert("❌ Ошибка построения маршрута. Проверьте адреса или попробуйте кликнуть на карту.");
-        } finally {
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-        }
-    }
-
-    // Инициализация карты
-    function initMap() {
-        if (!ymapsReady || myMap) return;
-        myMap = new ymaps.Map("map", { center: [55.751574, 37.573856], zoom: 9, controls: ["zoomControl", "fullscreenControl"] });
-        setTimeout(() => myMap.container.fitToViewport(), 100);
-        myMap.events.add("click", async (e) => {
-            let coords = e.get("coords");
-            let lat = coords[0], lon = coords[1];
-            if (window.pickMode === "from") {
-                if (fromPlacemark) myMap.geoObjects.remove(fromPlacemark);
-                fromPlacemark = new ymaps.Placemark([lat, lon], {}, { preset: "islands#redDotIcon" });
-                myMap.geoObjects.add(fromPlacemark);
-                await reverseGeocode(lat, lon, "from");
-            } else {
-                if (toPlacemark) myMap.geoObjects.remove(toPlacemark);
-                toPlacemark = new ymaps.Placemark([lat, lon], {}, { preset: "islands#blueDotIcon" });
-                myMap.geoObjects.add(toPlacemark);
-                await reverseGeocode(lat, lon, "to");
-            }
-        });
-    }
-
-    // ---------- Формы для сборного и выделенного груза ----------
+    // Динамические формы
     function showDynamicForm(type) {
         const container = document.getElementById('dynamicForms');
         if (type === 'ltl') renderLTL(container);
         else renderDedicated(container);
     }
+    
     function renderLTL(container) {
         container.innerHTML = `<div class="card">
             <div class="step-title"><i class="fas fa-pallet"></i> Параметры грузов</div>
@@ -582,8 +447,8 @@
                     </div>
                     <div class="cargo-actions">
                         <div class="cargo-toggles">
-                            <label class="toggle-switch" style="gap:8px">Вращать<input type="checkbox" class="rotate" ${c.rotate?'checked':''}><span class="slider" style="width:40px;height:20px; background:rgba(255,255,255,0.2); display:inline-block; border-radius:20px; position:relative;"><span style="position:absolute; width:18px; height:18px; background:white; border-radius:50%; top:1px; left:2px; transition:0.2s;"></span></span></label>
-                            <label class="toggle-switch" style="gap:8px">Ставить друг на друга<input type="checkbox" class="stack" ${c.stack?'checked':''}><span class="slider" style="width:40px;height:20px; background:rgba(255,255,255,0.2); display:inline-block; border-radius:20px; position:relative;"><span style="position:absolute; width:18px; height:18px; background:white; border-radius:50%; top:1px; left:2px; transition:0.2s;"></span></span></label>
+                            <label class="toggle-switch" style="gap:8px">Вращать<input type="checkbox" class="rotate" ${c.rotate?'checked':''}><span class="slider"></span></label>
+                            <label class="toggle-switch" style="gap:8px">Ставить друг на друга<input type="checkbox" class="stack" ${c.stack?'checked':''}><span class="slider"></span></label>
                         </div>
                         <button class="remove-btn">Удалить</button>
                     </div>
@@ -596,12 +461,8 @@
                 block.querySelector('.wgt').onchange = e => ltlCargoList[idx].weightVal = +e.target.value;
                 block.querySelector('.unit').onchange = e => ltlCargoList[idx].weightUnit = e.target.value;
                 block.querySelector('.qty').onchange = e => ltlCargoList[idx].qty = +e.target.value;
-                let rotateSpan = block.querySelector('.rotate + span span');
-                let stackSpan = block.querySelector('.stack + span span');
-                block.querySelector('.rotate').onchange = e => { ltlCargoList[idx].rotate = e.target.checked; rotateSpan.style.transform = e.target.checked ? 'translateX(18px)' : 'translateX(0)'; };
-                block.querySelector('.stack').onchange = e => { ltlCargoList[idx].stack = e.target.checked; stackSpan.style.transform = e.target.checked ? 'translateX(18px)' : 'translateX(0)'; };
-                rotateSpan.style.transform = c.rotate ? 'translateX(18px)' : 'translateX(0)';
-                stackSpan.style.transform = c.stack ? 'translateX(18px)' : 'translateX(0)';
+                block.querySelector('.rotate').onchange = e => ltlCargoList[idx].rotate = e.target.checked;
+                block.querySelector('.stack').onchange = e => ltlCargoList[idx].stack = e.target.checked;
                 block.querySelector('.remove-btn').onclick = () => { ltlCargoList.splice(idx,1); refreshList(); };
             });
         }
@@ -612,18 +473,18 @@
             refreshList();
         };
         document.getElementById('calcLtlFinalBtn').onclick = () => {
-            let valid = true;
-            ltlCargoList.forEach(c => { if (c.length<=0 || c.width<=0 || c.height<=0 || c.weightVal<=0 || c.qty<=0) valid = false; });
-            if (!valid) {
-                document.getElementById('ltlErrorMsg').style.display = 'block';
-                document.getElementById('ltlErrorMsg').innerText = '❌ Заполните все габариты, вес и количество для каждого груза (значения должны быть больше 0).';
+            const errorDiv = document.getElementById('ltlErrorMsg');
+            if (!validateLtlCargos()) {
+                errorDiv.style.display = 'block';
+                errorDiv.innerText = '❌ Заполните все габариты, вес и количество для каждого груза (значения > 0).';
                 return;
             }
-            document.getElementById('ltlErrorMsg').style.display = 'none';
+            errorDiv.style.display = 'none';
             let price = calcLTLPrice(currentDistance, ltlCargoList);
             showFinalOrder(price, `Сборный груз (${ltlCargoList.length} позиций)`);
         };
     }
+    
     function renderDedicated(container) {
         container.innerHTML = `<div class="card">
             <div class="step-title"><i class="fas fa-truck"></i> Выберите автомобиль</div>
@@ -691,13 +552,12 @@
             return label;
         }
     }
+    
     function showFinalOrder(price, detailsText) {
         let finalDiv = document.getElementById('finalOrderBlock');
         let detailsDiv = document.getElementById('finalDetails');
-        let fromCity = document.getElementById('fromCity').value;
-        let toCity = document.getElementById('toCity').value;
         detailsDiv.innerHTML = `<div class="distance-box" style="margin-bottom:20px;">
-            <div><strong>Маршрут:</strong> ${fromCity} → ${toCity}</div>
+            <div><strong>Маршрут:</strong> Фиксированный (1000 км)</div>
             <div><strong>Километраж:</strong> ${currentDistance} км</div>
             <div><strong>Итоговая стоимость:</strong> <span class="price-badge" style="font-size:1.2rem;">${price} ₽</span></div>
             <div><strong>Детали:</strong> ${detailsText}</div>
@@ -710,21 +570,19 @@
             let phone = document.getElementById('clientPhone').value;
             let email = document.getElementById('clientEmail').value;
             let comment = document.getElementById('clientComment').value;
-            let body = `ЗАЯВКА ООО "ДЮНА"\nИмя: ${name}\nТелефон: ${phone}\nEmail: ${email}\nКомментарий: ${comment}\n\nМаршрут: ${fromCity} → ${toCity}\nКилометраж: ${currentDistance} км\nИтоговая цена: ${price} ₽\n${detailsText}`;
+            let body = `ЗАЯВКА ООО "ДЮНА"\nИмя: ${name}\nТелефон: ${phone}\nEmail: ${email}\nКомментарий: ${comment}\n\nМаршрут: фиксированный (1000 км)\nКилометраж: ${currentDistance} км\nИтоговая цена: ${price} ₽\n${detailsText}`;
             window.location.href = `mailto:info@duna-logist.ru?subject=Заявка на перевозку от ${name}&body=${encodeURIComponent(body)}`;
             alert("Заявка подготовлена. Отправьте письмо на info@duna-logist.ru.");
         };
     }
 
-    // Навигация и события
+    // Навигация
     function setActivePage(pageId) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
         document.getElementById(pageId).classList.add('active-page');
         document.querySelectorAll('.nav-links a').forEach(link => link.classList.remove('active'));
         let pageName = pageId === 'homePage' ? 'home' : (pageId === 'calculatorPage' ? 'calculator' : 'about');
         document.querySelector(`.nav-links a[data-page="${pageName}"]`).classList.add('active');
-        if (pageId === 'calculatorPage' && ymapsReady && !myMap) initMap();
-        if (pageId === 'calculatorPage' && myMap) setTimeout(() => myMap.container.fitToViewport(), 50);
     }
     document.querySelectorAll('.nav-links a').forEach(link => {
         link.addEventListener('click', (e) => {
@@ -736,9 +594,10 @@
         });
     });
     document.getElementById('gotoCalcHome').addEventListener('click', () => setActivePage('calculatorPage'));
-    document.getElementById('calcRouteBtn').onclick = buildRoute;
-    // Выбор типа перевозки (карточки)
-    document.getElementById('typeSelectorBlock').addEventListener('click', (e) => {
+    document.getElementById('calcRouteBtn').onclick = setFixedRoute;
+
+    // Выбор типа груза по клику на карточку
+    document.querySelector('.type-selector')?.addEventListener('click', (e) => {
         const card = e.target.closest('.type-card');
         if (card) {
             const type = card.getAttribute('data-type');
@@ -748,15 +607,6 @@
             showDynamicForm(type);
             document.getElementById('dynamicForms').scrollIntoView({ behavior: 'smooth' });
         }
-    });
-    window.pickMode = "from";
-    document.getElementById('selectFromBtn').onclick = () => { window.pickMode = "from"; document.getElementById('selectFromBtn').classList.add('active'); document.getElementById('selectToBtn').classList.remove('active'); };
-    document.getElementById('selectToBtn').onclick = () => { window.pickMode = "to"; document.getElementById('selectToBtn').classList.add('active'); document.getElementById('selectFromBtn').classList.remove('active'); };
-    ymaps.ready(() => {
-        ymapsReady = true;
-        new ymaps.SuggestView('fromCity', { results: 8 });
-        new ymaps.SuggestView('toCity', { results: 8 });
-        if (document.getElementById('calculatorPage').classList.contains('active-page')) initMap();
     });
 </script>
 </body>

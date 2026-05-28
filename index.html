@@ -8,7 +8,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #2b1b3d 0%, #1a0f2e 100%);
@@ -115,34 +119,6 @@
             color: #d9c6f0;
         }
         .map-btn.active { background: #c084fc; color: #1a0f2e; }
-        .toggle-switch {
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-        }
-        .toggle-switch input { display: none; }
-        .slider {
-            width: 54px;
-            height: 30px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 30px;
-            position: relative;
-            transition: 0.25s;
-        }
-        .slider:before {
-            content: "";
-            position: absolute;
-            width: 26px;
-            height: 26px;
-            background: white;
-            border-radius: 50%;
-            top: 2px;
-            left: 2px;
-            transition: 0.25s;
-        }
-        .toggle-switch input:checked + .slider { background: #c084fc; }
-        .toggle-switch input:checked + .slider:before { transform: translateX(24px); }
         .btn {
             background: #c084fc;
             border: none;
@@ -252,6 +228,28 @@
         }
         .option-col strong { display: block; margin-bottom: 1rem; color: #c084fc; }
         .checkbox-group { display: flex; flex-direction: column; gap: 15px; }
+        .type-selector {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+        }
+        .type-card {
+            flex: 1;
+            min-width: 220px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 28px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .type-card i { font-size: 2.5rem; color: #c084fc; margin-bottom: 0.8rem; }
+        .type-card h3 { font-size: 1.3rem; margin-bottom: 0.5rem; }
+        .type-card:hover { transform: translateY(-3px); background: rgba(255,255,255,0.1); }
+        .type-card.selected { border-color: #c084fc; background: rgba(192,132,252,0.15); }
         .page { display: none; }
         .page.active-page { display: block; }
         .info-note { font-size: 0.75rem; color: #b9a6d9; margin-top: 8px; }
@@ -265,29 +263,6 @@
             animation: spin 0.6s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .type-selector {
-            display: flex;
-            gap: 1.5rem;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 1rem;
-        }
-        .type-card {
-            flex: 1;
-            min-width: 200px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 28px;
-            padding: 1.5rem;
-            text-align: center;
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: all 0.2s;
-        }
-        .type-card i { font-size: 2.5rem; color: #c084fc; margin-bottom: 0.8rem; }
-        .type-card h3 { font-size: 1.3rem; margin-bottom: 0.5rem; }
-        .type-card p { font-size: 0.85rem; color: #b9a6d9; }
-        .type-card:hover { transform: translateY(-3px); background: rgba(255,255,255,0.1); }
-        .type-card.selected { border-color: #c084fc; background: rgba(192,132,252,0.2); }
         @media (max-width: 780px) { .grid-2col { grid-template-columns: 1fr; } .options-row { flex-direction: column; } }
     </style>
 </head>
@@ -342,22 +317,14 @@
                     <div class="input-field"><label>Дом</label><input type="text" id="toHouse" placeholder="дом"></div>
                 </div>
             </div>
-            <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; align-items: center;">
-                <div class="toggle-switch">
-                    <input type="checkbox" id="roundTripToggle">
-                    <span class="slider"></span>
-                    <span class="toggle-label"><i class="fas fa-redo-alt"></i> Кругорейс (туда-обратно)</span>
-                </div>
-                <button class="btn" id="calcRouteBtn"><i class="fas fa-route"></i> Рассчитать маршрут</button>
-            </div>
+            <button class="btn" id="calcRouteBtn" style="width:100%; margin: 10px 0;"><i class="fas fa-route"></i> Рассчитать маршрут</button>
             <div class="distance-box" id="distanceDisplay">
                 <div><i class="fas fa-road"></i> Километраж: <strong id="distanceKm">— км</strong></div>
-                <span id="roundHint"></span>
             </div>
-            <div class="info-note">💡 Кликните на карту, чтобы поставить точку. Нажмите «Рассчитать маршрут».</div>
+            <div class="info-note">💡 Кликните на карту, чтобы поставить точку. Нажмите «Рассчитать маршрут» для построения.</div>
         </div>
 
-        <!-- Шаг 2: выбор типа перевозки (появляется автоматически после расчёта маршрута) -->
+        <!-- Шаг 2: выбор типа перевозки (появляется после расчёта маршрута) -->
         <div id="typeSelectorBlock" style="display: none;">
             <div class="card">
                 <div class="step-title"><i class="fas fa-boxes"></i> 2. Тип отправки</div>
@@ -406,7 +373,7 @@
     let dedicatedData = { vehicle: null, bodyType: null, loadingOptions: [], extraOptions: [] };
     let ltlCargoList = [];
 
-    // Тарифы (для демонстрации расчёта цены)
+    // Тарифы (базовые, для демонстрации)
     function getRatePerKm(d) {
         if (d <= 10) return 150;
         if (d <= 40) return 108;
@@ -415,19 +382,18 @@
         if (d <= 300) return 54;
         return 54;
     }
-    function calcBasePrice(distOneWay, roundTrip) {
-        let effectiveDist = roundTrip ? distOneWay * 2 : distOneWay;
-        let cost = effectiveDist * getRatePerKm(effectiveDist);
+    function calcBasePrice(distOneWay) {
+        let cost = distOneWay * getRatePerKm(distOneWay);
         return Math.max(cost, 3000);
     }
-    function calcDedicatedPrice(distOneWay, round, mult, extras) {
-        let base = calcBasePrice(distOneWay, round);
+    function calcDedicatedPrice(distOneWay, mult, extras) {
+        let base = calcBasePrice(distOneWay);
         let veh = base * mult;
         let extraSum = (extras.includes('remni') ? 600 : 0) + (extras.includes('gidrobort') ? 1200 : 0);
         return Math.round(veh + extraSum);
     }
-    function calcLTLPrice(distOneWay, round, cargoArr) {
-        if (!cargoArr.length) return calcBasePrice(distOneWay, round);
+    function calcLTLPrice(distOneWay, cargoArr) {
+        if (!cargoArr.length) return calcBasePrice(distOneWay);
         let totalKg = 0, totalVolKg = 0;
         cargoArr.forEach(c => {
             let kg = c.weightVal * (c.weightUnit === 'т' ? 1000 : 1);
@@ -437,7 +403,7 @@
             totalVolKg += dimWeight * c.qty;
         });
         let chargeable = Math.max(totalKg, totalVolKg);
-        let base = calcBasePrice(distOneWay, round);
+        let base = calcBasePrice(distOneWay);
         let factor = Math.max(0.7, Math.min(3.5, chargeable / 400));
         return Math.max(Math.round(base * factor), 3000);
     }
@@ -491,16 +457,12 @@
         } catch(e) {}
     }
 
-    // Отображение километража с учётом кругорейса
+    // Отображение километража (без кругорейса)
     function updateDistanceDisplay() {
         if (currentDistance > 0) {
-            let round = document.getElementById('roundTripToggle').checked;
-            let displayKm = round ? currentDistance * 2 : currentDistance;
-            document.getElementById('distanceKm').innerText = displayKm + " км";
-            document.getElementById('roundHint').innerHTML = round ? `(кругорейс: ${currentDistance} км × 2 = ${displayKm} км)` : "";
+            document.getElementById('distanceKm').innerText = currentDistance + " км";
         } else {
             document.getElementById('distanceKm').innerText = "— км";
-            document.getElementById('roundHint').innerHTML = "";
         }
     }
 
@@ -551,9 +513,8 @@
                 myMap.geoObjects.add(route);
                 currentRoute = route;
                 myMap.setBounds(route.getBounds(), { checkZoomRange: true });
-                // После успешного расчёта показываем выбор типа перевозки
+                // Показываем выбор типа перевозки
                 document.getElementById('typeSelectorBlock').style.display = 'block';
-                document.getElementById('typeSelectorBlock').scrollIntoView({ behavior: 'smooth' });
             } else {
                 alert("Не удалось проложить маршрут (нулевая длина)");
             }
@@ -621,8 +582,8 @@
                     </div>
                     <div class="cargo-actions">
                         <div class="cargo-toggles">
-                            <label class="toggle-switch" style="gap:8px">Вращать<input type="checkbox" class="rotate" ${c.rotate?'checked':''}><span class="slider"></span></label>
-                            <label class="toggle-switch" style="gap:8px">Ставить друг на друга<input type="checkbox" class="stack" ${c.stack?'checked':''}><span class="slider"></span></label>
+                            <label class="toggle-switch" style="gap:8px">Вращать<input type="checkbox" class="rotate" ${c.rotate?'checked':''}><span class="slider" style="width:40px;height:20px; background:rgba(255,255,255,0.2); display:inline-block; border-radius:20px; position:relative;"><span style="position:absolute; width:18px; height:18px; background:white; border-radius:50%; top:1px; left:2px; transition:0.2s;"></span></span></label>
+                            <label class="toggle-switch" style="gap:8px">Ставить друг на друга<input type="checkbox" class="stack" ${c.stack?'checked':''}><span class="slider" style="width:40px;height:20px; background:rgba(255,255,255,0.2); display:inline-block; border-radius:20px; position:relative;"><span style="position:absolute; width:18px; height:18px; background:white; border-radius:50%; top:1px; left:2px; transition:0.2s;"></span></span></label>
                         </div>
                         <button class="remove-btn">Удалить</button>
                     </div>
@@ -635,8 +596,12 @@
                 block.querySelector('.wgt').onchange = e => ltlCargoList[idx].weightVal = +e.target.value;
                 block.querySelector('.unit').onchange = e => ltlCargoList[idx].weightUnit = e.target.value;
                 block.querySelector('.qty').onchange = e => ltlCargoList[idx].qty = +e.target.value;
-                block.querySelector('.rotate').onchange = e => ltlCargoList[idx].rotate = e.target.checked;
-                block.querySelector('.stack').onchange = e => ltlCargoList[idx].stack = e.target.checked;
+                let rotateSpan = block.querySelector('.rotate + span span');
+                let stackSpan = block.querySelector('.stack + span span');
+                block.querySelector('.rotate').onchange = e => { ltlCargoList[idx].rotate = e.target.checked; rotateSpan.style.transform = e.target.checked ? 'translateX(18px)' : 'translateX(0)'; };
+                block.querySelector('.stack').onchange = e => { ltlCargoList[idx].stack = e.target.checked; stackSpan.style.transform = e.target.checked ? 'translateX(18px)' : 'translateX(0)'; };
+                rotateSpan.style.transform = c.rotate ? 'translateX(18px)' : 'translateX(0)';
+                stackSpan.style.transform = c.stack ? 'translateX(18px)' : 'translateX(0)';
                 block.querySelector('.remove-btn').onclick = () => { ltlCargoList.splice(idx,1); refreshList(); };
             });
         }
@@ -647,8 +612,15 @@
             refreshList();
         };
         document.getElementById('calcLtlFinalBtn').onclick = () => {
-            let round = document.getElementById('roundTripToggle').checked;
-            let price = calcLTLPrice(currentDistance, round, ltlCargoList);
+            let valid = true;
+            ltlCargoList.forEach(c => { if (c.length<=0 || c.width<=0 || c.height<=0 || c.weightVal<=0 || c.qty<=0) valid = false; });
+            if (!valid) {
+                document.getElementById('ltlErrorMsg').style.display = 'block';
+                document.getElementById('ltlErrorMsg').innerText = '❌ Заполните все габариты, вес и количество для каждого груза (значения должны быть больше 0).';
+                return;
+            }
+            document.getElementById('ltlErrorMsg').style.display = 'none';
+            let price = calcLTLPrice(currentDistance, ltlCargoList);
             showFinalOrder(price, `Сборный груз (${ltlCargoList.length} позиций)`);
         };
     }
@@ -705,8 +677,7 @@
             });
             document.getElementById('calcDedicatedFinalBtn').onclick = () => {
                 if (!dedicatedData.vehicle || !dedicatedData.bodyType) { alert("Выберите машину и кузов"); return; }
-                let round = document.getElementById('roundTripToggle').checked;
-                let price = calcDedicatedPrice(currentDistance, round, dedicatedData.vehicle.multiplier, dedicatedData.extraOptions);
+                let price = calcDedicatedPrice(currentDistance, dedicatedData.vehicle.multiplier, dedicatedData.extraOptions);
                 showFinalOrder(price, `${dedicatedData.vehicle.name}, кузов ${dedicatedData.bodyType}, доп: ${dedicatedData.extraOptions.join(', ') || 'нет'}`);
             };
         }
@@ -723,13 +694,11 @@
     function showFinalOrder(price, detailsText) {
         let finalDiv = document.getElementById('finalOrderBlock');
         let detailsDiv = document.getElementById('finalDetails');
-        let round = document.getElementById('roundTripToggle').checked;
-        let displayKm = round ? currentDistance * 2 : currentDistance;
         let fromCity = document.getElementById('fromCity').value;
         let toCity = document.getElementById('toCity').value;
         detailsDiv.innerHTML = `<div class="distance-box" style="margin-bottom:20px;">
-            <div><strong>Маршрут:</strong> ${fromCity} → ${toCity} ${round ? '(кругорейс)' : ''}</div>
-            <div><strong>Километраж:</strong> ${displayKm} км (туда ${currentDistance} км${round ? ` × 2` : ''})</div>
+            <div><strong>Маршрут:</strong> ${fromCity} → ${toCity}</div>
+            <div><strong>Километраж:</strong> ${currentDistance} км</div>
             <div><strong>Итоговая стоимость:</strong> <span class="price-badge" style="font-size:1.2rem;">${price} ₽</span></div>
             <div><strong>Детали:</strong> ${detailsText}</div>
         </div>`;
@@ -741,7 +710,7 @@
             let phone = document.getElementById('clientPhone').value;
             let email = document.getElementById('clientEmail').value;
             let comment = document.getElementById('clientComment').value;
-            let body = `ЗАЯВКА ООО "ДЮНА"\nИмя: ${name}\nТелефон: ${phone}\nEmail: ${email}\nКомментарий: ${comment}\n\nМаршрут: ${fromCity} → ${toCity} (${round ? 'кругорейс' : 'туда'})\nКилометраж: ${displayKm} км\nИтоговая цена: ${price} ₽\n${detailsText}`;
+            let body = `ЗАЯВКА ООО "ДЮНА"\nИмя: ${name}\nТелефон: ${phone}\nEmail: ${email}\nКомментарий: ${comment}\n\nМаршрут: ${fromCity} → ${toCity}\nКилометраж: ${currentDistance} км\nИтоговая цена: ${price} ₽\n${detailsText}`;
             window.location.href = `mailto:info@duna-logist.ru?subject=Заявка на перевозку от ${name}&body=${encodeURIComponent(body)}`;
             alert("Заявка подготовлена. Отправьте письмо на info@duna-logist.ru.");
         };
@@ -768,12 +737,10 @@
     });
     document.getElementById('gotoCalcHome').addEventListener('click', () => setActivePage('calculatorPage'));
     document.getElementById('calcRouteBtn').onclick = buildRoute;
-    document.getElementById('roundTripToggle').addEventListener('change', updateDistanceDisplay);
-
-    // Выбор типа перевозки по клику на карточку
-    document.addEventListener('click', (e) => {
+    // Выбор типа перевозки (карточки)
+    document.getElementById('typeSelectorBlock').addEventListener('click', (e) => {
         const card = e.target.closest('.type-card');
-        if (card && document.getElementById('typeSelectorBlock').style.display === 'block') {
+        if (card) {
             const type = card.getAttribute('data-type');
             document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
             card.classList.add('selected');
@@ -782,7 +749,6 @@
             document.getElementById('dynamicForms').scrollIntoView({ behavior: 'smooth' });
         }
     });
-
     window.pickMode = "from";
     document.getElementById('selectFromBtn').onclick = () => { window.pickMode = "from"; document.getElementById('selectFromBtn').classList.add('active'); document.getElementById('selectToBtn').classList.remove('active'); };
     document.getElementById('selectToBtn').onclick = () => { window.pickMode = "to"; document.getElementById('selectToBtn').classList.add('active'); document.getElementById('selectFromBtn').classList.remove('active'); };

@@ -365,15 +365,14 @@
     let myMap;
     let fromPlacemark, toPlacemark;
     let currentRoute = null;
-    let currentDistance = 0;
+    let currentDistance = 0;      // реальное расстояние туда (без учёта кругорейса)
     let routeBuilt = false;
-    let currentRoundTrip = false;
     let selectedShipType = null;
 
     let dedicatedData = { vehicle: null, bodyType: null, loadingOptions: [], extraOptions: [] };
     let ltlCargoList = [];
 
-    // Тарифы
+    // Тарифы (из скриншотов)
     function getRatePerKm(d) {
         if (d <= 10) return 150;
         if (d <= 40) return 108;
@@ -382,28 +381,40 @@
         if (d <= 300) return 54;
         return 54;
     }
-    function calcBasePrice(dist, roundTrip) {
-        let eff = roundTrip ? dist * 2 : dist;
-        let cost = eff * getRatePerKm(eff);
+
+    // Базовая цена с учётом кругорейса (умножаем расстояние на 2, если включено)
+    function calcBasePrice(distOneWay, roundTrip) {
+        let effectiveDist = roundTrip ? distOneWay * 2 : distOneWay;
+        let cost = effectiveDist * getRatePerKm(effectiveDist);
         return Math.max(cost, 3000);
     }
-    function updatePriceDisplay() {
+
+    // Обновление отображения километража и цены (с учётом кругорейса)
+    function updateDisplay() {
         if (currentDistance > 0) {
             let round = document.getElementById('roundTripToggle').checked;
-            let base = calcBasePrice(currentDistance, round);
-            document.getElementById('basePrice').innerText = base + " ₽";
-            document.getElementById('distanceKm').innerText = currentDistance + " км";
-            document.getElementById('roundHint').innerHTML = round ? `(кругорейс: ${currentDistance*2} км)` : "";
+            let displayKm = round ? currentDistance * 2 : currentDistance;
+            let basePrice = calcBasePrice(currentDistance, round);
+            document.getElementById('distanceKm').innerText = displayKm + " км";
+            document.getElementById('basePrice').innerText = basePrice + " ₽";
+            document.getElementById('roundHint').innerHTML = round ? `(кругорейс: ${currentDistance} км × 2 = ${displayKm} км)` : "";
+        } else {
+            document.getElementById('distanceKm').innerText = "— км";
+            document.getElementById('basePrice').innerText = "— ₽";
+            document.getElementById('roundHint').innerHTML = "";
         }
     }
-    function calcDedicatedPrice(dist, round, mult, extras) {
-        let base = calcBasePrice(dist, round);
+
+    // Полные расчёты для типов перевозок
+    function calcDedicatedPrice(distOneWay, round, mult, extras) {
+        let base = calcBasePrice(distOneWay, round);
         let veh = base * mult;
         let extraSum = (extras.includes('remni') ? 600 : 0) + (extras.includes('gidrobort') ? 1200 : 0);
         return Math.round(veh + extraSum);
     }
-    function calcLTLPrice(dist, round, cargoArr) {
-        if (!cargoArr.length) return calcBasePrice(dist, round);
+
+    function calcLTLPrice(distOneWay, round, cargoArr) {
+        if (!cargoArr.length) return calcBasePrice(distOneWay, round);
         let totalKg = 0, totalVolKg = 0;
         cargoArr.forEach(c => {
             let kg = c.weightVal * (c.weightUnit === 'т' ? 1000 : 1);
@@ -413,10 +424,11 @@
             totalVolKg += dimWeight * c.qty;
         });
         let chargeable = Math.max(totalKg, totalVolKg);
-        let base = calcBasePrice(dist, round);
+        let base = calcBasePrice(distOneWay, round);
         let factor = Math.max(0.7, Math.min(3.5, chargeable / 400));
         return Math.max(Math.round(base * factor), 3000);
     }
+
     const vehicleRates = [
         { name: "1,5т / 10м³", multiplier: 0.8, icon: "fa-truck-fast" },
         { name: "3т / 25м³", multiplier: 1.0, icon: "fa-truck" },
@@ -442,6 +454,7 @@
         } catch(e) { console.warn(e); }
         return null;
     }
+
     async function reverseGeocode(lat, lon, type) {
         try {
             let res = await fetch(`https://geocode-maps.yandex.ru/1.x/?apikey=11bec915-26aa-47af-8ee5-2cf9ff56e3e1&geocode=${lon},${lat}&format=json&results=1`);
@@ -468,7 +481,7 @@
         } catch(e) {}
     }
 
-    // ПОСТРОЕНИЕ МАРШРУТА (исправлено на ymaps.route)
+    // ПОСТРОЕНИЕ МАРШРУТА (стабильная версия с MultiRoute)
     async function buildRoute() {
         const btn = document.getElementById('calcRouteBtn');
         const originalText = btn.innerHTML;
@@ -511,37 +524,61 @@
         
         if (currentRoute) myMap.geoObjects.remove(currentRoute);
         
-        // Используем ymaps.route (надёжный способ)
-        try {
-            const route = await ymaps.route([
+        // Используем MultiRoute с корректной обработкой
+        const multiRoute = new ymaps.multiRouter.MultiRoute({
+            referencePoints: [
                 [fromCoords.lat, fromCoords.lon],
                 [toCoords.lat, toCoords.lon]
-            ]);
-            
-            // Получаем длину в метрах
-            const length = route.getLength();
-            currentDistance = Math.round(length / 1000);
-            currentRoundTrip = document.getElementById('roundTripToggle').checked;
-            routeBuilt = true;
-            updatePriceDisplay();
-            
-            // Отображаем маршрут на карте
-            currentRoute = route;
-            myMap.geoObjects.add(route);
-            // Устанавливаем границы карты по маршруту
-            myMap.setBounds(route.getBounds(), { checkZoomRange: true });
-            
-            // Показываем блок выбора типа перевозки
-            document.getElementById('typeBlock').style.display = 'block';
-            errorDiv.style.display = 'none';
-        } catch (err) {
+            ],
+            params: { routingMode: 'auto' }
+        }, { boundsAutoApply: true });
+        
+        let resolved = false;
+        const timeout = setTimeout(() => {
+            if (!resolved) {
+                errorDiv.innerHTML = "⚠️ Превышено время ожидания маршрута. Попробуйте другие адреса.";
+                errorDiv.style.display = 'block';
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                resolved = true;
+            }
+        }, 15000);
+        
+        multiRoute.model.events.add('requestsuccess', () => {
+            if (resolved) return;
+            resolved = true;
+            clearTimeout(timeout);
+            let length = multiRoute.getLength();
+            if (length && length > 0) {
+                currentDistance = Math.round(length / 1000);
+                routeBuilt = true;
+                updateDisplay();  // отобразит километраж с учётом кругорейса
+                myMap.geoObjects.add(multiRoute);
+                currentRoute = multiRoute;
+                myMap.geoObjects.add(fromPlacemark);
+                myMap.geoObjects.add(toPlacemark);
+                document.getElementById('typeBlock').style.display = 'block';
+                errorDiv.style.display = 'none';
+            } else {
+                errorDiv.innerHTML = "Не удалось проложить маршрут (длина равна 0)";
+                errorDiv.style.display = 'block';
+            }
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+        
+        multiRoute.model.events.add('requesterror', (err) => {
+            if (resolved) return;
+            resolved = true;
+            clearTimeout(timeout);
             console.error(err);
             errorDiv.innerHTML = "❌ Ошибка построения маршрута. Проверьте адреса или повторите попытку.";
             errorDiv.style.display = 'block';
-        } finally {
             btn.innerHTML = originalText;
             btn.disabled = false;
-        }
+        });
+        
+        myMap.geoObjects.add(multiRoute);
     }
 
     // Умный поиск улиц
@@ -559,6 +596,7 @@
         }
         return [...new Set(streets)];
     }
+    
     function attachStreetSuggest(inputId, cityGetter, listId) {
         let input = document.getElementById(inputId);
         let list = document.getElementById(listId);
@@ -585,12 +623,13 @@
         document.addEventListener('click', (e) => { if (!input.contains(e.target)) list.style.display = 'none'; });
     }
 
-    // Динамические формы (сборный/выделенный) - без изменений, работают корректно
+    // Динамические формы
     function showDynamicForm() {
         const container = document.getElementById('dynamicForms');
         if (selectedShipType === 'ltl') renderLTL(container);
         else renderDedicated(container);
     }
+    
     function renderLTL(container) {
         container.innerHTML = `<div class="card">
             <div class="step-title"><i class="fas fa-pallet"></i> Параметры грузов</div>
@@ -636,10 +675,12 @@
             refreshList();
         };
         document.getElementById('calcLtlFinalBtn').onclick = () => {
-            let price = calcLTLPrice(currentDistance, currentRoundTrip, ltlCargoList);
+            let round = document.getElementById('roundTripToggle').checked;
+            let price = calcLTLPrice(currentDistance, round, ltlCargoList);
             showFinalOrder(price, `Сборный груз (${ltlCargoList.length} позиций)`);
         };
     }
+    
     function renderDedicated(container) {
         container.innerHTML = `<div class="card">
             <div class="step-title"><i class="fas fa-truck"></i> Выберите автомобиль</div>
@@ -689,7 +730,8 @@
             });
             document.getElementById('calcDedicatedFinalBtn').onclick = () => {
                 if (!dedicatedData.vehicle || !dedicatedData.bodyType) { alert("Выберите машину и кузов"); return; }
-                let price = calcDedicatedPrice(currentDistance, currentRoundTrip, dedicatedData.vehicle.multiplier, dedicatedData.extraOptions);
+                let round = document.getElementById('roundTripToggle').checked;
+                let price = calcDedicatedPrice(currentDistance, round, dedicatedData.vehicle.multiplier, dedicatedData.extraOptions);
                 showFinalOrder(price, `${dedicatedData.vehicle.name}, кузов ${dedicatedData.bodyType}, доп: ${dedicatedData.extraOptions.join(', ') || 'нет'}`);
             };
         }
@@ -703,21 +745,25 @@
             return div;
         }
     }
+    
     function showFinalOrder(price, detailsText) {
         let finalDiv = document.getElementById('finalOrderBlock');
         let detailsDiv = document.getElementById('finalDetails');
         let fromCity = document.getElementById('fromCity').value;
         let toCity = document.getElementById('toCity').value;
+        let round = document.getElementById('roundTripToggle').checked;
+        let displayKm = round ? currentDistance * 2 : currentDistance;
         detailsDiv.innerHTML = `
             <div class="distance-box" style="margin-bottom: 20px;">
-                <div><strong>Маршрут:</strong> ${fromCity} → ${toCity} ${currentRoundTrip ? '(кругорейс)' : ''}</div>
-                <div><strong>Километраж:</strong> ${currentDistance} км (${currentRoundTrip ? `туда-обратно ${currentDistance*2} км` : 'туда'})</div>
+                <div><strong>Маршрут:</strong> ${fromCity} → ${toCity} ${round ? '(кругорейс)' : ''}</div>
+                <div><strong>Километраж:</strong> ${displayKm} км (туда ${currentDistance} км${round ? ` × 2` : ''})</div>
                 <div><strong>Итоговая стоимость:</strong> <span class="price-badge" style="font-size:1.2rem;">${price} ₽</span></div>
                 <div><strong>Детали:</strong> ${detailsText}</div>
             </div>
         `;
         finalDiv.style.display = 'block';
         finalDiv.scrollIntoView({ behavior: 'smooth' });
+        
         const form = document.getElementById('orderForm');
         form.onsubmit = (e) => {
             e.preventDefault();
@@ -725,7 +771,7 @@
             let phone = document.getElementById('clientPhone').value;
             let email = document.getElementById('clientEmail').value;
             let comment = document.getElementById('clientComment').value;
-            let body = `ЗАЯВКА ООО "ДЮНА"\nИмя: ${name}\nТелефон: ${phone}\nEmail: ${email}\nКомментарий: ${comment}\n\nМаршрут: ${fromCity} → ${toCity} (${currentRoundTrip ? 'кругорейс' : 'туда'})\nКилометраж: ${currentDistance} км\nИтоговая цена: ${price} ₽\n${detailsText}`;
+            let body = `ЗАЯВКА ООО "ДЮНА"\nИмя: ${name}\nТелефон: ${phone}\nEmail: ${email}\nКомментарий: ${comment}\n\nМаршрут: ${fromCity} → ${toCity} (${round ? 'кругорейс' : 'туда'})\nКилометраж: ${displayKm} км\nИтоговая цена: ${price} ₽\n${detailsText}`;
             window.location.href = `mailto:info@duna-logist.ru?subject=Заявка на перевозку от ${name}&body=${encodeURIComponent(body)}`;
             alert("Заявка подготовлена. Отправьте письмо на info@duna-logist.ru для подтверждения.");
         };
@@ -779,7 +825,9 @@
         showDynamicForm();
         document.getElementById('dynamicForms').scrollIntoView({ behavior: 'smooth' });
     };
-    document.getElementById('roundTripToggle').addEventListener('change', () => { if (currentDistance) updatePriceDisplay(); });
+    document.getElementById('roundTripToggle').addEventListener('change', () => {
+        if (currentDistance > 0) updateDisplay();
+    });
     
     attachStreetSuggest('fromStreet', () => document.getElementById('fromCity').value, 'fromStreetSuggest');
     attachStreetSuggest('toStreet', () => document.getElementById('toCity').value, 'toStreetSuggest');

@@ -178,6 +178,7 @@
             color: #e2d4f5;
         }
 
+        /* Кнопки — единый стиль */
         .btn {
             background: #c084fc;
             border: none;
@@ -190,7 +191,9 @@
             font-family: inherit;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            justify-content: center;
+            gap: 10px;
+            font-size: 1rem;
         }
 
         .btn:disabled {
@@ -207,6 +210,16 @@
 
         .btn-outline:hover {
             background: rgba(192, 132, 252, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: #c084fc;
+        }
+
+        .btn-primary:hover {
+            background: #a855f7;
+            transform: translateY(-2px);
         }
 
         .distance-box {
@@ -423,10 +436,29 @@
             background: rgba(255, 80, 80, 0.4);
         }
 
+        /* Контейнер для двух кнопок в сборном грузе */
+        .ltl-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
         .info-note {
             font-size: 0.75rem;
             color: #b9a6d9;
             margin-top: 8px;
+        }
+
+        .error-msg {
+            background: rgba(255, 100, 100, 0.2);
+            border-radius: 20px;
+            padding: 10px 16px;
+            margin-top: 15px;
+            color: #ffaaaa;
+            font-size: 0.85rem;
+            text-align: center;
         }
 
         @media (max-width: 780px) {
@@ -435,6 +467,9 @@
             }
             .cargo-fields {
                 grid-template-columns: 1fr 1fr;
+            }
+            .ltl-buttons {
+                flex-direction: column;
             }
         }
     </style>
@@ -453,7 +488,7 @@
         <div class="card" style="background: linear-gradient(110deg, rgba(43,27,61,0.8), rgba(26,15,46,0.9));">
             <h1 style="font-size: 2rem;">🚛 Рассчитайте грузоперевозку за минуту</h1>
             <p style="font-size: 1.2rem;">Тестовый режим: расстояние 1000 км. Выберите тип перевозки — форма откроется сразу.</p>
-            <button class="btn" id="gotoCalcHome" style="margin-top: 1.5rem;"><i class="fas fa-calculator"></i> Перейти к калькулятору</button>
+            <button class="btn btn-primary" id="gotoCalcHome" style="margin-top: 1.5rem;"><i class="fas fa-calculator"></i> Перейти к калькулятору</button>
         </div>
     </div>
     <div id="aboutPage" style="display:none;">
@@ -472,7 +507,7 @@
                     <span class="slider"></span>
                     <span class="toggle-label"><i class="fas fa-redo-alt"></i> Кругорейс (туда-обратно)</span>
                 </div>
-                <button class="btn" id="calcRouteBtn"><i class="fas fa-route"></i> Установить маршрут (1000 км)</button>
+                <button class="btn btn-primary" id="calcRouteBtn"><i class="fas fa-route"></i> Установить маршрут (1000 км)</button>
             </div>
             <div class="distance-box" id="distanceDisplay">
                 <div><i class="fas fa-road"></i> Километраж: <strong id="distanceKm">— км</strong></div>
@@ -510,7 +545,7 @@
                     <div class="input-field"><label>Телефон</label><input id="clientPhone" required></div>
                     <div class="input-field"><label>Email</label><input id="clientEmail" type="email" required></div>
                     <div class="input-field"><label>Комментарий к заказу</label><textarea id="clientComment" rows="2"></textarea></div>
-                    <button type="submit" class="btn"><i class="fas fa-paper-plane"></i> Отправить заявку</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Отправить заявку</button>
                 </form>
             </div>
         </div>
@@ -595,6 +630,17 @@
         document.getElementById('typeBlock').style.display = 'block';
     }
 
+    // Валидация грузов для сборного
+    function validateLtlCargos() {
+        for (let i = 0; i < ltlCargoList.length; i++) {
+            const c = ltlCargoList[i];
+            if (c.length <= 0 || c.width <= 0 || c.height <= 0 || c.weightVal <= 0 || c.qty <= 0) {
+                return false;
+            }
+        }
+        return ltlCargoList.length > 0;
+    }
+
     // Динамические формы
     function showDynamicForm(type) {
         const container = document.getElementById('dynamicForms');
@@ -606,9 +652,13 @@
         container.innerHTML = `<div class="card">
             <div class="step-title"><i class="fas fa-pallet"></i> Параметры грузов</div>
             <div id="ltlList"></div>
-            <button class="btn-outline" id="addLtlBtn"><i class="fas fa-plus"></i> Добавить груз</button>
-            <button class="btn" id="calcLtlFinalBtn" style="margin-top: 20px;">Рассчитать итоговую стоимость →</button>
+            <div class="ltl-buttons">
+                <button class="btn btn-outline" id="addLtlBtn"><i class="fas fa-plus"></i> Добавить груз</button>
+                <button class="btn btn-primary" id="calcLtlFinalBtn">Рассчитать итоговую стоимость</button>
+            </div>
+            <div id="ltlErrorMsg" class="error-msg" style="display: none;"></div>
         </div>`;
+        
         function refreshList() {
             let div = document.getElementById('ltlList');
             if (!div) return;
@@ -651,11 +701,20 @@
         }
         if (ltlCargoList.length === 0) ltlCargoList.push({ length:60, width:40, height:40, weightVal:15, weightUnit:'кг', qty:1, rotate:false, stack:false });
         refreshList();
+        
         document.getElementById('addLtlBtn').onclick = () => {
             ltlCargoList.push({ length:50, width:40, height:30, weightVal:10, weightUnit:'кг', qty:1, rotate:false, stack:false });
             refreshList();
         };
+        
         document.getElementById('calcLtlFinalBtn').onclick = () => {
+            const errorDiv = document.getElementById('ltlErrorMsg');
+            if (!validateLtlCargos()) {
+                errorDiv.style.display = 'block';
+                errorDiv.innerText = '❌ Заполните все габариты, вес и количество для каждого груза (значения должны быть больше 0).';
+                return;
+            }
+            errorDiv.style.display = 'none';
             let round = document.getElementById('roundTripToggle').checked;
             let price = calcLTLPrice(currentDistance, round, ltlCargoList);
             showFinalOrder(price, `Сборный груз (${ltlCargoList.length} позиций)`);
@@ -669,7 +728,7 @@
             <div id="bodyBlock" style="display:none;"><div class="option-group"><strong>Тип кузова</strong><div class="checkbox-group" id="bodyGroup"></div></div></div>
             <div id="extrasBlock" style="display:none;"><div class="option-group"><strong>Погрузка (можно несколько)</strong><div class="checkbox-group" id="loadingGroup"></div></div>
             <div class="option-group"><strong>Доп. оборудование</strong><div class="checkbox-group" id="extraGroup"></div></div>
-            <button class="btn" id="calcDedicatedFinalBtn">Рассчитать итоговую стоимость →</button></div>
+            <button class="btn btn-primary" id="calcDedicatedFinalBtn">Рассчитать итоговую стоимость</button></div>
         </div>`;
         let grid = document.getElementById('vehicleGrid');
         vehicleRates.forEach(v => {
@@ -773,26 +832,25 @@
     document.getElementById('calcRouteBtn').onclick = setTestRoute;
     
     // Логика выбора карточки типа — без кнопки "Продолжить", сразу открываем форму
-    const typeCards = document.querySelectorAll('.type-card');
-    function handleTypeSelect(type) {
-        typeCards.forEach(c => c.classList.remove('selected'));
-        document.querySelector(`.type-card[data-type="${type}"]`).classList.add('selected');
-        selectedShipType = type;
-        showDynamicForm(type);
-        document.getElementById('dynamicForms').scrollIntoView({ behavior: 'smooth' });
-    }
-    // Делегирование событий (т.к. карточки могут пересоздаваться? Нет, они статичны)
-    document.getElementById('typeSelector').addEventListener('click', (e) => {
-        const card = e.target.closest('.type-card');
-        if (card) {
-            const type = card.getAttribute('data-type');
-            if (currentDistance === 0) {
-                alert("Сначала установите маршрут (нажмите 'Установить маршрут (1000 км)')");
-                return;
+    const typeSelector = document.getElementById('typeSelector');
+    if (typeSelector) {
+        typeSelector.addEventListener('click', (e) => {
+            const card = e.target.closest('.type-card');
+            if (card) {
+                const type = card.getAttribute('data-type');
+                if (currentDistance === 0) {
+                    alert("Сначала установите маршрут (нажмите 'Установить маршрут (1000 км)')");
+                    return;
+                }
+                // Убираем выделение со всех и выделяем выбранную
+                document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                selectedShipType = type;
+                showDynamicForm(type);
+                document.getElementById('dynamicForms').scrollIntoView({ behavior: 'smooth' });
             }
-            handleTypeSelect(type);
-        }
-    });
+        });
+    }
     
     document.getElementById('roundTripToggle').addEventListener('change', () => {
         if (currentDistance > 0) updateDisplay();

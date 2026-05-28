@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>ООО "Дюна" — Калькулятор (тестовый режим, 1000 км)</title>
+    <title>ООО "Дюна" — Калькулятор грузоперевозок</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -60,13 +60,6 @@
             border-left: 5px solid #1fab8a;
             padding-left: 1rem;
         }
-        .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
-        .address-group {
-            background: #fafeff;
-            border-radius: 24px;
-            padding: 1.5rem;
-            border: 1px solid #e2edf2;
-        }
         .input-field {
             margin-bottom: 1.2rem;
             position: relative;
@@ -91,6 +84,43 @@
             outline: none;
             border-color: #1fab8a;
             box-shadow: 0 0 0 3px rgba(31,171,138,0.1);
+        }
+        /* Карточки выбора типа отправки (inline buttons) */
+        .type-selector {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+        .type-card {
+            flex: 1;
+            min-width: 200px;
+            background: #f8fcfb;
+            border: 2px solid #e2edf2;
+            border-radius: 28px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .type-card i {
+            font-size: 2.5rem;
+            color: #1e6b5c;
+            margin-bottom: 0.8rem;
+        }
+        .type-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+        }
+        .type-card p {
+            font-size: 0.85rem;
+            color: #5f8b9a;
+        }
+        .type-card.selected {
+            border-color: #1fab8a;
+            background: #e6f7f2;
+            box-shadow: 0 8px 20px rgba(31,171,138,0.15);
         }
         .toggle-switch {
             display: flex;
@@ -199,7 +229,7 @@
             margin-top: 12px;
             font-size: 0.85rem;
         }
-        @media (max-width: 780px) { .grid-2col { grid-template-columns: 1fr; } }
+        @media (max-width: 780px) { .type-selector { flex-direction: column; } }
         .info-note { font-size: 0.75rem; color: #5f8b9a; margin-top: 8px; }
     </style>
 </head>
@@ -215,8 +245,8 @@
 <div class="container" id="appContainer">
     <div id="homePage">
         <div class="card" style="background: linear-gradient(110deg, #fff, #edf9f5);">
-            <h1 style="font-size: 2rem;">🚛 Тестовый режим калькулятора</h1>
-            <p style="font-size: 1.2rem;">Сейчас километраж принудительно установлен в 1000 км для проверки логики.</p>
+            <h1 style="font-size: 2rem;">🚛 Рассчитайте грузоперевозку за минуту</h1>
+            <p style="font-size: 1.2rem;">Тестовый режим: расстояние 1000 км. Выберите тип перевозки и заполните детали.</p>
             <button class="btn" id="gotoCalcHome" style="margin-top: 1.5rem;"><i class="fas fa-calculator"></i> Перейти к калькулятору</button>
         </div>
     </div>
@@ -249,19 +279,19 @@
         <div id="typeBlock" style="display: none;">
             <div class="card">
                 <div class="step-title"><i class="fas fa-boxes"></i> 2. Тип отправки</div>
-                <div class="checkbox-group" style="justify-content: center; gap: 40px;">
-                    <div class="toggle-switch" style="flex-direction: row-reverse;">
-                        <input type="radio" name="shipType" value="ltl" id="typeLTL">
-                        <span class="slider"></span>
-                        <span class="toggle-label"><i class="fas fa-cubes"></i> Сборный груз</span>
+                <div class="type-selector" id="typeSelector">
+                    <div class="type-card" data-type="ltl">
+                        <i class="fas fa-cubes"></i>
+                        <h3>Сборный груз</h3>
+                        <p>Для небольших грузов, коробок, паллет</p>
                     </div>
-                    <div class="toggle-switch" style="flex-direction: row-reverse;">
-                        <input type="radio" name="shipType" value="dedicated" id="typeDedicated">
-                        <span class="slider"></span>
-                        <span class="toggle-label"><i class="fas fa-truck"></i> Выделенный транспорт</span>
+                    <div class="type-card" data-type="dedicated">
+                        <i class="fas fa-truck"></i>
+                        <h3>Выделенный транспорт</h3>
+                        <p>Для крупногабаритных грузов</p>
                     </div>
                 </div>
-                <button class="btn" id="continueTypeBtn" style="margin-top: 20px; width:100%;">Продолжить →</button>
+                <button class="btn" id="continueTypeBtn" style="margin-top: 20px; width:100%;" disabled>Продолжить →</button>
             </div>
         </div>
 
@@ -284,7 +314,7 @@
 
 <script>
     // Тестовый режим: расстояние фиксировано 1000 км
-    let currentDistance = 0;      // в одну сторону
+    let currentDistance = 0;
     let selectedShipType = null;
 
     let dedicatedData = { vehicle: null, bodyType: null, loadingOptions: [], extraOptions: [] };
@@ -353,12 +383,11 @@
         { name: "20т / 115м³", multiplier: 2.3, icon: "fa-truck-container" }
     ];
 
-    // Тестовая установка маршрута (1000 км)
+    // Установка тестового маршрута (1000 км)
     function setTestRoute() {
         currentDistance = 1000;
         updateDisplay();
         document.getElementById('typeBlock').style.display = 'block';
-        document.getElementById('routeError')?.remove();
     }
 
     // Динамические формы
@@ -507,7 +536,7 @@
             let phone = document.getElementById('clientPhone').value;
             let email = document.getElementById('clientEmail').value;
             let comment = document.getElementById('clientComment').value;
-            let body = `ЗАЯВКА ООО "ДЮНА" (тест)\nИмя: ${name}\nТелефон: ${phone}\nEmail: ${email}\nКомментарий: ${comment}\n\nМаршрут: тестовый (1000 км туда)\nКилометраж: ${displayKm} км\nИтоговая цена: ${price} ₽\n${detailsText}`;
+            let body = `ЗАЯВКА ООО "ДЮНА"\nИмя: ${name}\nТелефон: ${phone}\nEmail: ${email}\nКомментарий: ${comment}\n\nМаршрут: тестовый (${currentDistance} км туда)\nКилометраж: ${displayKm} км\nИтоговая цена: ${price} ₽\n${detailsText}`;
             window.location.href = `mailto:info@duna-logist.ru?subject=Заявка на перевозку от ${name}&body=${encodeURIComponent(body)}`;
             alert("Заявка подготовлена. Отправьте письмо на info@duna-logist.ru для подтверждения.");
         };
@@ -528,15 +557,24 @@
         document.getElementById('calculatorPage').style.display = 'block';
     };
     document.getElementById('calcRouteBtn').onclick = setTestRoute;
-    document.getElementById('continueTypeBtn').onclick = () => {
-        if (currentDistance === 0) { alert("Сначала установите маршрут (нажмите кнопку 'Установить маршрут (1000 км)')"); return; }
-        let ltl = document.getElementById('typeLTL').checked;
-        let ded = document.getElementById('typeDedicated').checked;
-        if (!ltl && !ded) { alert("Выберите тип перевозки"); return; }
-        selectedShipType = ltl ? 'ltl' : 'dedicated';
+    
+    // Логика выбора карточки типа
+    const typeCards = document.querySelectorAll('.type-card');
+    const continueBtn = document.getElementById('continueTypeBtn');
+    typeCards.forEach(card => {
+        card.addEventListener('click', () => {
+            typeCards.forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            selectedShipType = card.getAttribute('data-type');
+            continueBtn.disabled = false;
+        });
+    });
+    continueBtn.onclick = () => {
+        if (!selectedShipType) { alert("Выберите тип перевозки"); return; }
         showDynamicForm();
         document.getElementById('dynamicForms').scrollIntoView({ behavior: 'smooth' });
     };
+    
     document.getElementById('roundTripToggle').addEventListener('change', () => {
         if (currentDistance > 0) updateDisplay();
     });

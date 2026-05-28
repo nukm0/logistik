@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -317,7 +316,7 @@
             </div>
             <div class="distance-box" id="distanceDisplay">
                 <div><i class="fas fa-road"></i> Километраж: <strong id="distanceKm">— км</strong></div>
-                <div><i class="fas fa-ruble-sign"></i> Базовая цена: <strong id="basePrice">— ₽</strong></div>
+                <div><i class="fas fa-ruble-sign"></i> Базовая цена (предварительная): <strong id="basePrice">— ₽</strong></div>
                 <span id="roundHint"></span>
             </div>
             <div id="routeError" class="error-message" style="display: none;"></div>
@@ -352,7 +351,7 @@
                     <div class="input-field"><label>Ваше имя</label><input id="clientName" required></div>
                     <div class="input-field"><label>Телефон</label><input id="clientPhone" required></div>
                     <div class="input-field"><label>Email</label><input id="clientEmail" type="email" required></div>
-                    <div class="input-field"><label>Комментарий</label><textarea id="clientComment" rows="2"></textarea></div>
+                    <div class="input-field"><label>Комментарий к заказу</label><textarea id="clientComment" rows="2"></textarea></div>
                     <button type="submit" class="btn"><i class="fas fa-paper-plane"></i> Отправить заявку</button>
                 </form>
             </div>
@@ -365,8 +364,7 @@
     let myMap;
     let fromPlacemark, toPlacemark;
     let currentRoute = null;
-    let currentDistance = 0;      // реальное расстояние туда (без учёта кругорейса)
-    let routeBuilt = false;
+    let currentDistance = 0;      // расстояние в одну сторону (км)
     let selectedShipType = null;
 
     let dedicatedData = { vehicle: null, bodyType: null, loadingOptions: [], extraOptions: [] };
@@ -389,7 +387,7 @@
         return Math.max(cost, 3000);
     }
 
-    // Обновление отображения километража и цены (с учётом кругорейса)
+    // Обновление отображения километража и предварительной цены
     function updateDisplay() {
         if (currentDistance > 0) {
             let round = document.getElementById('roundTripToggle').checked;
@@ -405,7 +403,7 @@
         }
     }
 
-    // Полные расчёты для типов перевозок
+    // Полные расчёты для типов перевозок (зависят от расстояния с учётом кругорейса)
     function calcDedicatedPrice(distOneWay, round, mult, extras) {
         let base = calcBasePrice(distOneWay, round);
         let veh = base * mult;
@@ -481,7 +479,7 @@
         } catch(e) {}
     }
 
-    // ПОСТРОЕНИЕ МАРШРУТА (стабильная версия с MultiRoute)
+    // ПОСТРОЕНИЕ МАРШРУТА (стабильная версия с ymaps.route)
     async function buildRoute() {
         const btn = document.getElementById('calcRouteBtn');
         const originalText = btn.innerHTML;
@@ -524,61 +522,33 @@
         
         if (currentRoute) myMap.geoObjects.remove(currentRoute);
         
-        // Используем MultiRoute с корректной обработкой
-        const multiRoute = new ymaps.multiRouter.MultiRoute({
-            referencePoints: [
+        // Используем ymaps.route (надёжный и простой)
+        try {
+            const route = await ymaps.route([
                 [fromCoords.lat, fromCoords.lon],
                 [toCoords.lat, toCoords.lon]
-            ],
-            params: { routingMode: 'auto' }
-        }, { boundsAutoApply: true });
-        
-        let resolved = false;
-        const timeout = setTimeout(() => {
-            if (!resolved) {
-                errorDiv.innerHTML = "⚠️ Превышено время ожидания маршрута. Попробуйте другие адреса.";
-                errorDiv.style.display = 'block';
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-                resolved = true;
-            }
-        }, 15000);
-        
-        multiRoute.model.events.add('requestsuccess', () => {
-            if (resolved) return;
-            resolved = true;
-            clearTimeout(timeout);
-            let length = multiRoute.getLength();
+            ]);
+            const length = route.getLength();
             if (length && length > 0) {
                 currentDistance = Math.round(length / 1000);
-                routeBuilt = true;
-                updateDisplay();  // отобразит километраж с учётом кругорейса
-                myMap.geoObjects.add(multiRoute);
-                currentRoute = multiRoute;
-                myMap.geoObjects.add(fromPlacemark);
-                myMap.geoObjects.add(toPlacemark);
+                updateDisplay();  // обновит километраж и базовую цену с учётом кругорейса
+                myMap.geoObjects.add(route);
+                currentRoute = route;
+                myMap.setBounds(route.getBounds(), { checkZoomRange: true });
                 document.getElementById('typeBlock').style.display = 'block';
                 errorDiv.style.display = 'none';
             } else {
                 errorDiv.innerHTML = "Не удалось проложить маршрут (длина равна 0)";
                 errorDiv.style.display = 'block';
             }
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-        });
-        
-        multiRoute.model.events.add('requesterror', (err) => {
-            if (resolved) return;
-            resolved = true;
-            clearTimeout(timeout);
+        } catch (err) {
             console.error(err);
             errorDiv.innerHTML = "❌ Ошибка построения маршрута. Проверьте адреса или повторите попытку.";
             errorDiv.style.display = 'block';
+        } finally {
             btn.innerHTML = originalText;
             btn.disabled = false;
-        });
-        
-        myMap.geoObjects.add(multiRoute);
+        }
     }
 
     // Умный поиск улиц

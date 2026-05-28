@@ -3,24 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>ООО "Дюна" — Калькулятор километража</title>
+    <title>ООО "Дюна" — Расчёт километража</title>
     <script src="https://api-maps.yandex.ru/2.1/?apikey=11bec915-26aa-47af-8ee5-2cf9ff56e3e1&lang=ru_RU"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #2b1b3d 0%, #1a0f2e 100%);
             color: #f0eef7;
             min-height: 100vh;
         }
-
         .navbar {
             background: rgba(255, 255, 255, 0.08);
             backdrop-filter: blur(10px);
@@ -32,7 +26,6 @@
             gap: 1rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
-
         .logo {
             font-size: 1.8rem;
             font-weight: 800;
@@ -41,18 +34,8 @@
             background-clip: text;
             color: transparent;
         }
-
-        .logo i {
-            background: none;
-            color: #c084fc;
-            margin-right: 8px;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-        }
-
+        .logo i { background: none; color: #c084fc; margin-right: 8px; }
+        .nav-links { display: flex; gap: 2rem; }
         .nav-links a {
             text-decoration: none;
             font-weight: 600;
@@ -60,18 +43,8 @@
             transition: 0.2s;
             cursor: pointer;
         }
-
-        .nav-links a:hover,
-        .nav-links a.active {
-            color: #c084fc;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem 1.8rem;
-        }
-
+        .nav-links a:hover, .nav-links a.active { color: #c084fc; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem 1.8rem; }
         .card {
             background: rgba(255, 255, 255, 0.07);
             backdrop-filter: blur(4px);
@@ -81,7 +54,6 @@
             margin-bottom: 2rem;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-
         .step-title {
             font-size: 1.5rem;
             font-weight: 700;
@@ -93,20 +65,14 @@
             padding-left: 1rem;
             color: #f0eef7;
         }
-
-        .input-field {
-            margin-bottom: 1.2rem;
-        }
-
+        .input-field { margin-bottom: 1.2rem; }
         .input-field label {
             font-weight: 600;
             font-size: 0.85rem;
             margin-bottom: 6px;
             display: block;
             color: #d9c6f0;
-            letter-spacing: 0.3px;
         }
-
         .input-field input {
             width: 100%;
             padding: 14px 18px;
@@ -116,35 +82,26 @@
             color: #f0eef7;
             font-size: 1rem;
             font-family: inherit;
-            transition: all 0.2s ease;
         }
-
         .input-field input:focus {
             outline: none;
             border-color: #c084fc;
             background: rgba(10, 5, 20, 0.7);
             box-shadow: 0 0 0 3px rgba(192, 132, 252, 0.2);
         }
-
         .map-container {
             margin-bottom: 1.5rem;
             border-radius: 28px;
             overflow: hidden;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-
-        #map {
-            height: 380px;
-            width: 100%;
-        }
-
+        #map { height: 380px; width: 100%; }
         .map-tools {
             display: flex;
             gap: 15px;
             margin: 12px 0 20px;
             justify-content: center;
         }
-
         .map-btn {
             background: rgba(255, 255, 255, 0.1);
             border: none;
@@ -152,30 +109,19 @@
             border-radius: 40px;
             font-weight: 600;
             cursor: pointer;
-            transition: 0.2s;
             display: inline-flex;
             align-items: center;
             gap: 8px;
             color: #d9c6f0;
         }
-
-        .map-btn.active {
-            background: #c084fc;
-            color: #1a0f2e;
-        }
-
+        .map-btn.active { background: #c084fc; color: #1a0f2e; }
         .toggle-switch {
             display: inline-flex;
             align-items: center;
             gap: 12px;
             cursor: pointer;
-            user-select: none;
         }
-
-        .toggle-switch input {
-            display: none;
-        }
-
+        .toggle-switch input { display: none; }
         .slider {
             width: 54px;
             height: 30px;
@@ -184,7 +130,6 @@
             position: relative;
             transition: 0.25s;
         }
-
         .slider:before {
             content: "";
             position: absolute;
@@ -196,15 +141,8 @@
             left: 2px;
             transition: 0.25s;
         }
-
-        .toggle-switch input:checked + .slider {
-            background: #c084fc;
-        }
-
-        .toggle-switch input:checked + .slider:before {
-            transform: translateX(24px);
-        }
-
+        .toggle-switch input:checked + .slider { background: #c084fc; }
+        .toggle-switch input:checked + .slider:before { transform: translateX(24px); }
         .btn {
             background: #c084fc;
             border: none;
@@ -213,21 +151,12 @@
             font-weight: 700;
             color: #1a0f2e;
             cursor: pointer;
-            transition: 0.2s;
-            font-family: inherit;
             display: inline-flex;
             align-items: center;
-            justify-content: center;
             gap: 10px;
             font-size: 1rem;
         }
-
-        .btn:disabled {
-            background: #7e5aa0;
-            cursor: not-allowed;
-            opacity: 0.6;
-        }
-
+        .btn:disabled { background: #7e5aa0; opacity: 0.6; }
         .distance-box {
             background: rgba(0, 0, 0, 0.3);
             border-radius: 28px;
@@ -235,11 +164,9 @@
             margin-top: 1rem;
             display: flex;
             justify-content: space-between;
-            align-items: center;
             flex-wrap: wrap;
             gap: 10px;
         }
-
         .error-message {
             background: rgba(255, 100, 100, 0.2);
             border-radius: 20px;
@@ -249,7 +176,6 @@
             font-size: 0.85rem;
             text-align: center;
         }
-
         .loader {
             display: inline-block;
             width: 20px;
@@ -259,25 +185,11 @@
             border-top-color: transparent;
             animation: spin 0.6s linear infinite;
         }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .page {
-            display: none;
-        }
-
-        .page.active-page {
-            display: block;
-        }
-
-        @media (max-width: 780px) {
-            .map-tools {
-                flex-direction: column;
-                align-items: center;
-            }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+        .page { display: none; }
+        .page.active-page { display: block; }
+        @media (max-width: 780px) { .grid-2col { grid-template-columns: 1fr; } .map-tools { flex-direction: column; align-items: center; } }
     </style>
 </head>
 <body>
@@ -290,36 +202,33 @@
     </div>
 </div>
 <div class="container">
-    <!-- Главная страница -->
+    <!-- Главная -->
     <div id="homePage" class="page active-page">
         <div class="card" style="background: linear-gradient(110deg, rgba(43,27,61,0.8), rgba(26,15,46,0.9));">
-            <h1 style="font-size: 2rem;">🚛 Рассчитайте километраж маршрута</h1>
-            <p style="font-size: 1.2rem;">Интерактивная карта, умный поиск адресов, точный километраж по дорогам.</p>
+            <h1 style="font-size: 2rem;">🚛 Расчёт километража маршрута</h1>
+            <p style="font-size: 1.2rem;">Выберите точки на карте или введите адрес — получите точное расстояние по дорогам.</p>
             <button class="btn" id="gotoCalcHome" style="margin-top: 1.5rem;"><i class="fas fa-calculator"></i> Перейти к калькулятору</button>
         </div>
     </div>
-
-    <!-- Страница "О компании" -->
+    <!-- О компании -->
     <div id="aboutPage" class="page">
         <div class="card">
             <div class="step-title"><i class="fas fa-truck"></i> ООО "Дюна"</div>
-            <p>Работаем с 2015 года, автопарк от 1,5 до 20 тонн. Сборные грузы и выделенный транспорт. Надёжность, скорость и прозрачные цены — наши принципы.</p>
-            <br>
-            <p><i class="fas fa-phone-alt"></i> 8 (800) 555-66-77</p>
+            <p>Работаем с 2015 года, автопарк от 1,5 до 20 тонн. Сборные грузы и выделенный транспорт. Надёжность, скорость и прозрачные цены.</p>
+            <br><p><i class="fas fa-phone-alt"></i> 8 (800) 555-66-77</p>
             <p><i class="fas fa-envelope"></i> info@duna-logist.ru</p>
         </div>
     </div>
-
-    <!-- Страница калькулятора -->
+    <!-- Калькулятор -->
     <div id="calculatorPage" class="page">
         <div class="card">
-            <div class="step-title"><i class="fas fa-map-marked-alt"></i> 1. Маршрут на карте</div>
+            <div class="step-title"><i class="fas fa-map-marked-alt"></i> Маршрут на карте</div>
             <div class="map-container"><div id="map"></div></div>
             <div class="map-tools">
                 <button id="selectFromBtn" class="map-btn active"><i class="fas fa-map-marker-alt" style="color:#e74c3c;"></i> Откуда (красный)</button>
                 <button id="selectToBtn" class="map-btn"><i class="fas fa-map-marker-alt" style="color:#3498db;"></i> Куда (синий)</button>
             </div>
-            <div class="grid-2col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+            <div class="grid-2col">
                 <div class="address-group">
                     <h3><i class="fas fa-circle-dot" style="color:#e74c3c;"></i> Откуда</h3>
                     <div class="input-field"><label>Город</label><input type="text" id="fromCity" placeholder="Начните вводить город"></div>
@@ -346,19 +255,19 @@
                 <span id="roundHint"></span>
             </div>
             <div id="routeError" class="error-message" style="display: none;"></div>
-            <div class="info-note" style="font-size: 0.75rem; color: #b9a6d9; margin-top: 8px;">💡 Кликните на карту, чтобы поставить точку. После выбора двух точек нажмите «Рассчитать маршрут».</div>
+            <div class="info-note" style="font-size: 0.75rem; color: #b9a6d9; margin-top: 8px;">💡 Кликните на карту, чтобы поставить точку. Нажмите «Рассчитать маршрут» для построения и расчёта километража.</div>
         </div>
     </div>
 </div>
 
 <script>
     let ymapsReady = false;
-    let myMap;
+    let myMap = null;
     let fromPlacemark, toPlacemark;
     let currentRoute = null;
     let currentDistance = 0;
 
-    // Функция геокодирования
+    // Геокодинг
     async function getCoords(city, street, house) {
         if (!city) return null;
         let query = `${city}, ${street} ${house}`.trim().replace(/\s+/g, ' ');
@@ -371,7 +280,7 @@
                 let pos = members[0].GeoObject.Point.pos.split(' ');
                 return { lon: parseFloat(pos[0]), lat: parseFloat(pos[1]) };
             }
-        } catch (e) { console.warn(e); }
+        } catch(e) { console.warn(e); }
         return null;
     }
 
@@ -398,10 +307,10 @@
                 document.getElementById('toStreet').value = street;
                 document.getElementById('toHouse').value = house;
             }
-        } catch (e) { console.warn(e); }
+        } catch(e) {}
     }
 
-    // Построение маршрута через ymaps.route (надёжно)
+    // Построение маршрута
     async function buildRoute() {
         const btn = document.getElementById('calcRouteBtn');
         const originalText = btn.innerHTML;
@@ -434,21 +343,16 @@
             return;
         }
 
-        // Обновляем маркеры
         if (fromPlacemark) myMap.geoObjects.remove(fromPlacemark);
         fromPlacemark = new ymaps.Placemark([fromCoords.lat, fromCoords.lon], { hintContent: "Отправление" }, { preset: "islands#redDotIcon" });
         myMap.geoObjects.add(fromPlacemark);
         if (toPlacemark) myMap.geoObjects.remove(toPlacemark);
         toPlacemark = new ymaps.Placemark([toCoords.lat, toCoords.lon], { hintContent: "Назначение" }, { preset: "islands#blueDotIcon" });
         myMap.geoObjects.add(toPlacemark);
-
         if (currentRoute) myMap.geoObjects.remove(currentRoute);
 
         try {
-            const route = await ymaps.route([
-                [fromCoords.lat, fromCoords.lon],
-                [toCoords.lat, toCoords.lon]
-            ]);
+            const route = await ymaps.route([[fromCoords.lat, fromCoords.lon], [toCoords.lat, toCoords.lon]]);
             const length = route.getLength();
             if (length && length > 0) {
                 currentDistance = Math.round(length / 1000);
@@ -461,12 +365,11 @@
                 myMap.setBounds(route.getBounds(), { checkZoomRange: true });
                 errorDiv.style.display = 'none';
             } else {
-                errorDiv.innerHTML = "Не удалось проложить маршрут (длина равна 0)";
+                errorDiv.innerHTML = "Не удалось проложить маршрут";
                 errorDiv.style.display = 'block';
             }
         } catch (err) {
-            console.error(err);
-            errorDiv.innerHTML = "❌ Ошибка построения маршрута. Проверьте адреса или повторите попытку.";
+            errorDiv.innerHTML = "❌ Ошибка построения маршрута. Проверьте адреса.";
             errorDiv.style.display = 'block';
         } finally {
             btn.innerHTML = originalText;
@@ -476,12 +379,18 @@
 
     // Инициализация карты
     function initMap() {
-        if (!ymapsReady) return;
+        if (!ymapsReady || myMap) return;
+        // Принудительно убедимся, что контейнер видим и имеет размеры
+        const mapContainer = document.getElementById('map');
+        if (!mapContainer) return;
         myMap = new ymaps.Map("map", {
             center: [55.751574, 37.573856],
             zoom: 9,
             controls: ["zoomControl", "fullscreenControl"]
         });
+        // Обновляем размер после создания
+        setTimeout(() => myMap.container.fitToViewport(), 100);
+
         myMap.events.add("click", async (e) => {
             let coords = e.get("coords");
             let lat = coords[0], lon = coords[1];
@@ -499,15 +408,25 @@
         });
     }
 
-    // Навигация
+    // Навигация по страницам
     function setActivePage(pageId) {
-        document.querySelectorAll('.page').forEach(page => page.classList.remove('active-page'));
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
         document.getElementById(pageId).classList.add('active-page');
         document.querySelectorAll('.nav-links a').forEach(link => link.classList.remove('active'));
         let pageName = pageId === 'homePage' ? 'home' : (pageId === 'calculatorPage' ? 'calculator' : 'about');
         document.querySelector(`.nav-links a[data-page="${pageName}"]`).classList.add('active');
+
+        // При переходе на страницу калькулятора — инициализируем карту
+        if (pageId === 'calculatorPage' && ymapsReady && !myMap) {
+            initMap();
+        }
+        // Если карта уже есть, но была скрыта — обновляем размер
+        if (pageId === 'calculatorPage' && myMap) {
+            setTimeout(() => myMap.container.fitToViewport(), 50);
+        }
     }
 
+    // События
     document.querySelectorAll('.nav-links a').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
@@ -517,10 +436,15 @@
             else if (pageName === 'about') setActivePage('aboutPage');
         });
     });
-
-    document.getElementById('gotoCalcHome').addEventListener('click', () => {
-        setActivePage('calculatorPage');
-        if (ymapsReady && !myMap) initMap();
+    document.getElementById('gotoCalcHome').addEventListener('click', () => setActivePage('calculatorPage'));
+    document.getElementById('calcRouteBtn').onclick = buildRoute;
+    document.getElementById('roundTripToggle').addEventListener('change', () => {
+        if (currentDistance > 0) {
+            let round = document.getElementById('roundTripToggle').checked;
+            let displayKm = round ? currentDistance * 2 : currentDistance;
+            document.getElementById('distanceKm').innerText = displayKm + " км";
+            document.getElementById('roundHint').innerHTML = round ? `(кругорейс: ${currentDistance} км × 2 = ${displayKm} км)` : "";
+        }
     });
 
     window.pickMode = "from";
@@ -534,23 +458,16 @@
         document.getElementById('selectToBtn').classList.add('active');
         document.getElementById('selectFromBtn').classList.remove('active');
     };
-    document.getElementById('calcRouteBtn').onclick = buildRoute;
-    document.getElementById('roundTripToggle').addEventListener('change', () => {
-        if (currentDistance > 0) {
-            let round = document.getElementById('roundTripToggle').checked;
-            let displayKm = round ? currentDistance * 2 : currentDistance;
-            document.getElementById('distanceKm').innerText = displayKm + " км";
-            document.getElementById('roundHint').innerHTML = round ? `(кругорейс: ${currentDistance} км × 2 = ${displayKm} км)` : "";
-        }
-    });
 
-    // Умный поиск городов
-    let cityFromSuggest, cityToSuggest;
+    // Яндекс.Карты готовы
     ymaps.ready(() => {
         ymapsReady = true;
-        cityFromSuggest = new ymaps.SuggestView('fromCity', { results: 8 });
-        cityToSuggest = new ymaps.SuggestView('toCity', { results: 8 });
-        if (document.getElementById('calculatorPage').classList.contains('active-page')) initMap();
+        new ymaps.SuggestView('fromCity', { results: 8 });
+        new ymaps.SuggestView('toCity', { results: 8 });
+        // Если при загрузке активна страница калькулятора — сразу создаём карту
+        if (document.getElementById('calculatorPage').classList.contains('active-page')) {
+            initMap();
+        }
     });
 </script>
 </body>

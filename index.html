@@ -167,28 +167,10 @@
             flex-wrap: wrap;
             gap: 10px;
         }
-        .error-message {
-            background: rgba(255, 100, 100, 0.2);
-            border-radius: 20px;
-            padding: 10px 16px;
-            margin-top: 15px;
-            color: #ffaaaa;
-            font-size: 0.85rem;
-            text-align: center;
-        }
-        .loader {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid #fff;
-            border-radius: 50%;
-            border-top-color: transparent;
-            animation: spin 0.6s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
         .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
         .page { display: none; }
         .page.active-page { display: block; }
+        .info-note { font-size: 0.75rem; color: #b9a6d9; margin-top: 8px; }
         @media (max-width: 780px) { .grid-2col { grid-template-columns: 1fr; } .map-tools { flex-direction: column; align-items: center; } }
     </style>
 </head>
@@ -242,7 +224,7 @@
                     <div class="input-field"><label>Дом</label><input type="text" id="toHouse" placeholder="дом"></div>
                 </div>
             </div>
-            <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+            <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; align-items: center;">
                 <div class="toggle-switch">
                     <input type="checkbox" id="roundTripToggle">
                     <span class="slider"></span>
@@ -254,9 +236,13 @@
                 <div><i class="fas fa-road"></i> Километраж: <strong id="distanceKm">— км</strong></div>
                 <span id="roundHint"></span>
             </div>
-            <div id="routeError" class="error-message" style="display: none;"></div>
-            <div class="info-note" style="font-size: 0.75rem; color: #b9a6d9; margin-top: 8px;">💡 Кликните на карту, чтобы поставить точку. Нажмите «Рассчитать маршрут» для построения и расчёта километража.</div>
+            <div id="nextStepBlock" style="display: none; margin-top: 20px; text-align: center;">
+                <button class="btn" id="goToNextStep"><i class="fas fa-arrow-right"></i> Далее →</button>
+            </div>
+            <div class="info-note">💡 Кликните на карту, чтобы поставить точку. Нажмите «Рассчитать маршрут» для построения и расчёта километража.</div>
         </div>
+        <!-- Здесь будут динамические формы (пока пусто) -->
+        <div id="dynamicForms"></div>
     </div>
 </div>
 
@@ -265,8 +251,9 @@
     let myMap = null;
     let fromPlacemark, toPlacemark;
     let currentRoute = null;
-    let currentDistance = 0;
+    let currentDistance = 0;       // расстояние в одну сторону (км)
 
+    // Геокодинг
     async function getCoords(city, street, house) {
         if (!city) return null;
         let query = `${city}, ${street} ${house}`.trim().replace(/\s+/g, ' ');
@@ -309,13 +296,27 @@
         } catch(e) {}
     }
 
+    // Обновление отображения километража с учётом кругорейса
+    function updateDistanceDisplay() {
+        if (currentDistance > 0) {
+            let round = document.getElementById('roundTripToggle').checked;
+            let displayKm = round ? currentDistance * 2 : currentDistance;
+            document.getElementById('distanceKm').innerText = displayKm + " км";
+            document.getElementById('roundHint').innerHTML = round ? `(кругорейс: ${currentDistance} км × 2 = ${displayKm} км)` : "";
+            document.getElementById('nextStepBlock').style.display = 'block';
+        } else {
+            document.getElementById('distanceKm').innerText = "— км";
+            document.getElementById('roundHint').innerHTML = "";
+            document.getElementById('nextStepBlock').style.display = 'none';
+        }
+    }
+
+    // Построение маршрута (без вывода ошибки на успешное построение)
     async function buildRoute() {
         const btn = document.getElementById('calcRouteBtn');
         const originalText = btn.innerHTML;
         btn.innerHTML = '<span class="loader"></span> Построение...';
         btn.disabled = true;
-        const errorDiv = document.getElementById('routeError');
-        errorDiv.style.display = 'none';
 
         let fromCity = document.getElementById('fromCity').value.trim();
         let fromStreet = document.getElementById('fromStreet').value.trim();
@@ -334,13 +335,13 @@
         let fromCoords = await getCoords(fromCity, fromStreet, fromHouse);
         let toCoords = await getCoords(toCity, toStreet, toHouse);
         if (!fromCoords || !toCoords) {
-            errorDiv.innerHTML = "❌ Не удалось определить координаты адресов. Проверьте правильность ввода.";
-            errorDiv.style.display = 'block';
+            alert("❌ Не удалось определить координаты адресов. Проверьте правильность ввода или кликните на карту.");
             btn.innerHTML = originalText;
             btn.disabled = false;
             return;
         }
 
+        // Обновляем маркеры
         if (fromPlacemark) myMap.geoObjects.remove(fromPlacemark);
         fromPlacemark = new ymaps.Placemark([fromCoords.lat, fromCoords.lon], { hintContent: "Отправление" }, { preset: "islands#redDotIcon" });
         myMap.geoObjects.add(fromPlacemark);
@@ -354,28 +355,23 @@
             const length = route.getLength();
             if (length && length > 0) {
                 currentDistance = Math.round(length / 1000);
-                let round = document.getElementById('roundTripToggle').checked;
-                let displayKm = round ? currentDistance * 2 : currentDistance;
-                document.getElementById('distanceKm').innerText = displayKm + " км";
-                document.getElementById('roundHint').innerHTML = round ? `(кругорейс: ${currentDistance} км × 2 = ${displayKm} км)` : "";
+                updateDistanceDisplay();
                 myMap.geoObjects.add(route);
                 currentRoute = route;
                 myMap.setBounds(route.getBounds(), { checkZoomRange: true });
-                errorDiv.style.display = 'none'; // успех — скрываем ошибку
             } else {
-                errorDiv.innerHTML = "Не удалось проложить маршрут (длина равна 0)";
-                errorDiv.style.display = 'block';
+                alert("Не удалось проложить маршрут (получена нулевая длина)");
             }
         } catch (err) {
             console.error(err);
-            errorDiv.innerHTML = "❌ Ошибка построения маршрута. Проверьте адреса или попробуйте кликнуть на карту.";
-            errorDiv.style.display = 'block';
+            alert("❌ Ошибка построения маршрута. Проверьте адреса или попробуйте кликнуть на карту.");
         } finally {
             btn.innerHTML = originalText;
             btn.disabled = false;
         }
     }
 
+    // Инициализация карты
     function initMap() {
         if (!ymapsReady || myMap) return;
         myMap = new ymaps.Map("map", {
@@ -402,6 +398,7 @@
         });
     }
 
+    // Навигация по страницам
     function setActivePage(pageId) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
         document.getElementById(pageId).classList.add('active-page');
@@ -412,6 +409,7 @@
         if (pageId === 'calculatorPage' && myMap) setTimeout(() => myMap.container.fitToViewport(), 50);
     }
 
+    // События
     document.querySelectorAll('.nav-links a').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
@@ -423,13 +421,11 @@
     });
     document.getElementById('gotoCalcHome').addEventListener('click', () => setActivePage('calculatorPage'));
     document.getElementById('calcRouteBtn').onclick = buildRoute;
-    document.getElementById('roundTripToggle').addEventListener('change', () => {
-        if (currentDistance > 0) {
-            let round = document.getElementById('roundTripToggle').checked;
-            let displayKm = round ? currentDistance * 2 : currentDistance;
-            document.getElementById('distanceKm').innerText = displayKm + " км";
-            document.getElementById('roundHint').innerHTML = round ? `(кругорейс: ${currentDistance} км × 2 = ${displayKm} км)` : "";
-        }
+    document.getElementById('roundTripToggle').addEventListener('change', updateDistanceDisplay);
+
+    // Кнопка "Далее" — пока просто алерт, позже подключим формы
+    document.getElementById('goToNextStep').addEventListener('click', () => {
+        alert("Далее будет переход к выбору типа перевозки (сборный/выделенный) и анкете. Функционал добавим после согласования.");
     });
 
     window.pickMode = "from";
@@ -444,6 +440,7 @@
         document.getElementById('selectFromBtn').classList.remove('active');
     };
 
+    // Инициализация Яндекса
     ymaps.ready(() => {
         ymapsReady = true;
         new ymaps.SuggestView('fromCity', { results: 8 });

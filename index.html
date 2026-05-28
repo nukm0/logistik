@@ -114,6 +114,7 @@
             margin-top: 1rem;
             display: flex;
             justify-content: space-between;
+            align-items: center;
             flex-wrap: wrap;
             gap: 10px;
         }
@@ -286,7 +287,7 @@
     <div id="homePage" class="page active-page">
         <div class="card" style="background: linear-gradient(110deg, rgba(43,27,61,0.8), rgba(26,15,46,0.9));">
             <h1 style="font-size: 2rem;">🚛 Рассчитайте грузоперевозку за минуту</h1>
-            <p style="font-size: 1.2rem;">Фиксированное расстояние: 1000 км. Выберите тип перевозки и заполните детали.</p>
+            <p style="font-size: 1.2rem;">Базовое расстояние: 1000 км. Переключатель «Кругорейс» удваивает километраж.</p>
             <button class="btn" id="gotoCalcHome" style="margin-top: 1.5rem;"><i class="fas fa-calculator"></i> Перейти к калькулятору</button>
         </div>
     </div>
@@ -302,9 +303,14 @@
     <!-- Калькулятор -->
     <div id="calculatorPage" class="page">
         <div class="card">
-            <div class="step-title"><i class="fas fa-route"></i> 1. Расстояние (фиксированное)</div>
-            <div style="text-align: center; margin-bottom: 1rem;">
-                <button class="btn" id="calcRouteBtn"><i class="fas fa-route"></i> Установить маршрут (1000 км)</button>
+            <div class="step-title"><i class="fas fa-route"></i> 1. Расстояние</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div class="toggle-switch">
+                    <input type="checkbox" id="roundTripToggle">
+                    <span class="slider"></span>
+                    <span class="toggle-label"><i class="fas fa-redo-alt"></i> Кругорейс (туда-обратно)</span>
+                </div>
+                <button class="btn" id="setDistanceBtn"><i class="fas fa-route"></i> Установить базовый маршрут (1000 км)</button>
             </div>
             <div class="distance-box" id="distanceDisplay">
                 <div><i class="fas fa-road"></i> Километраж: <strong id="distanceKm">— км</strong></div>
@@ -347,13 +353,15 @@
 </div>
 
 <script>
-    // Фиксированное расстояние 1000 км (без кругорейса)
-    let currentDistance = 0;
+    // Базовое расстояние 1000 км, кругорейс удваивает
+    let baseDistance = 1000;
+    let currentDistance = baseDistance;   // итоговое расстояние с учётом кругорейса
     let selectedShipType = null;
     let dedicatedData = { vehicle: null, bodyType: null, loadingOptions: [], extraOptions: [] };
     let ltlCargoList = [];
+    let distanceSet = false;
 
-    // Тарифы (базовые)
+    // Тарифы
     function getRatePerKm(d) {
         if (d <= 10) return 150;
         if (d <= 40) return 108;
@@ -396,12 +404,49 @@
         { name: "20т / 115м³", multiplier: 2.3, icon: "fa-truck" }
     ];
 
-    // Установка фиксированного маршрута
-    function setFixedRoute() {
-        currentDistance = 1000;
+    // Обновление отображения километража с учётом кругорейса
+    function updateDistanceDisplay() {
+        let round = document.getElementById('roundTripToggle').checked;
+        currentDistance = round ? baseDistance * 2 : baseDistance;
         document.getElementById('distanceKm').innerText = currentDistance + " км";
+        // Если уже есть выбранный тип и формы, пересчитываем цену (если открыта итоговая)
+        if (selectedShipType && document.getElementById('finalOrderBlock').style.display === 'block') {
+            // Пересчёт цены в зависимости от типа
+            if (selectedShipType === 'ltl') {
+                let price = calcLTLPrice(currentDistance, ltlCargoList);
+                document.querySelector('#finalDetails .price-badge').innerText = price + " ₽";
+                // обновим текст в деталях
+                let detailsDiv = document.getElementById('finalDetails');
+                if (detailsDiv) {
+                    let roundText = round ? "(кругорейс)" : "";
+                    detailsDiv.innerHTML = `<div class="distance-box" style="margin-bottom:20px;">
+                        <div><strong>Маршрут:</strong> Фиксированный ${roundText}</div>
+                        <div><strong>Километраж:</strong> ${currentDistance} км</div>
+                        <div><strong>Итоговая стоимость:</strong> <span class="price-badge" style="font-size:1.2rem;">${price} ₽</span></div>
+                        <div><strong>Детали:</strong> Сборный груз (${ltlCargoList.length} позиций)</div>
+                    </div>`;
+                }
+            } else if (selectedShipType === 'dedicated' && dedicatedData.vehicle) {
+                let price = calcDedicatedPrice(currentDistance, dedicatedData.vehicle.multiplier, dedicatedData.extraOptions);
+                let detailsDiv = document.getElementById('finalDetails');
+                if (detailsDiv) {
+                    let roundText = round ? "(кругорейс)" : "";
+                    detailsDiv.innerHTML = `<div class="distance-box" style="margin-bottom:20px;">
+                        <div><strong>Маршрут:</strong> Фиксированный ${roundText}</div>
+                        <div><strong>Километраж:</strong> ${currentDistance} км</div>
+                        <div><strong>Итоговая стоимость:</strong> <span class="price-badge" style="font-size:1.2rem;">${price} ₽</span></div>
+                        <div><strong>Детали:</strong> ${dedicatedData.vehicle.name}, кузов ${dedicatedData.bodyType}, доп: ${dedicatedData.extraOptions.join(', ') || 'нет'}</div>
+                    </div>`;
+                }
+            }
+        }
+    }
+
+    // Установка базового маршрута
+    function setBaseRoute() {
+        distanceSet = true;
+        updateDistanceDisplay();
         document.getElementById('typeSelectorBlock').style.display = 'block';
-        // Прокрутка к выбору типа
         document.getElementById('typeSelectorBlock').scrollIntoView({ behavior: 'smooth' });
     }
 
@@ -438,12 +483,12 @@
                 let html = `<div class="cargo-item">
                     <div class="cargo-header"><i class="fas fa-box"></i><span>Груз ${idx+1}</span></div>
                     <div class="cargo-fields">
-                        <div class="field"><label>Длина(см)</label><input type="number" class="len" value="${c.length}"></div>
-                        <div class="field"><label>Ширина(см)</label><input type="number" class="wid" value="${c.width}"></div>
-                        <div class="field"><label>Высота(см)</label><input type="number" class="hei" value="${c.height}"></div>
+                        <div class="field"><label>Длина (см)</label><input type="number" class="len" value="${c.length}"></div>
+                        <div class="field"><label>Ширина (см)</label><input type="number" class="wid" value="${c.width}"></div>
+                        <div class="field"><label>Высота (см)</label><input type="number" class="hei" value="${c.height}"></div>
                         <div class="field"><label>Вес</label><input type="number" class="wgt" value="${c.weightVal}"></div>
-                        <div class="field"><label>Ед.веса</label><select class="unit"><option ${c.weightUnit==='кг'?'selected':''}>кг</option><option ${c.weightUnit==='т'?'selected':''}>т</option></select></div>
-                        <div class="field"><label>Кол-во(шт)</label><input type="number" class="qty" value="${c.qty}"></div>
+                        <div class="field"><label>Ед. веса</label><select class="unit"><option ${c.weightUnit==='кг'?'selected':''}>кг</option><option ${c.weightUnit==='т'?'selected':''}>т</option></select></div>
+                        <div class="field"><label>Кол-во (шт)</label><input type="number" class="qty" value="${c.qty}"></div>
                     </div>
                     <div class="cargo-actions">
                         <div class="cargo-toggles">
@@ -556,8 +601,10 @@
     function showFinalOrder(price, detailsText) {
         let finalDiv = document.getElementById('finalOrderBlock');
         let detailsDiv = document.getElementById('finalDetails');
+        let round = document.getElementById('roundTripToggle').checked;
+        let roundText = round ? "(кругорейс)" : "";
         detailsDiv.innerHTML = `<div class="distance-box" style="margin-bottom:20px;">
-            <div><strong>Маршрут:</strong> Фиксированный (1000 км)</div>
+            <div><strong>Маршрут:</strong> Фиксированный ${roundText}</div>
             <div><strong>Километраж:</strong> ${currentDistance} км</div>
             <div><strong>Итоговая стоимость:</strong> <span class="price-badge" style="font-size:1.2rem;">${price} ₽</span></div>
             <div><strong>Детали:</strong> ${detailsText}</div>
@@ -570,7 +617,7 @@
             let phone = document.getElementById('clientPhone').value;
             let email = document.getElementById('clientEmail').value;
             let comment = document.getElementById('clientComment').value;
-            let body = `ЗАЯВКА ООО "ДЮНА"\nИмя: ${name}\nТелефон: ${phone}\nEmail: ${email}\nКомментарий: ${comment}\n\nМаршрут: фиксированный (1000 км)\nКилометраж: ${currentDistance} км\nИтоговая цена: ${price} ₽\n${detailsText}`;
+            let body = `ЗАЯВКА ООО "ДЮНА"\nИмя: ${name}\nТелефон: ${phone}\nEmail: ${email}\nКомментарий: ${comment}\n\nМаршрут: фиксированный (${currentDistance} км)\nИтоговая цена: ${price} ₽\n${detailsText}`;
             window.location.href = `mailto:info@duna-logist.ru?subject=Заявка на перевозку от ${name}&body=${encodeURIComponent(body)}`;
             alert("Заявка подготовлена. Отправьте письмо на info@duna-logist.ru.");
         };
@@ -594,18 +641,23 @@
         });
     });
     document.getElementById('gotoCalcHome').addEventListener('click', () => setActivePage('calculatorPage'));
-    document.getElementById('calcRouteBtn').onclick = setFixedRoute;
+    document.getElementById('setDistanceBtn').onclick = setBaseRoute;
+    document.getElementById('roundTripToggle').addEventListener('change', () => {
+        if (distanceSet) updateDistanceDisplay();
+    });
 
     // Выбор типа груза по клику на карточку
     document.querySelector('.type-selector')?.addEventListener('click', (e) => {
         const card = e.target.closest('.type-card');
-        if (card) {
+        if (card && distanceSet) {
             const type = card.getAttribute('data-type');
             document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
             card.classList.add('selected');
             selectedShipType = type;
             showDynamicForm(type);
             document.getElementById('dynamicForms').scrollIntoView({ behavior: 'smooth' });
+        } else if (!distanceSet) {
+            alert("Сначала установите маршрут (нажмите «Установить базовый маршрут»).");
         }
     });
 </script>
